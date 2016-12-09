@@ -9,7 +9,7 @@ function [] = saveTile2File(image_data,  extent, path, class_label, base_fname, 
 % For Testing use test_saveTile2File
 
 %% input control
-if not(ismember(class_label,{'Urban','Rural','Slum'}))
+if not(ismember(class_label,{'Urban','Rural','Slum','Mixed'}))
     error('saveTile2File: unknown class label!');
 end
 if length(extent) ~= 4
