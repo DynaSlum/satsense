@@ -42,6 +42,21 @@ for sr = 1: nrows_tile : nrows
         ec = min(ncols, sc + ncols_tile - 1);
         extent = [sr er sc ec];
         
+        % adjust the tile size if necessary
+        real_tile_size(1) = er - sr + 1;
+        real_tile_size(2) = ec - sc + 1;
+        
+        if (real_tile_size(1) < tile_size(1)) 
+            tile_size(1) = real_tile_size(1);
+        else
+            tile_size(1) = nrows_tile;
+        end
+        if (real_tile_size(2) < tile_size(2)) 
+            tile_size(2) = real_tile_size(2);
+        else
+            tile_size(2) = ncols_tile;
+        end
+        
         % get the image and masks tile
         image_tile = image_data(sr:er, sc:ec, :);
         slum_tile  = slum_mask(sr:er, sc:ec,:);
