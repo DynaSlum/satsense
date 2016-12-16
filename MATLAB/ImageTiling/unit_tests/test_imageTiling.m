@@ -2,6 +2,9 @@
 
 %% parameters
 tile_size = [333 333];
+stepY = floor(333/2);
+stepX = floor(stepY/2);
+tile_step = [stepX stepY];
 factor = 0.52;
 data_path = 'C:\Projects\DynaSlum\Data\Kalyan\Rasterized_Lourens\';
 image_fname = 'Mumbai_P4_R1C1_3_clipped_rgb.tif';
@@ -18,7 +21,7 @@ tiles_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets\px333m200';
 
 %% tile the image
 disp('Tiling...');
-imageTiling( image_fullfname, tile_size, factor, ...
+imageTiling( image_fullfname, tile_size, tile_step, factor, ...
     masks_fullfnames, tiles_path);
 disp('Done!');
     
