@@ -1,10 +1,11 @@
-function [class_label] = setTileLabel(tile_size, factor, tile_mask_slum, tile_mask_urban, tile_mask_rural)
+function [class_label] = setTileLabel(tile_size, factor, tile_mask_slum, ...
+            tile_mask_builtup, tile_mask_nonbuiltup)
 %% setTileLabel  determine the tile class label given the corresponding tile class  masks
 %   tile_size - vector for 2 elements- the number of rows and columns of the tile
 %   factor - the factor for the minimum number of pixels from all pixels with given label
 %   tile_mask_slum -the corrsponding mask tile with class label 'Slum'
-%   tile_mask_urban -the corrsponding mask tile with class label 'Urban'
-%   tile_mask_rural -the corrsponding mask tile with class label 'Rural'
+%   tile_mask_builtup -the corrsponding mask tile with class label 'BuiltUp'
+%   tile_mask_nonbuiltup -the corrsponding mask tile with class label 'NonBuiltUp'
 %   Returns:
 %   class_label - the tile class_label
 % For Testing use test_setTileLabel
@@ -21,11 +22,11 @@ ncols = tile_size(2);
 %% compute total number of pixels and# pixels per class
 total_num = nrows * ncols;
 num_slum = sum(tile_mask_slum(:));
-num_urban = sum(tile_mask_urban(:));
-num_rural = sum(tile_mask_rural(:));
+num_builtup = sum(tile_mask_builtup(:));
+num_nonbuiltup = sum(tile_mask_nonbuiltup(:));
 
 %% find for which class is the maximum number of pixels
-num_pixels = [num_slum num_urban num_rural];
+num_pixels = [num_slum num_builtup num_nonbuiltup];
 [max_num, max_ind] = max(num_pixels);
 
 %% decide on the final labeling
@@ -40,9 +41,9 @@ else
             case 1
                 class_label= 'Slum';
             case 2
-                class_label = 'Urban';
+                class_label = 'BuiltUp';
             case 3
-                class_label = 'Rural';
+                class_label = 'NonBuiltUp';
         end
     else
         % the number of that maximum class is not big enough

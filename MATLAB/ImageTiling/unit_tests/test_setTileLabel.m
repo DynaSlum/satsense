@@ -6,9 +6,9 @@ factor = 0.5;
 data_path = 'C:\Projects\DynaSlum\Data\Kalyan\Rasterized_Lourens\';
 
 %% import masks
-importfile(fullfile(data_path,'slums_municipality_raster_mask_8.tif'));
-slum_mask = slums_municipality_raster_mask_8;
-clear slums_municipality_raster_mask_8
+importfile(fullfile(data_path,'all_slums.tif'));
+slum_mask = all_slums;
+clear all_slums
 
 importfile(fullfile(data_path,'urban_mask.tif'));
 
@@ -18,27 +18,27 @@ importfile(fullfile(data_path,'rural_mask.tif'));
 for i = 1:6
     switch i
         case 1
-            % 1st test case: unifrom class Urban
+            % 1st test case: unifrom class BuiltUp
             extent = [2332 2664 1000 1332];
-            true_label =  'Urban';
+            true_label =  'BuiltUp';
         case 2
-            % 2nd test case: mixture of Slum and Rural, mostly Slum
+            % 2nd test case: mixture of Slum and NonBuiltUp, mostly Slum
             extent = [3997 4329 1333 1665];
             true_label =  'Slum'; 
         case 3
-            % mixture of Urban and Rural, mostly Rural
+            % mixture of BuiltUp and NonBuiltUp, mostly NonBuiltUp
             extent = [3331 3663 667 999];
-            true_label =  'Rural'; 
+            true_label =  'NonBuiltUp'; 
         case 4
-            % mixture of Slum, Rural and Urban, mostly Slum
+            % mixture of Slum, NonBuiltUp and BuiltUp, mostly Slum
             extent = [5662 5994 3331 3663];
             true_label =  'Slum';            
         case 5
-            % mixture of Slum, Rural and Urban
+            % mixture of Slum, NonBuiltUp and BuiltUp
             extent = [5329 5661 3331 3663];
             true_label =  'Mixed';
         case 6
-            % mixture of Slum and Urban, mostly Slum, non-square tile!
+            % mixture of Slum and BuiltUp, mostly Slum, non-square tile!
             extent = [2332 2664 4663 4872];
             true_label = 'Slum';
     end

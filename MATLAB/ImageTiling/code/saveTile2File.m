@@ -3,13 +3,14 @@ function [] = saveTile2File(image_data,  extent, path, class_label, base_fname, 
 %   image_data - 3D array of image data values
 %   extent - vector of 4 elements, starting and ending row and column indicies
 %   path - dataset path
-%   class_label- the tile/patch class label. Can be one of "Slum", "Urban" or "Rural"
+%   class_label- the tile/patch class label. Can be one of "Slum",
+%               "BuiltUp" or "NonBuiltUp"
 %   base_fname - base file name
 %   ext - filename extention
 % For Testing use test_saveTile2File
 
 %% input control
-if not(ismember(class_label,{'Urban','Rural','Slum','Mixed'}))
+if not(ismember(class_label,{'BuiltUp','NonBuiltUp','Slum','Mixed'}))
     error('saveTile2File: unknown class label!');
 end
 if length(extent) ~= 4

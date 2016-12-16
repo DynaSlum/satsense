@@ -1,39 +1,39 @@
 %% load the image data
 cl;
 data_path = 'C:\Projects\DynaSlum\Data\Kalyan\Rasterized_Lourens\';
-importfile(fullfile(data_path,'Mumbai_P4_R1C1_3_clipped.tif'));
-image_data = Mumbai_P4_R1C1_3_clipped;
-clear Mumbai_P4_R1C1_3_clipped
+importfile(fullfile(data_path,'Mumbai_P4_R1C1_3_clipped_rgb.tif'));
+image_data = Mumbai_P4_R1C1_3_clipped_rgb;
+clear Mumbai_P4_R1C1_3_clipped_rgb
 
 nrows = size(image_data,1);
 ncols = size(image_data,2);
 
 %% load the mask data
 importfile(fullfile(data_path,'rough_urban_mask.tif'));
-importfile(fullfile(data_path,'slums_municipality_raster_mask_8.tif'));
+importfile(fullfile(data_path,'all_slums.tif'));
 
-slums_mask = logical(slums_municipality_raster_mask_8);
-clear slums_municipality_raster_mask_8
+slums_mask = all_slums;
+clear all_slums
 
 
-%% derive urban (w/o slums) and rural masks
-urban_mask = false(nrows, ncols);
-rural_mask = false(nrows, ncols);
+%% derive builup (w/o slums) and nonbuiltup masks
+builtup_mask = false(nrows, ncols);
+nonbuiltup_mask = false(nrows, ncols);
 
 for r = 1:nrows
     for c = 1:ncols
         if and(rough_urban_mask(r,c),not(slums_mask(r,c)))
-            urban_mask(r,c) = true;
+            builtup_mask(r,c) = true;
         end
         if and(not(rough_urban_mask(r,c)),not(slums_mask(r,c)))
-            rural_mask(r,c) = true;
+            nonbuiltup_mask(r,c) = true;
         end
     end
 end
 
 %% save the derived masks
-imwrite(urban_mask,fullfile(data_path,'urban_mask.tif'));
-imwrite(rural_mask,fullfile(data_path,'rural_mask.tif'));
+imwrite(builtup_mask,fullfile(data_path,'urban_mask.tif'));
+imwrite(nonbuiltup_mask,fullfile(data_path,'rural_mask.tif'));
 
 %% prepare colored overlays
 red = cat(3, ones(nrows,ncols), zeros(nrows, ncols), zeros(nrows,ncols));
@@ -51,30 +51,30 @@ hold on;
 hr=imshow(red);
 set(hr, 'AlphaData', 0.2*slums_mask);
 hg=imshow(green);
-set(hg, 'AlphaData', 0.2*urban_mask);
+set(hg, 'AlphaData', 0.2*nonbuiltup_mask);
 hb=imshow(blue);
-set(hb, 'AlphaData', 0.2*rural_mask);
+set(hb, 'AlphaData', 0.2*builtup_mask);
 hold off
 axis on, grid on;
-title('Image data with overalyed labels: red- slums, green - urban(rough) and blue - rural (rough)');
+title('Image data with overalyed labels: red- slums, blue - built-up(rough) and green - non-built-up (rough)');
 
-%% display the image daya and overlap the rural overlay
+%% display the image daya and overlap the non built-up overlay
 figure; imshow(image_data);
 hold on;
-hb=imshow(blue);
-set(hb, 'AlphaData', 0.3*rural_mask);
+hb=imshow(green);
+set(hb, 'AlphaData', 0.3*nonbuiltup_mask);
 hold off
 axis on, grid on;
-title('Image data with overalyed rough rural areas');
+title('Image data with overalyed rough non built-up areas');
 
-%% display the image daya and overlap the urban overlay
+%% display the image daya and overlap the built-up overlay
 figure; imshow(image_data);
 hold on;
-hg=imshow(green);
-set(hg, 'AlphaData', 0.3*urban_mask);
+hg=imshow(blue);
+set(hg, 'AlphaData', 0.3*builtup_mask);
 hold off
 axis on, grid on;
-title('Image data with overalyed rough urban areas');
+title('Image data with overalyed rough built-up areas');
 
 %% display the image daya and overlap the slum overlay
 figure; imshow(image_data);

@@ -4,8 +4,8 @@
 tile_size = [333 333];
 factor = 0.52;
 data_path = 'C:\Projects\DynaSlum\Data\Kalyan\Rasterized_Lourens\';
-image_fname = 'Mumbai_P4_R1C1_3_clipped.tif';
-slum_mask = 'slums_municipality_raster_mask_8.tif';
+image_fname = 'Mumbai_P4_R1C1_3_clipped_rgb.tif';
+slum_mask = 'all_slums.tif';
 urban_mask = 'urban_mask.tif';
 rural_mask = 'rural_mask.tif';
 
