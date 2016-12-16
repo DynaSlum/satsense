@@ -10,6 +10,7 @@ totMask = false( sz ); % accumulate all single object masks to this one
 %% display the figure image data
 figure;
 h_im = imshow(image_data);
+axis on, grid on;
 
 %% draw muliple ROIs
 h = imfreehand( gca ); setColor(h,'red');
