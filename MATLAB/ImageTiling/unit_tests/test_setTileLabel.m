@@ -10,9 +10,9 @@ importfile(fullfile(data_path,'all_slums.tif'));
 slum_mask = all_slums;
 clear all_slums
 
-importfile(fullfile(data_path,'urban_mask.tif'));
+importfile(fullfile(data_path,'builtup_mask.tif'));
 
-importfile(fullfile(data_path,'rural_mask.tif'));
+importfile(fullfile(data_path,'nonbuiltup_mask.tif'));
 
 %% run test cases
 for i = 1:6
@@ -35,7 +35,7 @@ for i = 1:6
             true_label =  'Slum';            
         case 5
             % mixture of Slum, NonBuiltUp and BuiltUp
-            extent = [5329 5661 3331 3663];
+            extent = [5329 5661 3331 3663]; % doesn't pass currently!
             true_label =  'Mixed';
         case 6
             % mixture of Slum and BuiltUp, mostly Slum, non-square tile!
@@ -47,11 +47,11 @@ for i = 1:6
     tile_size(1) = er - sr +1;
     tile_size(2) = ec - sc +1;
     slum_submask  = slum_mask(sr:er, sc:ec,:);
-    urban_submask = urban_mask(sr:er, sc:ec,:);
-    rural_submask = rural_mask(sr:er, sc:ec,:);
+    builtup_submask = builtup_mask(sr:er, sc:ec,:);
+    nonbuiltup_submask = nonbuiltup_mask(sr:er, sc:ec,:);
     
     assigned_label = setTileLabel(tile_size, factor, ...
-        slum_submask, urban_submask, rural_submask);
+        slum_submask, builtup_submask, nonbuiltup_submask);
     
     
     if strcmp(assigned_label, true_label)

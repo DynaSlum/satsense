@@ -6,13 +6,13 @@ factor = 0.52;
 data_path = 'C:\Projects\DynaSlum\Data\Kalyan\Rasterized_Lourens\';
 image_fname = 'Mumbai_P4_R1C1_3_clipped_rgb.tif';
 slum_mask = 'all_slums.tif';
-urban_mask = 'urban_mask.tif';
-rural_mask = 'rural_mask.tif';
+builtup_mask = 'builtup_mask.tif';
+nonbuiltup_mask = 'nonbuiltup_mask.tif';
 
 image_fullfname = fullfile(data_path, image_fname);
 masks_fullfnames = {fullfile(data_path, slum_mask), ...
-    fullfile(data_path, urban_mask),...
-    fullfile(data_path, rural_mask)};
+    fullfile(data_path, builtup_mask),...
+    fullfile(data_path, nonbuiltup_mask)};
 
 tiles_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets\px333m200';
 

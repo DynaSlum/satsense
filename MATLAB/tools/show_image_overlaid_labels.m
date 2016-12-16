@@ -9,7 +9,7 @@ nrows = size(image_data,1);
 ncols = size(image_data,2);
 
 %% load the mask data
-importfile(fullfile(data_path,'rough_urban_mask.tif'));
+importfile(fullfile(data_path,'rough_builtup_mask.tif'));
 importfile(fullfile(data_path,'all_slums.tif'));
 
 slums_mask = all_slums;
@@ -22,18 +22,18 @@ nonbuiltup_mask = false(nrows, ncols);
 
 for r = 1:nrows
     for c = 1:ncols
-        if and(rough_urban_mask(r,c),not(slums_mask(r,c)))
+        if and(rough_builtup_mask(r,c),not(slums_mask(r,c)))
             builtup_mask(r,c) = true;
         end
-        if and(not(rough_urban_mask(r,c)),not(slums_mask(r,c)))
+        if and(not(rough_builtup_mask(r,c)),not(slums_mask(r,c)))
             nonbuiltup_mask(r,c) = true;
         end
     end
 end
 
 %% save the derived masks
-imwrite(builtup_mask,fullfile(data_path,'urban_mask.tif'));
-imwrite(nonbuiltup_mask,fullfile(data_path,'rural_mask.tif'));
+imwrite(builtup_mask,fullfile(data_path,'builtup_mask.tif'));
+imwrite(nonbuiltup_mask,fullfile(data_path,'nonbuiltup_mask.tif'));
 
 %% prepare colored overlays
 red = cat(3, ones(nrows,ncols), zeros(nrows, ncols), zeros(nrows,ncols));
