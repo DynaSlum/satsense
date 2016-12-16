@@ -26,7 +26,12 @@ ec = extent(4);
 %% generate the filename
 fname = [base_fname '_tile_' 'sr' num2str(sr) 'er' num2str(er) ...
     'sc' num2str(sc) 'ec' num2str(ec) '.' ext];
-filename = fullfile(path,class_label,fname);
+% if the sub-dir doesn't exist creat eit
+full_path = fullfile(path, class_label);
+if ~isdir(full_path)
+    mkdir(full_path);
+end
+filename = fullfile(full_path,fname);
 
 %% save at the specified location
 imwrite(image_data, filename, ext);
