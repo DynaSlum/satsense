@@ -25,9 +25,12 @@ imds = imageDatastore(image_dataset_location,...
 
 
 %% Display Class Names and Counts
-if summary_flag
-    tbl = countEachLabel(imds)                     %#ok
-    categories = tbl.Label;
+if summary_flag || preview_flag
+    tbl = countEachLabel(imds);                     %#ok
+end
+
+if summary_flag    
+    disp(tbl);
 end
 
 %% Show sampling of all data
@@ -37,7 +40,7 @@ if preview_flag
     for ii = 1:4
         sf = (ii-1)*16 +1;
         ax(ii) = subplot(2,2,ii);
-        montage(sample.Files(sf:sf+8), 'Size', [3 3]);
+        montage(sample.Files(sf:sf+3));
         title(char(tbl.Label(ii)));
     end
 end
