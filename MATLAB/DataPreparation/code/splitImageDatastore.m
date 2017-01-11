@@ -2,10 +2,10 @@ function [imdsTrain, imdsTest, imdsValidation] = splitImageDatastore( full_imds,
     fractionTrain, fractionTest, summary_flag)
 
 
-%% splitImageDatastore  wrapper aroind splitEachLabel for datasets with 
+%% splitImageDatastore  wrapper around splitEachLabel for datasets with 
 %   some preset parameters
 %   INPUT:
-%   full_imds -the datastore to be splitin Train, Test and Validation sub-sets
+%   full_imds -the datastore to be split in Train, Test and Validation sub-sets
 %   fractionTrain -fractio (between [0 and 1)) for the training set
 %   fractionTest -fraction (between [0 and 1)) for the testing set
 %   Note: what remains is validation, i.e. 
