@@ -1,12 +1,12 @@
 % Testing splitImageDatastore.m
 
 %% parameters
-base_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets\';
+base_path = 'C:\Projects\DynaSlum\Results\DatastoresAndFeatures\';
 tile_sizes = [417 333 250 167 83];
 tile_sizes_m = [250 200 150 100 50];
 
 fractionTrain = 0.7;
-fractionTest = 0.15;
+%fractionTest = 0.15;
 num_datasets = length(tile_sizes);
 
 summary_flag = true;
@@ -23,11 +23,11 @@ for n = 1: num_datasets
     sav_file = fullfile(image_dataset_location, 'imds.mat');
     load(sav_file);    
     
-    [imdsTrain, imdsTest, imdsValidation] = splitImageDatastore(imds,...
-    fractionTrain, fractionTest, summary_flag);
+    [imdsTrain, imdsTest] = splitImageDatastore(imds,...
+    fractionTrain, summary_flag);
 
     if save_flag  
-        save(sav_file, 'imdsTrain', 'imdsTest', 'imdsValidation', '-append');
+        save(sav_file, 'imdsTrain', 'imdsTest', '-append');
     end
     disp('-----------------------------------------------------------------');
 end
