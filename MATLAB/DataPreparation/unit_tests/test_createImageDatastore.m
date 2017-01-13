@@ -2,6 +2,7 @@
 
 %% parameters
 base_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets\';
+sav_path = 'C:\Projects\DynaSlum\Results\DatastoresAndFeatures\';
 tile_sizes = [417 333 250 167 83];
 tile_sizes_m = [250 200 150 100 50];
 
@@ -23,7 +24,8 @@ for n = 1: num_datasets
     [imds] = createImageDatastore( image_dataset_location, summary_flag,...
         preview_flag);
     if save_flag
-        sav_file = fullfile(image_dataset_location, 'imds.mat');
+        image_datastore_location = fullfile(sav_path,str);
+        sav_file = fullfile(image_datastore_location, 'imds.mat');
         save(sav_file, 'imds');
     end
     disp('-----------------------------------------------------------------');
