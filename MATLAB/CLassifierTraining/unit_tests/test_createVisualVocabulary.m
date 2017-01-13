@@ -29,7 +29,7 @@ for n = 1 : num_datasets
     vocabulary_size, 0.7, [], false, verbose, visualize);
 
     if save_flag  
-        sav_file = fullfile(image_dataset_location, 'BoVW.mat');
+        sav_file = fullfile(image_dataset_location, 'BoVWTrain.mat');
         save(sav_file, 'bagVW', 'feature_vectors');
     end
     disp('-----------------------------------------------------------------');
