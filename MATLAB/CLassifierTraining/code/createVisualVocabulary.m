@@ -1,5 +1,6 @@
 function [bagVW, feature_vectors] = createVisualVocabulary( train_imds,...
-   vocabulary_size, strongest_features, point_selection, verbose, visualize)
+   vocabulary_size, strongest_features, point_selection, surf_upright, ...
+   verbose, visualize)
 
 %% createVisualVocabulary  wrapper aroind bagOfFeatures followed by encode with 
 %   some preset parameters
@@ -19,6 +20,9 @@ function [bagVW, feature_vectors] = createVisualVocabulary( train_imds,...
 %                     The default 'PointSelection' is 'Grid', but the default 
 %                     of point_selection is 'Detector': the feature points 
 %                     are selected using a speeded up robust feature (SURF) detector. 
+%   surf_upright- the 'Upright' flag in bagOffeatures class when using SURF.
+%                The defaut of SURF orientatiion is true => the detector is
+%                not rotation invariant, while the default of 'surf_upright' is false. 
 %   verbose- the 'Verbose'. parameter of bagOfFeatures. The default is "true"
 %   visualize- flag for fisualization of the feature vector. Default is "true"
 
@@ -47,6 +51,9 @@ end
 if isempty(point_selection)
     point_selection = 'Detector';
 end
+if isempty(surf_upright)
+    surf_upright = false;
+end
 if isempty(visualize)
     visualize = true;
 end
@@ -57,7 +64,7 @@ end
 %% create bag of VW
 bagVW = bagOfFeatures(train_imds, 'VocabularySize',vocabulary_size,...
     'StrongestFeatures', strongest_features, 'PointSelection',point_selection,...
-    'Verbose',verbose);
+    'Upright', surf_upright, 'Verbose',verbose);
 
 %% encode the bag into features
 feature_vectors = double(encode(bagVW, train_imds));

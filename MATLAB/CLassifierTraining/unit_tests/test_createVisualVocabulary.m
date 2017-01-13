@@ -26,7 +26,7 @@ for n = 1 : num_datasets
     
     vocabulary_size = ceil(50*num_datasets/n);
     [bagVW, feature_vectors] = createVisualVocabulary( imdsTrain,...
-    vocabulary_size, 0.7, [], verbose, visualize);
+    vocabulary_size, 0.7, [], false, verbose, visualize);
 
     if save_flag  
         sav_file = fullfile(image_dataset_location, 'BoVW.mat');
