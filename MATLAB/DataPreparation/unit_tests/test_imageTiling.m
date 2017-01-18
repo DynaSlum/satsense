@@ -1,8 +1,13 @@
 % Testing of imageTiling
 
 %% parameters
-base_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets4ClassesInclMixed\';
-factor = 0.52;
+% base_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets4ClassesInclMixed\';
+% factor = 0.52;
+% save_mixed = true;
+
+base_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets3Classes\';
+factor = 0.8;
+save_mixed = false;
 
 tile_sizes = [417 333 250 167 83];
 tile_sizes_m = [250 200 150 100 50];

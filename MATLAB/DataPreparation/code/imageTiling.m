@@ -1,5 +1,5 @@
 function [ ] = imageTiling( image_fullfname, tile_size, tile_step, factor, ...
-    masks_fullfnames, tiles_path)
+    masks_fullfnames, tiles_path, save_mixed)
 %% imageTiling  cropping an image to tiles and saving them to files
 %   The fucntion crops a given image and several class masks to image tiles
 %   which are saved as image files in folders corresponding to the masks
@@ -10,9 +10,14 @@ function [ ] = imageTiling( image_fullfname, tile_size, tile_step, factor, ...
 %   masks_fullfnames -cel array of the full names of the binary masks corresponding to
 %                     the class label 1:'Slum', 2: 'BuiltUp' and 3: 'NonBuiltUp'
 %   tiles_path - the main filder for the tiles to be saved in subfolders
+%   save_mixed - flag indicating whether to save tiles of class Mixed. default is false.
+%                
 % For Testing use test_imageTiling
 
 %% input control
+if nargin < 7
+    save_mixed = false;
+end
 if nargin < 6
     error('imageTiling: not enough input arguments!');
 end
@@ -70,7 +75,18 @@ for sr = 1: nrows_step : nrows
         slum_tile, builup_tile, nonbuiltup_tile);
         
         % save the tile at the location given by the path and label
-        saveTile2File(image_tile, extent, tiles_path, label, base_fname, ext);
+        % all tiles are saved if saved_mixed is true and all, but 'Mixed'
+        % tiles are saved if save_mixed is false
+        %    save_mixed    label == 'Mixed'   condition for saving
+        %       false         false             true
+        %       false         true              false
+        %       true          false             true
+        %       true          true              true
+        condition = not(and(not(save_mixed), strcmp(label,'Mixed')));
+        if condition
+            saveTile2File(image_tile, extent, tiles_path, label, base_fname, ext);        
+        end
+            
     end
 end
 
