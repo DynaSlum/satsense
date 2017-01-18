@@ -6,7 +6,7 @@
 % save_mixed = true;
 
 base_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets3Classes\';
-factor = 0.8;
+factor = 0.75;
 save_mixed = false;
 
 tile_sizes = [417 333 250 167 83];
@@ -38,10 +38,19 @@ for n = 1: num_datasets
     
     % tile the image
     disp(['Tiling for dataset ' num2str(n) '...']);
-    imageTiling( image_fullfname, [tile_size tile_size], tile_step, factor, ...
+    [number_images]= imageTiling( image_fullfname, [tile_size tile_size], tile_step, factor, ...
         masks_fullfnames, tiles_path);
+    disp(['There are ', num2str(number_images.slum), ' number of images for class Slum.']);
+    disp(['There are ' , num2str(number_images.builtup), ' number of images for class BuiltUp.']);
+    disp(['There are ' , num2str(number_images.nonbuiltup),' number of images for class NonBuiltUp.']);
+    if save_mixed
+        disp(['There are ' , num2str(number_images.mixed), ' number of images for class Mixed.']);
+    else
+        disp(['There are ' , num2str(number_images.mixed), ' number of images for class Mixed, but they are not saved!.']);
+    end
     disp('Done!');
     disp('---------------------------------');
 end
+
 
 disp('DONE!');

@@ -1,4 +1,4 @@
-function [ ] = imageTiling( image_fullfname, tile_size, tile_step, factor, ...
+function [ number_images] = imageTiling( image_fullfname, tile_size, tile_step, factor, ...
     masks_fullfnames, tiles_path, save_mixed)
 %% imageTiling  cropping an image to tiles and saving them to files
 %   The fucntion crops a given image and several class masks to image tiles
@@ -11,7 +11,9 @@ function [ ] = imageTiling( image_fullfname, tile_size, tile_step, factor, ...
 %                     the class label 1:'Slum', 2: 'BuiltUp' and 3: 'NonBuiltUp'
 %   tiles_path - the main filder for the tiles to be saved in subfolders
 %   save_mixed - flag indicating whether to save tiles of class Mixed. default is false.
-%                
+%    
+%   number_images- structure containing the number of images per each class:
+%                  Slum|BuildUp|NonBuildUp|Mixed
 % For Testing use test_imageTiling
 
 %% input control
@@ -30,6 +32,12 @@ nonbuiltup_mask_fname = char(masks_fullfnames{3});
 % basename and extention for the tiles
 [~,base_fname,ext] = fileparts(image_fullfname);  
 ext = ext(2:end);
+
+%% initializations
+number_images.slum = 0;
+number_images.builtup = 0;
+number_images.nonbuiltup = 0;
+number_images.mixed = 0;
 
 %% load the data from the files
 image_data = imread(image_fullfname);
@@ -74,6 +82,18 @@ for sr = 1: nrows_step : nrows
         label = setTileLabel(tile_size, factor, ...
         slum_tile, builup_tile, nonbuiltup_tile);
         
+        % add to the counter of images per class
+        switch label
+            case 'Slum'
+                number_images.slum = number_images.slum + 1;
+            case 'BuiltUp'
+                number_images.builtup = number_images.builtup + 1;
+            case 'NonBuiltUp'
+                number_images.nonbuiltup = number_images.nonbuiltup + 1;
+            case 'Mixed'
+                number_images.mixed = number_images.mixed + 1;
+        end
+    
         % save the tile at the location given by the path and label
         % all tiles are saved if saved_mixed is true and all, but 'Mixed'
         % tiles are saved if save_mixed is false
