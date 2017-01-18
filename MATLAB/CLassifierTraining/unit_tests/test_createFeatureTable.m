@@ -1,7 +1,7 @@
 % Testing createFeatureTable.m
 
 %% parameters
-base_path = 'C:\Projects\DynaSlum\Results\DatastoresAndFeatures\';
+base_path = 'C:\Projects\DynaSlum\Results\Classification4ClassesInclMixed\DatastoresAndFeatures\';
 tile_sizes = [417 333 250 167 83];
 tile_sizes_m = [250 200 150 100 50];
 

@@ -1,13 +1,14 @@
 % Testing of imageTiling
 
 %% parameters
-base_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets\';
+base_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets4ClassesInclMixed\';
+factor = 0.52;
+
 tile_sizes = [417 333 250 167 83];
 tile_sizes_m = [250 200 150 100 50];
 
 num_datasets = length(tile_sizes);
 
-factor = 0.52;
 data_path = 'C:\Projects\DynaSlum\Data\Kalyan\Rasterized_Lourens\';
 image_fname = 'Mumbai_P4_R1C1_3_clipped_rgb.tif';
 slum_mask = 'all_slums.tif';
