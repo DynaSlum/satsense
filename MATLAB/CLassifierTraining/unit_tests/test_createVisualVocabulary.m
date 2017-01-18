@@ -1,11 +1,15 @@
 % Testing createVisualVocabulary.m
 
 %% parameters
-base_path = 'C:\Projects\DynaSlum\Results\Classification4ClassesInclMixed\DatastoresAndFeatures\';
-tile_sizes = [417 333 250 167 83];
-tile_sizes_m = [250 200 150 100 50];
+% base_path = 'C:\Projects\DynaSlum\Results\Classification4ClassesInclMixed\DatastoresAndFeatures\';
+% tile_sizes = [417 333 250 167 83];
+% tile_sizes_m = [250 200 150 100 50];
 
+base_path = 'C:\Projects\DynaSlum\Results\Classification3Classes\DatastoresAndFeatures\';
+tile_sizes = [417 333 250 167 ];
+tile_sizes_m = [250 200 150 100];
 num_datasets = length(tile_sizes);
+vocabulary_size = 20;
 
 visualize = false; % visualization still doesn't work!
 save_flag = true;
@@ -24,7 +28,7 @@ for n = 1 : num_datasets
     datastore_file = fullfile(image_dataset_location, 'imds.mat');
     load(datastore_file, 'imdsTrain');    
     
-    vocabulary_size = ceil(50*num_datasets/n);
+    %vocabulary_size = ceil(50*num_datasets/n);
     [bagVW, feature_vectors] = createVisualVocabulary( imdsTrain,...
     vocabulary_size, 0.7, [], false, verbose, visualize);
 
