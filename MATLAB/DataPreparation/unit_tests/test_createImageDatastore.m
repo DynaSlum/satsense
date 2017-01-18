@@ -1,10 +1,15 @@
 % Testing createImageDatastore.m
 
 %% parameters
-base_path = 'C:\Projects\DynaSlum\Data\Kalyan\DatasetsClassesInclMixed\';
-sav_path = 'C:\Projects\DynaSlum\Results\Classification4ClassesInclMixed\DatastoresAndFeatures\';
-tile_sizes = [417 333 250 167 83];
-tile_sizes_m = [250 200 150 100 50];
+% base_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets4ClassesInclMixed\';
+% sav_path = 'C:\Projects\DynaSlum\Results\Classification4ClassesInclMixed\DatastoresAndFeatures\';
+% tile_sizes = [417 333 250 167 83];
+% tile_sizes_m = [250 200 150 100 50];
+
+base_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets3Classes\';
+sav_path = 'C:\Projects\DynaSlum\Results\Classification3Classes\DatastoresAndFeatures\';
+tile_sizes = [417 333 250 167];
+tile_sizes_m = [250 200 150 100];
 
 num_datasets = length(tile_sizes);
 
