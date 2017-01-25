@@ -1,11 +1,17 @@
 % Testing splitImageDatastore.m
 
 %% parameters
-% base_path = 'C:\Projects\DynaSlum\Results\Classification4ClassesInclMixed\DatastoresAndFeatures\';
+if isunix
+    root_dir = fullfile('home','elena','DynaSlum');
+else
+    root_dir = fullfile('C','Projects', 'DynaSlum');
+end
+
+% base_path = fullfile(root_dir, 'Results','Classification4ClassesInclMixed','DatastoresAndFeatures')
 % tile_sizes = [417 333 250 167 83];
 % tile_sizes_m = [250 200 150 100 50];
 
-base_path = 'C:\Projects\DynaSlum\Results\Classification3Classes\DatastoresAndFeatures\';
+base_path = fullfile(root_dir, 'Results','Classification3Classes','DatastoresAndFeatures');
 tile_sizes = [417 333 250 167];
 tile_sizes_m = [250 200 150 100];
 

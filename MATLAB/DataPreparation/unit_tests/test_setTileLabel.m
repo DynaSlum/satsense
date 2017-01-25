@@ -2,9 +2,13 @@
 
 %% parameters
 %tile_size = [333 333];
+if isunix
+    root_dir = fullfile('home','elena','DynaSlum');
+else
+    root_dir = fullfile('C','Projects', 'DynaSlum');
+end
 factor = 0.5;
-data_path = 'C:\Projects\DynaSlum\Data\Kalyan\Rasterized_Lourens\';
-
+data_path = fullfile(root_dir, 'Data','Kalyan','Rasterized_Lourens');
 %% import masks
 importfile(fullfile(data_path,'all_slums.tif'));
 slum_mask = all_slums;
