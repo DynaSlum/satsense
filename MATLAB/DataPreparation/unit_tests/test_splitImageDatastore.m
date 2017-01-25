@@ -2,9 +2,9 @@
 
 %% parameters
 if isunix
-    root_dir = fullfile('home','elena','DynaSlum');
+    root_dir = fullfile('\home','elena','DynaSlum');
 else
-    root_dir = fullfile('C','Projects', 'DynaSlum');
+    root_dir = fullfile('C:','Projects', 'DynaSlum');
 end
 
 % base_path = fullfile(root_dir, 'Results','Classification4ClassesInclMixed','DatastoresAndFeatures')

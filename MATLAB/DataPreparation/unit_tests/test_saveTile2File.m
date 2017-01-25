@@ -1,8 +1,8 @@
 % Testing of saveTile2File
 if isunix
-    root_dir = fullfile('home','elena','DynaSlum');
+    root_dir = fullfile('\home','elena','DynaSlum');
 else
-    root_dir = fullfile('C','Projects', 'DynaSlum');
+    root_dir = fullfile('C:','Projects', 'DynaSlum');
 end
 data_path = fullfile(root_dir, 'Data','Kalyan','Rasterized_Lourens');
 importfile(fullfile(data_path,'Mumbai_P4_R1C1_3_clipped_rgb.tif'));
