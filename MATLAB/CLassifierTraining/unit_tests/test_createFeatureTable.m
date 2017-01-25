@@ -7,7 +7,7 @@ else
     root_dir = fullfile('C','Projects', 'DynaSlum');
 end
 
-%base_path = fullfile(root_dir, 'Results','Classification4ClassesInclMixed','DatastoresAndFeatures');
+% base_path = fullfile(root_dir, 'Results','Classification4ClassesInclMixed','DatastoresAndFeatures');
 % tile_sizes = [417 333 250 167 83];
 % tile_sizes_m = [250 200 150 100 50];
 
