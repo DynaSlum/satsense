@@ -21,27 +21,47 @@ visualize = false; % visualization still doesn't work!
 save_flag = true;
 verbose = true;
 
+train = false;
+test = true;
+
 %% create the bag of VW for each datastore
 for n = 1 : num_datasets
-    disp(['Creating Visual Vocabulary for image training data store # ', num2str(n), ' out of ', ...
-        num2str(num_datasets)]);
+    %vocabulary_size = ceil(50*num_datasets/n);
     
-    % load the training dataset
     tile_size = tile_sizes(n);
     tile_size_m = tile_sizes_m(n);
     str = ['px' num2str(tile_size) 'm' num2str(tile_size_m)];
     image_dataset_location = fullfile(base_path,str);
     datastore_file = fullfile(image_dataset_location, 'imds.mat');
-    load(datastore_file, 'imdsTrain');    
-    
-    %vocabulary_size = ceil(50*num_datasets/n);
-    [bagVW, feature_vectors] = createVisualVocabulary( imdsTrain,...
-    vocabulary_size, 0.7, [], false, verbose, visualize);
-
-    if save_flag  
-        sav_file = fullfile(image_dataset_location, 'BoVWTrain.mat');
-        save(sav_file, 'bagVW', 'feature_vectors');
+    if train
+        disp(['Creating Visual Vocabulary for image training data store # ', num2str(n), ' out of ', ...
+            num2str(num_datasets)]);
+        load(datastore_file, 'imdsTrain');
+        
+        [bagVW, feature_vectors] = createVisualVocabulary( imdsTrain,...
+            vocabulary_size, 0.7, [], false, verbose, visualize);
+        
+        if save_flag
+            sav_file = fullfile(image_dataset_location, 'BoVWTrain.mat');
+            save(sav_file, 'bagVW', 'feature_vectors');
+        end
     end
+    if test
+        disp(['Creating Visual Vocabulary for image testing data store # ', num2str(n), ' out of ', ...
+            num2str(num_datasets)]);
+        
+        load(datastore_file, 'imdsTest');
+        
+        [bagVW, feature_vectors] = createVisualVocabulary( imdsTest,...
+            vocabulary_size, 0.7, [], false, verbose, visualize);
+        if save_flag
+            sav_file = fullfile(image_dataset_location, 'BoVWTest.mat');
+            save(sav_file, 'bagVW', 'feature_vectors');
+        end
+    end
+    
+    
+    
     disp('-----------------------------------------------------------------');
 end
 disp('DONE.');
