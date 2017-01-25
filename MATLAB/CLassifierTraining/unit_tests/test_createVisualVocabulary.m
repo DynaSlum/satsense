@@ -21,7 +21,7 @@ visualize = false; % visualization still doesn't work!
 save_flag = true;
 verbose = true;
 
-train = false;
+train = true;
 test = true;
 
 %% create the bag of VW for each datastore
