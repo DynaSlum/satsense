@@ -29,17 +29,17 @@ for n = 1 : num_datasets
     varname = ['ClassifPerfDataset' str 'TrainVal'];
     data_table = eval(varname);   
     
-    % plot the accuracy of all models
-    title_str = ['Validation performance best classifier for tiles of size ' res_str];
+    % plot the accuracy of the best model for all classes    
     
     switch n
         case 1
-            best_class_ind = 21;
-        case 2, 3, 4
-            best_class_ind = 12;
+            best_model_ind = 21;
+        case {2, 3, 4}
+            best_model_ind = 12;
     end
+    title_str = ['Validation performance best "Slum" classifier for ' res_str ' tiles'];
             
-    [fig_h] = plot_precission_recall_best_model_3classes( data_table, best_class_ind, ...
+    [fig_h] = plot_precission_recall_best_model_3classes( data_table, best_model_ind, ...
         [0 1 0],[],title_str);
     
 end

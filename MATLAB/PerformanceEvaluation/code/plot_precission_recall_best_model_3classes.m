@@ -25,12 +25,12 @@ end
 if nargin > 5
     xlabel_str = varargin{1};
 else
-    xlabel_str = 'Class'; 
+    xlabel_str = ['3-class model: '  data_table.Namedescription(best_model_idx)]; 
 end
 if nargin > 6
     ylabel_str = varargin{2};
 else
-    ylabel_str = 'Precission and Recall, [%]'; 
+    ylabel_str = ['Precission and Recall, [%] ']; 
 end
 if nargin > 7
     title_font = varargin{3};
