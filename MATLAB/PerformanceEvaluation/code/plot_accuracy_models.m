@@ -69,7 +69,7 @@ x_tick_labels = data_table.Namedescription;
 y_tick_labels = [0.55:0.05:1]*100;
 
 %% plotting
-fig_h = figure;
+fig_h = figure('units','normalized','outerposition',[0 0 1 1]);
 
 models = data_table.Model;
 accuracy = data_table.ACC;
