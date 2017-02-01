@@ -1,7 +1,7 @@
 function [ number_images] = imageTiling( image_fullfname, tile_size, tile_step, factor, ...
     masks_fullfnames, tiles_path, save_mixed)
 %% imageTiling  cropping an image to tiles and saving them to files
-%   The fucntion crops a given image and several class masks to image tiles
+%   The function crops a given image and several class masks to image tiles
 %   which are saved as image files in folders corresponding to the masks
 %   image_fullname - the full name of the image to be croped/tiles
 %   tile_size - vector for 2 elements- the number of rows and columns of the tile
