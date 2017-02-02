@@ -62,34 +62,85 @@ for pr = half_nrows_tile + 1: nrows_step: nrows - half_nrows_tile
         sc = pc - half_ncols_tile;
         ec = sc + ncols_tile - 1;
         
-        % check if the central pixel of a tile belongs to a mask 
-        if builtup_mask(pr, pc)            
+        % check if the central pixel of a tile belongs to a mask
+        if builtup_mask(pr, pc)
             % get the mask tile
-            builtup_tile  = builtup_mask(sr:er, sc:ec, :);            
-            % determine if the tile should be considered for training             
-            num_builtup = sum(builtup_tile(:));                        
+            builtup_tile  = builtup_mask(sr:er, sc:ec, :);
+            % determine if the tile should be considered for training
+            num_builtup = sum(builtup_tile(:));
             % if it is markthe location in the strict mask
             if num_builtup/total_num >= factor
                 builtup_mask_strict(pr,pc) = 1;
             end
         elseif nonbuiltup_mask(pr, pc)
             % get the mask tile
-            nonbuiltup_tile  = nonbuiltup_mask(sr:er, sc:ec, :);            
-            % determine if the tile should be considered for training             
-            num_nonbuiltup = sum(nonbuiltup_tile(:));                        
+            nonbuiltup_tile  = nonbuiltup_mask(sr:er, sc:ec, :);
+            % determine if the tile should be considered for training
+            num_nonbuiltup = sum(nonbuiltup_tile(:));
             % if it is markthe location in the strict mask
             if num_nonbuiltup/total_num >= factor
                 nonbuiltup_mask_strict(pr,pc) = 1;
-            end            
+            end
         end
     end
 end
 % figure(f);
 % subplot(222); imshow(builtup_mask_strict);axis on, grid on, title('BuiltUp mask strict');
 % subplot(224); imshow(nonbuiltup_mask_strict);axis on, grid on, title('NonBuiltUp mask strict');
-% 
+%
 % number_images.builtup = sum(builtup_mask_strict(:));
 % number_images.nonbuiltup = sum(nonbuiltup_mask_strict(:));
 
 %% get given number of tiles from both classes
+% BuiltUp
+idx_bu = find(builtup_mask_strict == 1);
+perm = randperm(length(idx_bu), number_tiles);
+rand_idx_bu =  idx_bu(perm);
+[prows_bu, pcols_bu] = ind2sub([nrows, ncols], rand_idx_bu);
+
+
+% NonBuiltUp
+idx_nbu = find(nonbuiltup_mask_strict == 1);
+perm = randperm(length(idx_nbu), number_tiles);
+rand_idx_nbu =  idx_nbu(perm);
+[prows_nbu, pcols_nbu] = ind2sub([nrows, ncols], rand_idx_nbu);
+
+%% tiling
+% BuiltUp
+for n = 1 : number_tiles
+    pr = prows_bu(n); pc = pcols_bu(n);
+    sr = pr - half_nrows_tile;
+    er = sr + nrows_tile - 1;
+    sc = pc - half_ncols_tile;
+    ec = sc + ncols_tile - 1;
+    
+    extent_bu = [sr er sc ec];
+    
+    % get the mask tile
+    number_images.builtup = number_images.builtup + 1;
+    image_tile  = image_data(sr:er, sc:ec, :);
+    % save
+    saveTile2File(image_tile, extent_bu, tiles_path, 'BuiltUp', base_fname, ext);
+    
+end
+
+% NonBuiltUp
+for n = 1 : number_tiles
+    pr = prows_nbu(n); pc = pcols_nbu(n);
+    sr = pr - half_nrows_tile;
+    er = sr + nrows_tile - 1;
+    sc = pc - half_ncols_tile;
+    ec = sc + ncols_tile - 1;
+    
+    extent_nbu = [sr er sc ec];
+    
+    % get the mask tile
+    number_images.nonbuiltup = number_images.nonbuiltup + 1;
+    image_tile  = image_data(sr:er, sc:ec, :);
+    % save
+    saveTile2File(image_tile, extent_nbu, tiles_path, 'NonBuiltUp', base_fname, ext);
+    
+end
+
+
 

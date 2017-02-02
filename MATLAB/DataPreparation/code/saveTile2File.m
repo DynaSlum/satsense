@@ -13,6 +13,7 @@ function [] = saveTile2File(image_data,  extent, path, class_label, base_fname, 
 if not(ismember(class_label,{'BuiltUp','NonBuiltUp','Slum','Mixed'}))
     error('saveTile2File: unknown class label!');
 end
+
 if length(extent) ~= 4
     error('saveTile2File: the tile extent should have 4 elements- starting and ending row and column index!');
 end

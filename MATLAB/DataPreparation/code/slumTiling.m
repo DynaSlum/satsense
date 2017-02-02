@@ -61,8 +61,9 @@ for pr = half_nrows_tile + 1: nrows_step : nrows - half_nrows_tile
             
             % if it is save the image tile to file
             if num_slum/total_num >= factor
+                number_images = number_images + 1;
                 image_tile = image_data(sr:er, sc:ec, :);
-                saveTile2File(image_tile, extent, tiles_path, label, base_fname, ext);
+                saveTile2File(image_tile, extent, tiles_path, 'Slum', base_fname, ext);
             end
         end
     end
