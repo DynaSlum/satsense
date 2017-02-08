@@ -11,7 +11,7 @@ base_path = fullfile(root_dir, 'Data','Kalyan', 'Datasets3Classes');
 factor = 0.8;
 tile_sizes = 100;
 tile_sizes_m = 80;
-step_factor = 9;
+step_factor = 10;
 
 num_datasets = length(tile_sizes);
 
