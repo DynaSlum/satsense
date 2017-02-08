@@ -12,8 +12,10 @@ end
 % tile_sizes_m = [250 200 150 100 50];
 
 base_path = fullfile(root_dir, 'Results','Classification3Classes','DatastoresAndFeatures');
-tile_sizes = [417 333 250 167];
-tile_sizes_m = [250 200 150 100];
+% tile_sizes = [417 333 250 167];
+% tile_sizes_m = [250 200 150 100];
+tile_sizes = [100];
+tile_sizes_m = [80];
 
 fractionTrain = 0.7;
 %fractionTest = 0.15;
