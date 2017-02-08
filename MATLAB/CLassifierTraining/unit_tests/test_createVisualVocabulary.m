@@ -19,7 +19,7 @@ tile_sizes = [100 ];
 tile_sizes_m = [80 ];
 
 num_datasets = length(tile_sizes);
-vocabulary_size = 10; %20;
+vocabulary_size = 50; %10; %20;
 
 visualize = false; % visualization still doesn't work!
 save_flag = true;
@@ -46,7 +46,7 @@ for n = 1 : num_datasets
             vocabulary_size, 0.7, [], false, verbose, visualize);
         
         if save_flag
-            sav_file = fullfile(image_dataset_location, 'BoVWTrain.mat');
+            sav_file = fullfile(image_dataset_location, ['Bo' num2str(vocabulary_size) 'VWTrain.mat']);
             save(sav_file, 'bagVW', 'feature_vectors');
         end
     end
@@ -59,7 +59,7 @@ for n = 1 : num_datasets
         [bagVW, feature_vectors] = createVisualVocabulary( imdsTest,...
             vocabulary_size, 0.7, [], false, verbose, visualize);
         if save_flag
-            sav_file = fullfile(image_dataset_location, 'BoVWTest.mat');
+            sav_file = fullfile(image_dataset_location, ['Bo' num2str(vocabulary_size) 'VWTest.mat']);
             save(sav_file, 'bagVW', 'feature_vectors');
         end
     end
