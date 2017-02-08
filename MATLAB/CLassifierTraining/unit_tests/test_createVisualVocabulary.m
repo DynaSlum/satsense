@@ -12,10 +12,14 @@ end
 % tile_sizes_m = [250 200 150 100 50];
 
 base_path = fullfile(root_dir, 'Results','Classification3Classes','DatastoresAndFeatures');
-tile_sizes = [417 333 250 167 ];
-tile_sizes_m = [250 200 150 100];
+% tile_sizes = [417 333 250 167 ];
+% tile_sizes_m = [250 200 150 100];
+
+tile_sizes = [100 ];
+tile_sizes_m = [80 ];
+
 num_datasets = length(tile_sizes);
-vocabulary_size = 20;
+vocabulary_size = 10; %20;
 
 visualize = false; % visualization still doesn't work!
 save_flag = true;
