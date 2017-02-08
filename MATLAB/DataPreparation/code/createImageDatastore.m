@@ -37,7 +37,7 @@ end
 sample = splitEachLabel(imds,16);
 
 if preview_flag
-    for ii = 1:4
+    for ii = 1:3
         sf = (ii-1)*16 +1;
         ax(ii) = subplot(2,2,ii);
         montage(sample.Files(sf:sf+3));
