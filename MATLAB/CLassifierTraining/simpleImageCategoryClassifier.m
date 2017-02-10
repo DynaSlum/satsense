@@ -20,17 +20,17 @@ n = 1;
 tile_size = tile_sizes(n);
 tile_size_m = tile_sizes_m(n);
 str = ['px' num2str(tile_size) 'm' num2str(tile_size_m)];
-vocabulary_size = vocabulary_sizes(n);
-%vocabulary_size = 500; % MATLAB default!
+%vocabulary_size = vocabulary_sizes(n);
 
-fractionTrain = 0.7;
-fractionStrongestFeatures = 0.7;
+fractionTrain = 0.3;
+fractionStrongestFeatures = 0.8;
 
-point_selection = 'Detector';
+point_selections = {'Detector','Grid'};
+
 surf_upright = false;
 
 summary_flag = true;
-preview_flag = true;
+preview_flag = false; % preview of the datastore
 verbose = true;
 visualize = false; % visualization still doesn't work!
 %% create image datastore
@@ -38,42 +38,49 @@ visualize = false; % visualization still doesn't work!
 disp(['Creating image data store for tile size: ' num2str(tile_size) ' pixels = ' num2str(tile_size_m) ' meters.']);
 
 image_dataset_location = fullfile(base_path,str);
-[imds] = createImageDatastore( image_dataset_location, summary_flag,...
-    preview_flag);
+[imds] = createImageDatastore( image_dataset_location, summary_flag, preview_flag);
 disp('-----------------------------------------------------------------');
 
+%% balance the dataset
+disp('Balancing the datasets.');
+tbl = countEachLabel(imds);
+minSetCount = min(tbl{:,2});
+imds = splitEachLabel(imds, minSetCount, 'randomize');
+countEachLabel(imds)
 
 %% split image datastore
-disp(['Splititng the datastore into Train and Test datastores with fractionTrain: ' num2str(fractionTrain*100) '%']);
-[imdsTrain, imdsTest] = splitImageDatastore(imds,...
-    fractionTrain, summary_flag);
+disp(['Splititng the datastore into Train and Validation datastores with fractionTrain: ' num2str(fractionTrain*100) '%']);
+[imdsTrain, imdsVal] = splitImageDatastore(imds, fractionTrain, summary_flag);
 disp('-----------------------------------------------------------------');
 
-%% Create Bag of Visual words
 
- disp(['Creating features (BoVW) using vocabulary size ' num2str(vocabulary_size)...
-     ' for the Train datastore keeping the '...
-     num2str(fractionStrongestFeatures*100) '% strongest features']);
- bagVW = bagOfFeatures(imdsTrain, 'VocabularySize',vocabulary_size,...
-    'StrongestFeatures', fractionStrongestFeatures, 'PointSelection',point_selection,...
-    'Upright', surf_upright);
-% [bagVWTrain, feature_vectors_train] = createVisualVocabulary( imdsTrain,...
-%                 vocabulary_size, fractionStrongestFeatures, [], false, verbose, visualize);
-% disp(['Creating features (BoVW) for the Test datastore.keeping the ' num2str(fractionStrongestFeatures*100) '% strongest features']);
-% [bagVWTest, feature_vectors_test] = createVisualVocabulary( imdsTest,...
-%                 vocabulary_size, fractionStrongestFeatures, [], false, verbose, visualize);
-disp('-----------------------------------------------------------------');
-
-%% Train a classifier
-disp('Training an image categiry classifier');
-categoryClassifier = trainImageCategoryClassifier(imdsTrain,bagVW);
-disp('-----------------------------------------------------------------');
-
-%% Evaluate Classifier's perfomance
-disp('Evaluating perfomance on the Training set');
-confMatrixTrain = evaluate(categoryClassifier, imdsTrain);
-disp('Evaluating perfomance on the Testing set');
-confMatrixTest = evaluate(categoryClassifier, imdsTest);
-
-% Compute average accuracy
-mean(diag(confMatrixTest));
+for point_selection = point_selections
+    for vocabulary_size = vocabulary_sizes
+        %% Create Bag of Visual words
+        
+        disp(['Creating features (BoVW) using vocabulary size ' num2str(vocabulary_size)...
+            'and SUFR point locations ', char(point_selection) ...
+            ' for the Train datastore keeping the ' ...
+            num2str(fractionStrongestFeatures*100) '% strongest features']);
+        bagVW = bagOfFeatures(imdsTrain, 'VocabularySize',vocabulary_size, ...
+            'StrongestFeatures', fractionStrongestFeatures, ...
+            'PointSelection', char(point_selection), ...
+            'Upright', surf_upright);
+        
+        disp('-----------------------------------------------------------------');
+        
+        %% Train a classifier
+        disp('Training an image categiry classifier');
+        categoryClassifier = trainImageCategoryClassifier(imdsTrain,bagVW);
+        disp('-----------------------------------------------------------------');
+        
+        %% Evaluate Classifier's perfomance
+        disp('Evaluating perfomance on the Training set');
+        confMatrixTrain = evaluate(categoryClassifier, imdsTrain);
+        disp('Evaluating perfomance on the Validation set');
+        confMatrixTest = evaluate(categoryClassifier, imdsVal);
+        
+        % Compute average accuracy
+        mean(diag(confMatrixTest));
+    end
+end
