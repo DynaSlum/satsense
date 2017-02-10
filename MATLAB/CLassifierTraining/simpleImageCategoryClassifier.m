@@ -1,6 +1,6 @@
 % simplest default training and testing of an Image category classifier
 % using SURF detector and descriptor on Bag of Visual Words (BoVW)
-% classifiation framework and multiclass SVM classifier 
+% classifiation framework and multiclass SVM classifier
 
 %% setup parameters
 if isunix
@@ -34,7 +34,7 @@ preview_flag = false; % preview of the datastore
 verbose = true;
 visualize = false; % visualization still doesn't work!
 %% create image datastore
-    
+
 disp(['Creating image data store for tile size: ' num2str(tile_size) ' pixels = ' num2str(tile_size_m) ' meters.']);
 
 image_dataset_location = fullfile(base_path,str);
@@ -49,11 +49,11 @@ imds = splitEachLabel(imds, minSetCount, 'randomize');
 countEachLabel(imds)
 
 %% split image datastore
-disp(['Splititng the datastore into Train and Validation datastores with fractionTrain: ' num2str(fractionTrain*100) '%']);
-[imdsTrain, imdsVal] = splitImageDatastore(imds, fractionTrain, summary_flag);
+disp(['Splititng the datastore into Train and Test datastores with fractionTrain: ' num2str(fractionTrain*100) '%']);
+[imdsTrain, imdsTest] = splitImageDatastore(imds, fractionTrain, summary_flag);
 disp('-----------------------------------------------------------------');
 
-
+%% loop over parameters
 for point_selection = point_selections
     for vocabulary_size = vocabulary_sizes
         %% Create Bag of Visual words
@@ -76,11 +76,27 @@ for point_selection = point_selections
         
         %% Evaluate Classifier's perfomance
         disp('Evaluating perfomance on the Training set');
-        confMatrixTrain = evaluate(categoryClassifier, imdsTrain);
-        disp('Evaluating perfomance on the Validation set');
-        confMatrixTest = evaluate(categoryClassifier, imdsVal);
+        [confmatTrain] = evaluate(categoryClassifier, imdsTrain);
+        perf_stats_train = confusionmatStats(confmatTrain);
+        TrT = table( perf_stats_train.accuracy*100, perf_stats_train.sensitivity*100,...
+            perf_stats_train.specificity*100, perf_stats_train.precision*100, ...
+            perf_stats_train.recall*100, perf_stats_train.Fscore,...
+            'RowNames', imds.labels,...
+            'VariableNames', {'accuracy';'sensitivity'; 'specificity';...
+            'precision';'recall';'Fscore'});
+        disp(TrT);
+        disp('-----------------------------------------------------------------');
+        disp('Evaluating perfomance on the Test set');
+        [confmatTest] = evaluate(categoryClassifier, imdsTest);
+        perf_stats_test = confusionmatStats(confmatTest);
+        TrTs = table( perf_stats_test.accuracy*100, perf_stats_test.sensitivity*100,...
+            perf_stats_test.specificity*100, perf_stats_test.precision*100, ...
+            perf_stats_test.recall*100, perf_stats_test.Fscore,...
+            'RowNames', imds.labels,...
+            'VariableNames', {'accuracy';'sensitivity'; 'specificity';...
+            'precision';'recall';'Fscore'});
+        disp(TrTs);
+        disp('-----------------------------------------------------------------');
         
-        % Compute average accuracy
-        mean(diag(confMatrixTest));
     end
 end
