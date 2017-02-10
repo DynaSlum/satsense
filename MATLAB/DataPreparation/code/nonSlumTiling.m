@@ -1,6 +1,6 @@
 function [number_images] = nonSlumTiling( image_fullfname, number_tiles,...
     tile_size, tile_step, factor, masks_fullfnames, tiles_path)
-%% slumTiling  cropping the part of the image lebelled as slump to tiles and saving them to files
+%% nonSlumTiling  cropping the part of the image labelled as Non slum  (BuiltUp or Non BuildUp) to tiles and saving them to files
 %   image_fullname - the full name of the image to be croped/tiles
 %   number_tiles - the desirednumber of tiles (obtained from slumTiling.m
 %   tile_size - vector for 2 elements- the number of rows and columns of the tile
