@@ -10,11 +10,13 @@ else
 end
 
 base_path = fullfile(root_dir, 'Data','Kalyan', 'Datasets3Classes');
-sav_path = fullfile(root_dir, 'Results','Classification3Classes','DatastoresAndFeatures');
+sav_path_datastores = fullfile(root_dir, 'Results','Classification3Classes','DatastoresAndFeatures');
+sav_path_classifier = fullfile(root_dir, 'Results','Classification3Classes','Classifiers');
 
 tile_sizes = [100];
 tile_sizes_m = [80];
-vocabulary_sizes = [10 20 50];
+%vocabulary_sizes = [10 20 50];
+vocabulary_sizes = [50];
 n = 1;
 %num_datasets = length(tile_sizes);
 tile_size = tile_sizes(n);
@@ -25,7 +27,8 @@ str = ['px' num2str(tile_size) 'm' num2str(tile_size_m)];
 fractionTrain = 0.3;
 fractionStrongestFeatures = 0.8;
 
-point_selections = {'Detector','Grid'};
+%point_selections = {'Detector','Grid'};
+point_selections = {'Detector'};
 
 surf_upright = false;
 
@@ -33,6 +36,7 @@ summary_flag = true;
 preview_flag = true; % preview of the datastore
 verbose = true;
 visualize = false; % visualization still doesn't work!
+sav =true;
 %% create image datastore
 
 disp(['Creating image data store for tile size: ' num2str(tile_size) ' pixels = ' num2str(tile_size_m) ' meters.']);
@@ -97,6 +101,11 @@ for point_selection = point_selections
             'precision';'recall';'Fscore'});
         disp(TrTs);
         disp('-----------------------------------------------------------------');
-        
+        % save the trained classifier
+        if sav
+            fname = fullfile(sav_path_classifier, ['trained_SURF_SVM_Classifier' num2str(vocabulary_size) '_' str '.mat']) ;
+            save(fname, 'categoryClassifier');
+        end
     end
 end
+
