@@ -12,7 +12,7 @@ factor = 0.8;
 tile_sizes = 100;
 tile_sizes_m = 80;
 
-num_random_tiles_per_class = 5;
+num_random_tiles_per_class = 10;
 classes = {'Slum'; 'BuiltUp'; 'NonBuiltUp'};
 num_classes = length(classes);
 num_datasets = length(tile_sizes);
@@ -60,7 +60,7 @@ for d = 1: num_datasets
         for i = 1: num_random_tiles_per_class
             sbp = sbp + 1;
             tile = imread(tiles_names{d,c}{i});
-            subplot(3,5,sbp);
+            subplot(3,num_random_tiles_per_class,sbp);
             imshow(tile); axis on; title(['Test tile: ' label]);
         end
     end
