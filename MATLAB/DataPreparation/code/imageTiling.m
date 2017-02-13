@@ -104,7 +104,7 @@ for sr = 1: nrows_step : nrows
         %       true          true              true
         condition = not(and(not(save_mixed), strcmp(label,'Mixed')));
         if condition
-            saveTile2File(image_tile, extent, tiles_path, label, base_fname, ext);        
+            [~] = saveTile2File(image_tile, extent, tiles_path, label, base_fname, ext);        
         end
             
     end

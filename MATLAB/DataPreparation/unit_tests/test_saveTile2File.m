@@ -13,4 +13,4 @@ label =  'Slum';
 
 dataset_path = fullfile(root_dir, 'Data','Kalyan','Datasets4ClassesInclMixed','px333m200');
 base_fname = 'Mumbai_P4_R1C1_3_clipped_rgb'; ext = 'tif';
-saveTile2File(image_data,  extent, dataset_path, label, base_fname, ext);
+[~] = saveTile2File(image_data,  extent, dataset_path, label, base_fname, ext);

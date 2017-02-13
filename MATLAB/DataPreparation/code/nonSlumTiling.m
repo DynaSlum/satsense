@@ -120,7 +120,7 @@ for n = 1 : number_tiles
     number_images.builtup = number_images.builtup + 1;
     image_tile  = image_data(sr:er, sc:ec, :);
     % save
-    saveTile2File(image_tile, extent_bu, tiles_path, 'BuiltUp', base_fname, ext);
+    [~] = saveTile2File(image_tile, extent_bu, tiles_path, 'BuiltUp', base_fname, ext);
     
 end
 
@@ -138,7 +138,7 @@ for n = 1 : number_tiles
     number_images.nonbuiltup = number_images.nonbuiltup + 1;
     image_tile  = image_data(sr:er, sc:ec, :);
     % save
-    saveTile2File(image_tile, extent_nbu, tiles_path, 'NonBuiltUp', base_fname, ext);
+    [~] = saveTile2File(image_tile, extent_nbu, tiles_path, 'NonBuiltUp', base_fname, ext);
     
 end
 

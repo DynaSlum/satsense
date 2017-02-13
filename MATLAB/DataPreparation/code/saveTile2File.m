@@ -1,4 +1,4 @@
-function [] = saveTile2File(image_data,  extent, path, class_label, base_fname, ext)
+function [filename] = saveTile2File(image_data,  extent, path, class_label, base_fname, ext)
 %% saveTile2File  saving image tile (patch) to file
 %   image_data - 3D array of image data values
 %   extent - vector of 4 elements, starting and ending row and column indicies
