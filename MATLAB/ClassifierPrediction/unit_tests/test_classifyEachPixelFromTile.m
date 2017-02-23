@@ -35,10 +35,11 @@ tic
 disp('Done!');
 toc
 %% visualize
-map = [0 0 1; 0 1 0; 1 0 0];
+map = [0 0 1; 0 1 0; 1 0 0; 1 1 1]; % White, Blue, Green, Red, White = 1,2,3, NaN
 RGB = ind2rgb(segmented_image,map);
-figure; imshow(RGB); title('Segmented Kalyan cropped image');
-legend({'BuiltUp'; 'NonBuiltUp'; 'Slum'});
+figure; imshow(RGB, map); title('Segmented Kalyan cropped image');
+%legend('Not processed','BuiltUp', 'NonBuiltUp', 'Slum');
+colorbar('Ticks', [0.1 0.35 0.65 0.9], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum', 'Not Processed'});
 axis on, grid on
 
 %% save
