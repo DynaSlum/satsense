@@ -13,12 +13,13 @@ tile_sizes_m = [80];
 vocabulary_size = [50];
 tile_size = tile_sizes(n);
 tile_size_m = tile_sizes_m(n);
-stepY = 1;
+%stepY = 1;
+stepY = 5;
 stepX = stepY;
 tile_step = [stepX stepY];
 
 data_path = fullfile(root_dir, 'Data','Kalyan','Rasterized_Lourens');
-sav_path = fullfile(root_dir, 'Results', 'Classification3Classes', 'Segmentation');
+sav_path = fullfile(root_dir, 'Results', 'Segmentation');
 image_fname = 'Mumbai_P4_R1C1_3_clipped_rgb.tif';
 str = ['px' num2str(tile_size) 'm' num2str(tile_size_m)];
 sav_path_classifier = fullfile(root_dir, 'Results','Classification3Classes','Classifiers');
@@ -41,7 +42,7 @@ legend({'BuiltUp'; 'NonBuiltUp'; 'Slum'});
 axis on, grid on
 
 %% save
-sav_fname = fullfname(sav_path,['SegmentedImage_SURF_SVM_Classifier' num2str(vocabulary_size) '_' str .mat']);
-save();
+sav_fname = fullfile(sav_path,['SegmentedImage_SURF_SVM_Classifier' num2str(vocabulary_size) '_' str '.mat']);
+save(sav_fname,'segmented_image');
 
 disp('DONE!');
