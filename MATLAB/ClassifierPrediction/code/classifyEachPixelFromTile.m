@@ -31,7 +31,7 @@ nrows = size(image_data, 1);
 ncols = size(image_data, 2);
 
 %% initializations
-segmented_image = zeros(nrows, ncols);
+segmented_image = NaN(nrows, ncols);
 
 nrows_tile = tile_size(1); ncols_tile = tile_size(2);
 half_nrows_tile = fix(nrows_tile/2);  half_ncols_tile = fix(ncols_tile/2); 
