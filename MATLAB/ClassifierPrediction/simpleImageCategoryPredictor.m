@@ -22,6 +22,7 @@ fname = fullfile(sav_path_classifier, ['trained_SURF_SVM_Classifier' num2str(voc
 
 random_tiles_path = fullfile(root_dir, 'Results','Classification3Classes','TestTiles', str);
 classes = {'BuiltUp'; 'NonBuiltUp'; 'Slum'};
+classes_visnames = {'BU'; 'NBU';'S'};
 num_classes = length(classes);
 num_random_tiles_per_class = 10;
 
@@ -61,8 +62,8 @@ for c = 1:num_classes
         if visualize
             subplot(3,num_random_tiles_per_class,i);
             imshow(img); axis on;
-            title(['True: ' true_labels{i}]);
-            xlabel([' Predicted: ' predicted_labels{i}]);
+            title(['T: ' true_labels{i}]);
+            xlabel(['Pr: ' predicted_labels{i}]);
         end
     end
 end
