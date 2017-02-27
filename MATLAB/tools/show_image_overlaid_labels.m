@@ -55,32 +55,35 @@ set(hg, 'AlphaData', 0.2*nonbuiltup_mask);
 hb=imshow(blue);
 set(hb, 'AlphaData', 0.2*builtup_mask);
 hold off
-axis on, grid on;
-title('Image data with overalyed labels: red- slums, blue - built-up(rough) and green - non-built-up (rough)');
+map = [0 0 1; 0 1 0; 1 0 0]; % Blue, Green, Red = 1,2,3
 
-%% display the image daya and overlap the non built-up overlay
-figure; imshow(image_data);
-hold on;
-hb=imshow(green);
-set(hb, 'AlphaData', 0.3*nonbuiltup_mask);
-hold off
 axis on, grid on;
-title('Image data with overalyed rough non built-up areas');
-
-%% display the image daya and overlap the built-up overlay
-figure; imshow(image_data);
-hold on;
-hg=imshow(blue);
-set(hg, 'AlphaData', 0.3*builtup_mask);
-hold off
-axis on, grid on;
-title('Image data with overalyed rough built-up areas');
-
-%% display the image daya and overlap the slum overlay
-figure; imshow(image_data);
-hold on;
-hr=imshow(red);
-set(hr, 'AlphaData', 0.3*slums_mask);
-hold off
-axis on, grid on;
-title('Image data with overlayed slums');
+title('Ground truth overalyed on Kalyan cropped image');
+colormap(map);
+colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
+% %% display the image daya and overlap the non built-up overlay
+% figure; imshow(image_data);
+% hold on;
+% hb=imshow(green);
+% set(hb, 'AlphaData', 0.3*nonbuiltup_mask);
+% hold off
+% axis on, grid on;
+% title('Image data with overalyed rough non built-up areas');
+% 
+% %% display the image daya and overlap the built-up overlay
+% figure; imshow(image_data);
+% hold on;
+% hg=imshow(blue);
+% set(hg, 'AlphaData', 0.3*builtup_mask);
+% hold off
+% axis on, grid on;
+% title('Image data with overalyed rough built-up areas');
+% 
+% %% display the image daya and overlap the slum overlay
+% figure; imshow(image_data);
+% hold on;
+% hr=imshow(red);
+% set(hr, 'AlphaData', 0.3*slums_mask);
+% hold off
+% axis on, grid on;
+% title('Image data with overlayed slums');
