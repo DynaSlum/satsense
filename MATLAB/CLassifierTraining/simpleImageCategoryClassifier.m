@@ -36,7 +36,7 @@ summary_flag = true;
 preview_flag = true; % preview of the datastore
 verbose = true;
 visualize = false; % visualization still doesn't work!
-sav =true;
+sav = false;
 %% create image datastore
 
 disp(['Creating image data store for tile size: ' num2str(tile_size) ' pixels = ' num2str(tile_size_m) ' meters.']);

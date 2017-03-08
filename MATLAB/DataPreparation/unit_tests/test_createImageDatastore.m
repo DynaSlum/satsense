@@ -24,9 +24,9 @@ tile_sizes_m = [80];
 num_datasets = length(tile_sizes);
 
 summary_flag = true;
-preview_flag = false;
+preview_flag = true;
 
-save_flag = true;
+save_flag = false;
 
 %% create image datastore and show summary and sample of the 4 classes
 for n = 1: num_datasets

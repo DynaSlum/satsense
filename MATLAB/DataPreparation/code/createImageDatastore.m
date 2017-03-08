@@ -1,6 +1,5 @@
 function [imds] = createImageDatastore( image_dataset_location, summary_flag,...
     preview_flag)
-
 %% createImageDatastore  wrapper aroind imageDatastore for datasets with 
 %   some preset parameters
 %   INPUT:
