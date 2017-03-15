@@ -1,1 +1,1 @@
-# Code for perfomace evaluaiton.
+# Code and notebooks for performance evaluation
