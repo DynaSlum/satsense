@@ -21,7 +21,7 @@ setup(
     version='0.1.0',
     url='https://github.com/DynaSlum/SateliteImaging',
     license='Apache Software License',
-    author='Berend Weel',
+    author='Berend Weel, Elena Ranguelova',
     tests_require=['pytest'],
     install_requires=[
         'gdal>=2.1.3',
