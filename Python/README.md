@@ -9,6 +9,13 @@ Satsense is a library for remote sensing using satelite imagery.
 
 It is based on gdal and numpy.
 
+## Installing Satsense:
+To install satsense from the git repo in development mode use:
+```bash
+pip install -e .
+```
+
+## Examples:
 Loading a file from the worldview2 satelite and displaying it:
 ```python
 from satsense.util import load_from_file, get_rgb_image
