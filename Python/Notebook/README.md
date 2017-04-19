@@ -1,5 +1,1 @@
-## Python
-The Python software for WP1: SateliteImaging
-
-* Code for perfomace evaluaiton.
-* Code for ...
+## Notebooks to illistrate the Python software for WP1: SateliteImaging
