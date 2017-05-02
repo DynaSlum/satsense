@@ -1,4 +1,4 @@
-from .bands import RGB
+from satsense.util.bands import RGB
 import numpy as np
 
 def rbNDVI(image, bands=RGB):

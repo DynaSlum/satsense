@@ -1,6 +1,7 @@
-from .bands import RGB, PLEIADES, WORLDVIEW2, WORLDVIEW3, QUICKBIRD
 from .ndvi import rgNDVI, rbNDVI, nirNDVI, print_ndvi_stats
+from .hog import hog
 
 __all__ = [
-    'RGB', 'PLEIADES', 'WORLDVIEW2', 'WORLDVIEW3', 'QUICKBIRD'
+    'rgNDVI', 'rbNDVI', 'nirNDVI', 'print_ndvi_stats',
+    'hog'
 ]
