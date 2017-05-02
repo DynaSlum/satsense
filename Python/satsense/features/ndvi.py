@@ -1,4 +1,4 @@
-from satsense.util.bands import RGB
+from satsense.util.bands import RGB, QUICKBIRD
 import numpy as np
 
 def rbNDVI(image, bands=RGB):
@@ -40,9 +40,9 @@ def rgNDVI(image, bands=RGB):
     return ndvi
 
 
-def nirNDVI(image, bands=RGB):
+def nirNDVI(image, bands=QUICKBIRD):
     """
-    Calculates the red-green normalized difference vegitation index of the image
+    Calculates the red-green normalized difference vegetation index of the image
 
     bands are assumed to be Red Green Blue NIR, if different supply a bands array with the ordering
     """

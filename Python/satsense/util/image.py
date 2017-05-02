@@ -17,25 +17,44 @@ def load_from_file(path):
              image The image loaded as a numpy array
     """
     dataset = gdal.Open(path, gdal.GA_ReadOnly)
-    image = np.rollaxis(dataset.ReadAsArray(), 0, 3).astype('float64')
+    array = dataset.ReadAsArray()
+    if len(array.shape) == 3:
+        # The bands column is in the first position, but we want it last
+        array = np.rollaxis(array, 0, 3)
+    elif len(array.shape) == 2:
+        # This seems to be a binary image, so we add an axis for ease
+        array = array[:, :, np.newaxis]
+
+    image = array.astype('float64')
 
     return dataset, image
 
-def normalize_image(image, bands):
+def normalize_image(image, bands, technique='cumulative',
+                    percentiles=[2.0, 98.0], numstds=2):
     """
     Normalizes the image based on the band maximum
     """
     normalized_image = image.copy()
     for name, band in iteritems(bands):
-        # print("Normalizing band: {0}".format(name))
-        mean = normalized_image[:, :, band].mean()
-        std = normalized_image[:, :, band].std()
+        # print("Normalizing band number: {0} {1}".format(band, name))
+        if technique == 'cumulative':
+            percents = np.percentile(image[:, :, band], percentiles)
+            new_min = percents[0]
+            new_max = percents[1]
+        elif technique == 'meanstd':
+            mean = normalized_image[:, :, band].mean()
+            std = normalized_image[:, :, band].std()
 
-        new_min = mean - (2 * std)
-        new_max = mean + (2 * std)
+            new_min = mean - (numstds * std)
+            new_max = mean + (numstds * std)
+        else:
+            new_min = normalized_image[:, :, band].min()
+            new_max = normalized_image[:, :, band].max()
 
-        normalized_image[normalized_image[:, :, band] > new_max, band] = new_max
-        normalized_image[normalized_image[:, :, band] < new_min, band] = new_min
+        if new_min:
+            normalized_image[normalized_image[:, :, band] < new_min, band] = new_min
+        if new_max:
+            normalized_image[normalized_image[:, :, band] > new_max, band] = new_max
 
         normalized_image[:, :, band] = remap(normalized_image[:, :, band], new_min, new_max, 0, 1)
 

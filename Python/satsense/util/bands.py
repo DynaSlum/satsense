@@ -38,8 +38,12 @@ RGB = {
     'blue': 2
 }
 
+BINARY = {
+    'pan': 0
+}
+
 PLEIADES = {
-    'p': 0,
+    'pan': 0,
     'blue': 1,
     'green': 2,
     'red': 3,
