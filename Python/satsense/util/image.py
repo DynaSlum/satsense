@@ -22,7 +22,8 @@ def load_from_file(path):
         # The bands column is in the first position, but we want it last
         array = np.rollaxis(array, 0, 3)
     elif len(array.shape) == 2:
-        # This seems to be a binary image, so we add an axis for ease
+        # This image seems to have one band, so we add an axis for ease
+        # of use in the rest of the library
         array = array[:, :, np.newaxis]
 
     image = array.astype('float64')

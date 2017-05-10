@@ -38,7 +38,7 @@ RGB = {
     'blue': 2
 }
 
-BINARY = {
+MONOCHROME = {
     'pan': 0
 }
 

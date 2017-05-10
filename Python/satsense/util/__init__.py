@@ -1,7 +1,7 @@
 from .image import load_from_file, get_rgb_image, normalize_image
-from .bands import RGB, PLEIADES, WORLDVIEW2, WORLDVIEW3, QUICKBIRD, BINARY
+from .bands import RGB, PLEIADES, WORLDVIEW2, WORLDVIEW3, QUICKBIRD, MONOCHROME
 
 __all__ = [
-    'RGB', 'PLEIADES', 'WORLDVIEW2', 'WORLDVIEW3', 'QUICKBIRD', 'BINARY'
-    'load_from_file', 'get_rgb_image', 'normalize_image'
+    'RGB', 'PLEIADES', 'WORLDVIEW2', 'WORLDVIEW3', 'QUICKBIRD',
+    'MONOCHROME', 'load_from_file', 'get_rgb_image', 'normalize_image'
 ]
