@@ -7,10 +7,12 @@ Created on Wed May 17 10:26:10 2017
 @author: elena
 """
 
-#from matplotlib import pyplot
-#from shapely.geometry import MultiPolygon
+# imports
 from descartes.patch import PolygonPatch
+import fiona
+from shapely.geometry import MultiPolygon, shape
 
+# visualization
 def plot_coords(ax, ob):
     x, y = ob.xy
     ax.plot(x, y, 'o', color='#999999', zorder=1)
@@ -35,3 +37,12 @@ def show_multipolygon(multipolygon, axis, show_coords, extent, color, alpha, tit
     axis.set_title(title)
     
     return axis
+    
+# loading    
+def load_shapefile2multipolygon(shapefilename):
+    fp = fiona.open(shapefilename)
+    bounds = fp.bounds
+    multipol = MultiPolygon([shape(pol['geometry']) for pol in fp])
+    fp.close()
+    
+    return multipol, bounds
