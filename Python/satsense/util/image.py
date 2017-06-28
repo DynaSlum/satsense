@@ -5,9 +5,14 @@ from six import iteritems
 
 import numpy as np
 from osgeo import gdal
-from osgeo import gdal_array
+
+from skimage import color, img_as_ubyte
+from .bands import RGB
+
+import warnings
 
 gdal.AllRegister()
+
 
 def load_from_file(path):
     """
@@ -29,6 +34,7 @@ def load_from_file(path):
     image = array.astype('float64')
 
     return dataset, image
+
 
 def normalize_image(image, bands, technique='cumulative',
                     percentiles=[2.0, 98.0], numstds=2):
@@ -61,19 +67,14 @@ def normalize_image(image, bands, technique='cumulative',
 
     return normalized_image
 
-def get_rgb_image(image, bands, normalize=True):
+
+def get_rgb_bands(image, bands):
     """
     Converts the image to rgb format.
-    The image is normalized between 0 and 1.
     """
-    if normalize:
-        normalized_image = normalize_image(image, bands)
-    else:
-        normalized_image = image
-
-    red = normalized_image[:, :, bands['red']]
-    green = normalized_image[:, :, bands['green']]
-    blue = normalized_image[:, :, bands['blue']]
+    red = image[:, :, bands['red']]
+    green = image[:, :, bands['green']]
+    blue = image[:, :, bands['blue']]
 
     img = np.rollaxis(np.array([red, green, blue]), 0, 3)
 
@@ -97,7 +98,7 @@ def remap(x, o_min, o_max, n_min, n_max):
     if not old_min == o_min:
         reverse_input = True
 
-    #check reversed output range
+    # check reversed output range
     reverse_output = False
     new_min = min(n_min, n_max)
     new_max = max(n_min, n_max)
@@ -114,3 +115,29 @@ def remap(x, o_min, o_max, n_min, n_max):
         result = new_max - portion
 
     return result
+
+
+def get_grayscale_image(image, bands=RGB):
+    if bands is not RGB:
+        rgb_image = get_rgb_bands(image, bands)
+    else:
+        rgb_image = image
+
+    return color.rgb2gray(rgb_image)
+
+
+def get_ubyte_image(image, bands=RGB):
+    """
+    Converts image in 0 - 1 scale format to ubyte 0 - 255 format
+
+    Uses img_as_ubyte from skimage
+    """
+    if bands is not RGB:
+        rgb_image = get_rgb_bands(image, bands)
+    else:
+        rgb_image = image
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        # Ignore loss of precision warning
+        return img_as_ubyte(rgb_image)

@@ -1,9 +1,13 @@
-from satsense.util.bands import RGB, QUICKBIRD
 import numpy as np
+
+from .feature import Feature
+from ..util import RGB, QUICKBIRD
+from ..extract import SuperCell
+
 
 def rbNDVI(image, bands=RGB):
     """
-    Calculates the red-blue normalized difference vegitation index of the image
+    Calculates the red-blue normalized difference vegetation index of the image
 
     bands are assumed to be Red Green Blue, if different supply a bands array with the ordering
     """
@@ -20,9 +24,10 @@ def rbNDVI(image, bands=RGB):
 
     return ndvi
 
+
 def rgNDVI(image, bands=RGB):
     """
-    Calculates the red-green normalized difference vegitation index of the image
+    Calculates the red-green normalized difference vegetation index of the image
 
     bands are assumed to be Red Green Blue, if different supply a bands array with the ordering
     """
@@ -59,7 +64,8 @@ def nirNDVI(image, bands=QUICKBIRD):
 
     return ndvi
 
-def print_ndvi_stats(ndvi):
+
+def print_ndvi_statistics(ndvi):
     """
     Prints the ndvi matrix and the, min, max, mean and median
     """
@@ -70,3 +76,18 @@ def print_ndvi_stats(ndvi):
     print('Mean NDVI: {m}'.format(m=np.nanmean(ndvi)))
     print('Median NDVI: {m}'.format(m=np.nanmedian(ndvi)))
     print('Min NDVI: {m}'.format(m=np.nanmin(ndvi)))
+
+
+class NirNDVI(Feature):
+    def __init__(self, windows=(25,)):
+        super(NirNDVI, self)
+        self.windows = windows
+        self.feature_size = len(self.windows)
+
+    def __call__(self, image, cell, bands=RGB):
+        result = np.zeros(self.feature_size)
+        for i, window in enumerate(self.windows):
+            win = SuperCell(image, cell, window, padding=True)
+            ndvi = nirNDVI(win.window, bands=bands)
+            result[i] = ndvi.mean()
+        return result

@@ -1,50 +1,102 @@
 import numpy as np
 import scipy as sp
 
-from satsense.util import load_from_file, normalize_image, get_rgb_image
-from satsense.util import RGB, QUICKBIRD, WORLDVIEW2
-
-from skimage import data, color, exposure, img_as_ubyte, img_as_uint
 from skimage.feature import greycomatrix, greycoprops
+
+from .feature import Feature
+from ..util import get_grayscale_image, get_ubyte_image, RGB
+from ..extract import SuperCell
+
 
 def get_rii_dist_angles():
     """
     Get the angles and distances of the pixels used in the paper:
+
+    Graesser, Jordan, et al. "Image based characterization of formal and informal
+    neighborhoods in an urban landscape." IEEE Journal of Selected Topics in
+    Applied Earth Observations and Remote Sensing 5.4 (2012): 1164-1176.
     """
-    pixels_dist_1 = np.array([[1, -1], [1, 0], [1, 1], [0, 1]])
-    pixels_dist_2 = np.array([[1, -2], [2, -1], [2, 0], [2, 1], [1, 2], [0, 2]])
+    pixels_dist_14 = np.array([[1, -1], [1, 1]])
+    pixels_dist_1 = np.array([[0, 1], [1, 0]])
+    pixels_dist_2 = np.array([[2, 0], [0, 2]])
+    pixels_dist_223 = np.array([[1, -2], [2, -1], [2, 1], [1, 2]])
     pixels_dist_3 = np.array([[2, 2], [2, -2]])
 
     angles_1 = np.arctan2(pixels_dist_1[:, 0], pixels_dist_1[:, 1])
     distances_1 = [sp.spatial.distance.euclidean([0, 0],
-                                                 [pixels_dist_1[i, 0], pixels_dist_1[i, 1]])
+                                                 [pixels_dist_1[i, 0],
+                                                 pixels_dist_1[i, 1]])
                    for i in range(len(pixels_dist_1[:, 0]))]
+
+    angles_14 = np.arctan2(pixels_dist_14[:, 0], pixels_dist_14[:, 1])
+    distances_14 = [sp.spatial.distance.euclidean([0, 0],
+                                                  [pixels_dist_14[i, 0],
+                                                  pixels_dist_14[i, 1]])
+                    for i in range(len(pixels_dist_14[:, 0]))]
 
     angles_2 = np.arctan2(pixels_dist_2[:, 0], pixels_dist_2[:, 1])
     distances_2 = [sp.spatial.distance.euclidean([0, 0],
-                                                 [pixels_dist_2[i, 0], pixels_dist_2[i, 1]])
+                                                 [pixels_dist_2[i, 0],
+                                                 pixels_dist_2[i, 1]])
                    for i in range(len(pixels_dist_2[:, 0]))]
+
+    angles_223 = np.arctan2(pixels_dist_223[:, 0], pixels_dist_223[:, 1])
+    distances_223 = [sp.spatial.distance.euclidean([0, 0],
+                                                   [pixels_dist_223[i, 0],
+                                                   pixels_dist_223[i, 1]])
+                     for i in range(len(pixels_dist_223[:, 0]))]
 
     angles_3 = np.arctan2(pixels_dist_3[:, 0], pixels_dist_3[:, 1])
     distances_3 = [sp.spatial.distance.euclidean([0, 0],
-                                                 [pixels_dist_3[i, 0], pixels_dist_3[i, 1]])
+                                                 [pixels_dist_3[i, 0],
+                                                 pixels_dist_3[i, 1]])
                    for i in range(len(pixels_dist_3[:, 0]))]
 
-    return (angles_1, angles_2, angles_3), (distances_1, distances_2, distances_3)
+    offsets_1 = np.stack((distances_1, angles_1), axis=1)
+    offsets_14 = np.stack((distances_14, angles_14), axis=1)
+    offsets_2 = np.stack((distances_2, angles_2), axis=1)
+    offsets_223 = np.stack((distances_223, angles_223), axis=1)
+    offsets_3 = np.stack((distances_3, angles_3), axis=1)
+    offsets = np.concatenate((offsets_1, offsets_14, offsets_2,
+                              offsets_223, offsets_3))
 
-def glcm(image, bands, normalize=True,
-         symmetric=False, normed=False):
-    rgb_image = get_rgb_image(image, bands, normalize=normalize)
-    grayscale = color.rgb2gray(rgb_image)
-    byte_image = img_as_ubyte(grayscale)
+    # print(offsets.shape)
+    # for i in range(len(offsets)):
+    #     print("Distance: {}, angle: {}".format(offsets[i][0], offsets[i][1]))
 
-    angles, distances = get_rii_dist_angles()
+    return offsets
 
-    results_0 = greycomatrix(byte_image, angles[0], distances[0],
-                             symmetric=False, normed=False, levels=256)
-    results_1 = greycomatrix(byte_image, angles[1], distances[1],
-                             symmetric=False, normed=False, levels=256)
-    results_2 = greycomatrix(byte_image, angles[2], distances[2],
-                             symmetric=False, normed=False, levels=256)
 
-    return (results_0, results_1, results_2)
+def pantex(window, maximum=255):
+    """
+    Calculate the pantex feature on the given grayscale window
+
+    Args:
+        window (nparray): A window of an image
+        maximum (int): The maximum value in the image
+    """
+    offsets = get_rii_dist_angles()
+
+    pan = np.zeros(len(offsets))
+    for i, offset in enumerate(offsets):
+        glcm = greycomatrix(window, [offset[0]], [offset[1]], symmetric=True,
+                            normed=True, levels=maximum + 1)
+        pan[i] = greycoprops(glcm, 'contrast')
+
+    return pan.min()
+
+
+class Pantex(Feature):
+    def __init__(self, windows=(25,)):
+        super(Pantex, self)
+        self.windows = windows
+        self.feature_size = len(self.windows)
+
+    def __call__(self, image, cell, bands=RGB):
+        result = np.zeros(self.feature_size)
+        for i, window in enumerate(self.windows):
+            win = SuperCell(image, cell, window, padding=True)
+
+            gray_ubyte = get_ubyte_image(get_grayscale_image(win.window, bands=bands))
+            result[i] = pantex(gray_ubyte, maximum=gray_ubyte.max())
+        return result

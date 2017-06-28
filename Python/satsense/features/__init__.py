@@ -1,8 +1,8 @@
-from .ndvi import rgNDVI, rbNDVI, nirNDVI, print_ndvi_stats
+from .ndvi import NirNDVI, rgNDVI, rbNDVI, nirNDVI, print_ndvi_statistics
 from .hog import hog
-from .glcm import glcm
+from .glcm import Pantex, pantex
 
 __all__ = [
-    'rgNDVI', 'rbNDVI', 'nirNDVI', 'print_ndvi_stats',
-    'hog', 'glcm'
+    'NirNDVI', 'rgNDVI', 'rbNDVI', 'nirNDVI', 'print_ndvi_statistics',
+    'hog', 'pantex', 'Pantex'
 ]
