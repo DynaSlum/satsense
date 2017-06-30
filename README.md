@@ -1,5 +1,5 @@
-# SateliteImaging
-The software for WP1: SateliteImaging
+# SatelliteImaging
+The software for WP1: SatelliteImaging
 
 ## Installation and Requirements
 We are using python 3.5 and jupyter notebook for our code.
