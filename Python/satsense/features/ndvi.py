@@ -1,4 +1,5 @@
 import numpy as np
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 from .feature import Feature
 from ..util import RGB, QUICKBIRD
@@ -78,9 +79,11 @@ def print_ndvi_statistics(ndvi):
     print('Min NDVI: {m}'.format(m=np.nanmin(ndvi)))
 
 
-class NirNDVI(Feature):
+class NDVI(Feature):
+    __metaclass__ = ABCMeta
+
     def __init__(self, windows=(25,)):
-        super(NirNDVI, self)
+        super(NDVI, self)
         self.windows = windows
         self.feature_size = len(self.windows)
 
@@ -88,6 +91,24 @@ class NirNDVI(Feature):
         result = np.zeros(self.feature_size)
         for i, window in enumerate(self.windows):
             win = SuperCell(image, cell, window, padding=True)
-            ndvi = nirNDVI(win.window, bands=bands)
+            ndvi = self.function(win.window, bands=bands)
             result[i] = ndvi.mean()
         return result
+
+    @abstractproperty
+    def function(self):
+        pass
+
+
+class NirNDVI(NDVI):
+    def __init__(self, windows=(25,)):
+        super(NirNDVI, self).__init__(windows=windows)
+
+    @property
+    def function(self):
+        return nirNDVI
+
+
+class RgNDVI(NDVI):
+    def __init__(self, windows=(25,)):
+        super(RgNDVI, self).__init__(windows=windows)

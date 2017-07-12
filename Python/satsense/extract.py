@@ -43,13 +43,6 @@ class CellGenerator:
             return CellGenerator.Cell(x, y, x_range, y_range, window)
         except StopIteration as e:
             raise e
-        # return {
-        #     'x': x,
-        #     'y': y,
-        #     'x_range': x_range,
-        #     'y_range': y_range,
-        #     'window': self.image[x_range, y_range]
-        # }
 
     def next_slice(self):
         if self.cur_y < self.y_length:
