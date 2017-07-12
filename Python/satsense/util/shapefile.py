@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 
-Methods for loading and visualizinf shapefiles
+Methods for loading and visualizion of shapefiles
 Created on Wed May 17 10:26:10 2017
 
 @author: elena
@@ -10,7 +10,7 @@ Created on Wed May 17 10:26:10 2017
 # imports
 from descartes.patch import PolygonPatch
 import fiona
-from shapely.geometry import MultiPolygon, shape
+from shapely.geometry import MultiPolygon, shape, mapping
 
 # visualization
 def plot_coords(ax, ob):
@@ -46,3 +46,21 @@ def load_shapefile2multipolygon(shapefilename):
     fp.close()
     
     return multipol, bounds
+    
+# saving
+def save_multipolygon2shapefile(multipolygon, shapefilename):
+    # define the schema
+    schema = {
+    'geometry': 'Polygon',
+    'properties': {'id': 'int'},
+    }
+
+    # write in a shapefile
+    i = 0
+    with fiona.open(shapefilename, 'w', 'ESRI Shapefile', schema) as fp:
+        for poly in multipolygon:
+            i = i+1
+            fp.write({
+                'geometry': mapping(poly),
+                'properties': {'id': i},
+            })
