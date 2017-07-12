@@ -10,6 +10,7 @@ from skimage import color, img_as_ubyte
 from .bands import RGB
 
 import warnings
+import rasterio
 
 gdal.AllRegister()
 
@@ -34,6 +35,17 @@ def load_from_file(path):
     image = array.astype('float64')
 
     return dataset, image
+    
+def save_mask2file(mask, fullfname):
+    w,h = mask.shape
+    with rasterio.open(
+        fullfname, 'w',
+        driver='GTiff',
+        dtype=rasterio.uint8,
+        count=1,
+        width=w,
+        height=h) as dst:
+            dst.write(mask, indexes=1)   
 
 
 def normalize_image(image, bands, technique='cumulative',
