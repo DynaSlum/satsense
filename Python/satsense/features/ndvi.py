@@ -2,8 +2,8 @@ import numpy as np
 from abc import ABCMeta, abstractmethod, abstractproperty
 
 from .feature import Feature
-from ..util import RGB, QUICKBIRD
-from ..extract import SuperCell
+from ..bands import RGB, QUICKBIRD
+from ..generators import CellGenerator
 
 
 def rbNDVI(image, bands=RGB):
@@ -82,16 +82,16 @@ def print_ndvi_statistics(ndvi):
 class NDVI(Feature):
     __metaclass__ = ABCMeta
 
-    def __init__(self, windows=(25,)):
+    def __init__(self, windows=((25, 25))):
         super(NDVI, self)
         self.windows = windows
         self.feature_size = len(self.windows)
 
-    def __call__(self, image, cell, bands=RGB):
+    def __call__(self, cell):
         result = np.zeros(self.feature_size)
         for i, window in enumerate(self.windows):
-            win = SuperCell(image, cell, window, padding=True)
-            ndvi = self.function(win.window, bands=bands)
+            win = cell.super_cell(window, padding=True)
+            ndvi = self.function(win.normalized, bands=cell.bands)
             result[i] = ndvi.mean()
         return result
 
@@ -101,7 +101,7 @@ class NDVI(Feature):
 
 
 class NirNDVI(NDVI):
-    def __init__(self, windows=(25,)):
+    def __init__(self, windows=((25, 25))):
         super(NirNDVI, self).__init__(windows=windows)
 
     @property
@@ -112,3 +112,15 @@ class NirNDVI(NDVI):
 class RgNDVI(NDVI):
     def __init__(self, windows=(25,)):
         super(RgNDVI, self).__init__(windows=windows)
+    
+    @property
+    def function(self):
+        return rgNDVI
+
+class RbNDVI(NDVI):
+    def __init__(self, windows=(25,)):
+        super(RbNDVI, self).__init__(windows=windows)
+    
+    @property
+    def function(self):
+        return rbNDVI

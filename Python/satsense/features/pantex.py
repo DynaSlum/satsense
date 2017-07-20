@@ -4,8 +4,8 @@ import scipy as sp
 from skimage.feature import greycomatrix, greycoprops
 
 from .feature import Feature
-from ..util import get_grayscale_image, get_ubyte_image, RGB
-from ..extract import SuperCell
+from .. import SatelliteImage
+from ..generators import CellGenerator
 
 
 def get_rii_dist_angles():
@@ -92,16 +92,15 @@ def pantex(window, maximum=255):
 
 
 class Pantex(Feature):
-    def __init__(self, windows=(25,)):
+    def __init__(self, windows=((25, 25))):
         super(Pantex, self)
         self.windows = windows
         self.feature_size = len(self.windows)
 
-    def __call__(self, image, cell, bands=RGB):
+    def __call__(self, cell):
         result = np.zeros(self.feature_size)
         for i, window in enumerate(self.windows):
-            win = SuperCell(image, cell, window, padding=True)
+            win = cell.super_cell(window, padding=True)
 
-            gray_ubyte = get_ubyte_image(get_grayscale_image(win.window, bands=bands))
-            result[i] = pantex(gray_ubyte, maximum=gray_ubyte.max())
+            result[i] = pantex(win.gray_ubyte, maximum=255)
         return result

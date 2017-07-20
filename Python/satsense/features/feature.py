@@ -2,6 +2,9 @@ from abc import ABCMeta, abstractmethod
 
 
 class Feature:
+    """
+    Feature superclass
+    """
     __metaclass__ = ABCMeta
 
     def __init__(self):

@@ -1,11 +1,11 @@
-from ..util import RGB, get_grayscale_image
+from .. import SatelliteImage
+from ..bands import RGB
 from .feature import Feature
-from ..extract import SuperCell
+from ..extract import CellGenerator
 
 import numpy as np
 import scipy.stats
 import cv2
-from satsense.util import get_rgb_bands
 
 def heaved_central_shift_moment(histogram, order):
     """
@@ -214,8 +214,7 @@ class HistogramOfGradients(Feature):
     def __call__(self, image, cell, bands=RGB):
         result = np.zeros(self.feature_size)
         for i, window in enumerate(self.windows):
-            win = SuperCell(image, cell, window, padding=True)
+            win = CellGenerator.super_cell(image.grayscale, cell, window, padding=True)
 
-            grayscale = get_grayscale_image(win.window, bands=bands)
-            result[i * self.feature_len : (i+1) * self.feature_len] = hog_features(grayscale, bands=bands, bins=50, kernel=scipy.stats.norm().pdf, bandwidth = 0.7)
+            result[i * self.feature_len : (i+1) * self.feature_len] = hog_features(win.window, bands=bands, bins=50, kernel=scipy.stats.norm().pdf, bandwidth = 0.7)
         return result
