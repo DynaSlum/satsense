@@ -13,7 +13,7 @@ from rasterio.features import shapes
 from shapely.geometry import shape, MultiPolygon
 
 # conversion from shapely multipolygon to binary mask
-def multipolygon2mask(multipolygon, rows, cols, trans=(1.0, 0.0, 0.0, 0.0, 1.0, 0.0), default_val,fill_val=0, 
+def multipolygon2mask(multipolygon, rows, cols, default_val, trans=(1.0, 0.0, 0.0, 0.0, 1.0, 0.0), fill_val=0, 
                    all_touched=False, dtype=None):
     mask = features.rasterize(
             [multipolygon],
