@@ -92,7 +92,7 @@ def pantex(window, maximum=255):
 
 
 class Pantex(Feature):
-    def __init__(self, windows=((25, 25))):
+    def __init__(self, windows=((25, 25),)):
         super(Pantex, self)
         self.windows = windows
         self.feature_size = len(self.windows)

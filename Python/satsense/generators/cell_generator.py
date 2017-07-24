@@ -1,27 +1,12 @@
 import math
 from collections import namedtuple
-from ..image import Image, SatelliteImage
+from ..image import Image, Window, SatelliteImage
 
 import numpy as np
 
-class Cell(Image):
+class Cell(Window):
     def __init__(self, image: Image, x, y, x_range, y_range, orig=None):
-        super(Cell, self).__init__(None, image.bands)
-
-        self.raw = image.raw
-        self._normalized_image = image._normalized_image
-        self._rgb_image = image._rgb_image
-        self._grayscale_image = image._grayscale_image
-        self._gray_ubyte_image = image._gray_ubyte_image
-
-        self.x = x
-        self.y = y
-        self.x_range = x_range
-        self.y_range = y_range
-        if orig:
-            self.image = orig
-        else:
-            self.image = image
+        super(Cell, self).__init__(image, x, y, x_range, y_range, orig=orig)
 
     def super_cell(self, size, padding=True):
         """

@@ -82,7 +82,7 @@ def print_ndvi_statistics(ndvi):
 class NDVI(Feature):
     __metaclass__ = ABCMeta
 
-    def __init__(self, windows=((25, 25))):
+    def __init__(self, windows=((25, 25),)):
         super(NDVI, self)
         self.windows = windows
         self.feature_size = len(self.windows)

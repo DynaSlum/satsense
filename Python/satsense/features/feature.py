@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
+from six import iteritems
 
-
-class Feature:
+class Feature(object):
     """
     Feature superclass
     """
@@ -30,3 +30,43 @@ class Feature:
     @indices.setter
     def indices(self, value):
         self._indices = value
+
+
+class FeatureSet(object):
+    def __init__(self):
+        self._features = {}
+        self._cur_index = 0
+
+    def __iter__(self):
+        return iter(self._features)
+
+    @property
+    def items(self):
+        return self._features
+
+    def add(self, feature, name=None):
+        if not name:
+            name = "{0}-{1}".format(feature.__class__.__name__,
+                                    len(self._features) + 1)
+
+        self._features[name] = (feature)
+        self._recalculate_feature_indices()
+
+        return name, feature
+
+    def remove(self, name):
+        if name in self._features:
+            del self._features[name]
+            self._recalculate_feature_indices()
+            return True
+        return False
+
+    @property
+    def index_size(self):
+        return self._cur_index
+
+    def _recalculate_feature_indices(self):
+        self._cur_index = 0
+        for name, feature in iteritems(self._features):
+            feature.indices = slice(self._cur_index, self._cur_index + feature.feature_size, 1)
+            self._cur_index += feature.feature_size

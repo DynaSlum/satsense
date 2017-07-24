@@ -2,6 +2,7 @@ from .. import SatelliteImage
 from ..bands import RGB
 from .feature import Feature
 from ..extract import CellGenerator
+from ..util.bibtex import inproceedings
 
 import numpy as np
 import scipy.stats
@@ -58,6 +59,15 @@ def heaved_central_shift_moment(histogram, order):
     return v
 
 
+@inproceedings('kumar2003man', {
+    'title': 'Man-made structure detection in natural images using a causal multiscale random field',
+    'author': 'Kumar, Sanjiv and Hebert, Martial',
+    'booktitle': 'Computer vision and pattern recognition, 2003. proceedings. 2003 ieee computer society conference on',
+    'volume': '1',
+    'pages': 'I--I',
+    'year': '2003',
+    'organization': 'IEEE'
+})
 def smoothe_histogram(histogram, kernel, bandwidth):
     """
     Vectorized histogram smoothing implementation
@@ -205,16 +215,17 @@ def hog_features(window, bands=RGB, bins=50, kernel=scipy.stats.norm().pdf, band
     return np.array([v1, v2, delta1, delta2, beta])
 
 class HistogramOfGradients(Feature):
-    def __init__(self, windows=(25,)):
+    def __init__(self, windows=((25,25),)):
         super(HistogramOfGradients, self)
         self.windows = windows
         self.feature_len = 5
+        print(self.windows)
         self.feature_size = self.feature_len * len(self.windows)
 
-    def __call__(self, image, cell, bands=RGB):
+    def __call__(self, cell):
         result = np.zeros(self.feature_size)
         for i, window in enumerate(self.windows):
-            win = CellGenerator.super_cell(image.grayscale, cell, window, padding=True)
+            win = cell.super_cell(window, padding=True)
 
-            result[i * self.feature_len : (i+1) * self.feature_len] = hog_features(win.window, bands=bands, bins=50, kernel=scipy.stats.norm().pdf, bandwidth = 0.7)
+            result[i * self.feature_len : (i+1) * self.feature_len] = hog_features(win.grayscale, bands=win.bands, bins=50, kernel=scipy.stats.norm().pdf, bandwidth = 0.7)
         return result

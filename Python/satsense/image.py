@@ -107,6 +107,31 @@ class Image:
                                                            (0, 0)), 'constant', constant_values=0)
 
 
+class Window(Image):
+    """
+    Part of an image at a certain x, y location
+    with a x_range, y_range extent (slice)
+    """
+    def __init__(self, image: Image, x: int, y: int,
+                 x_range: slice, y_range: slice, orig: Image=None):
+        super(Window, self).__init__(None, image.bands)
+
+        self.raw = image.raw
+        self._normalized_image = image._normalized_image
+        self._rgb_image = image._rgb_image
+        self._grayscale_image = image._grayscale_image
+        self._gray_ubyte_image = image._gray_ubyte_image
+
+        self.x = x
+        self.y = y
+        self.x_range = x_range
+        self.y_range = y_range
+
+        if orig:
+            self.image = orig
+        else:
+            self.image = image
+
 class SatelliteImage(Image):
     def __init__(self, dataset, array, bands):
         super(SatelliteImage, self).__init__(array, bands)
