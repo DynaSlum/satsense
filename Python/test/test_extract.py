@@ -1,7 +1,7 @@
 from satsense import SatelliteImage
 from satsense.generators import CellGenerator
 from satsense.extract import extract_features
-from satsense.features import FeatureSet, Pantex
+from satsense.features import FeatureSet, Pantex, HistogramOfGradients
 
 
 
@@ -27,7 +27,16 @@ def test_generator():
 
     generator = CellGenerator(image, (25, 25), length=(2, 5))
     for cell in generator:
-        assert cell
+        assert cell.shape
+
+
+def test_padding():
+    image = load_image()
+
+    generator = CellGenerator(image, (25, 25), length=(2, 180))
+    for cell in generator:
+        assert cell.shape == (25, 25, 4)
+        assert cell.super_cell((100,100)).shape == (100, 100, 4)
 
 
 def test_extract_features():

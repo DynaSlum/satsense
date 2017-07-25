@@ -1,9 +1,11 @@
 """
 Methods for loading images
 """
+
 from six import iteritems
 
 import numpy as np
+import math
 from osgeo import gdal
 
 from skimage import color, img_as_ubyte
@@ -64,7 +66,7 @@ class Image:
     def shape(self):
         return self.raw.shape
 
-    def shallow_copy_range(self, x_range, y_range):
+    def shallow_copy_range(self, x_range, y_range, pad=True):
         im = Image(self.raw[x_range, y_range], self._bands)
 
         # We need a normalized image, because normalization breaks
@@ -83,6 +85,24 @@ class Image:
         if self._gray_ubyte_image is not None:
             im._gray_ubyte_image = self._gray_ubyte_image[x_range, y_range]
 
+        # Check whether we need padding. This should only be needed at the
+        # right and bottom edges of the image
+        x_pad_before = 0
+        y_pad_before = 0
+
+        x_pad_after = 0
+        y_pad_after = 0
+        pad_needed = False
+        if x_range.stop > self.raw.shape[0]:
+            pad_needed = True
+            x_pad_after = math.ceil(x_range.stop - self.raw.shape[0])
+        if y_range.stop > self.raw.shape[1]:
+            pad_needed = True
+            y_pad_after = math.ceil(y_range.stop - self.raw.shape[1])
+
+        if pad and pad_needed:
+            im.pad(x_pad_before, x_pad_after, y_pad_before, y_pad_after)
+
         return im
 
     def pad(self, x_pad_before, x_pad_after, y_pad_before, y_pad_after):
@@ -92,7 +112,8 @@ class Image:
         if self._normalized_image is not None:
             self._normalized_image = np.pad(self._normalized_image, ((x_pad_before, x_pad_after),
                                                                      (y_pad_before, y_pad_after),
-                                                                     (0, 0)), 'constant', constant_values=0)
+                                                                     (0, 0)), 'constant',
+                                                                     constant_values=0)
         if self._rgb_image is not None:
             self._rgb_image = np.pad(self._rgb_image, ((x_pad_before, x_pad_after),
                                                        (y_pad_before, y_pad_after),

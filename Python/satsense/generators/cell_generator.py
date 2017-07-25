@@ -63,11 +63,14 @@ class CellGenerator:
         self.x_size, self.y_size = size
         self.image = image
 
-        if length:
-            self.x_length, self.y_length = length
-        else:
-            self.x_length = math.ceil(image.shape[0] / self.x_size)
-            self.y_length = math.ceil(image.shape[1] / self.y_size)
+        self.x_length = math.ceil(image.shape[0] / self.x_size)
+        self.y_length = math.ceil(image.shape[1] / self.y_size)
+
+        if length and length[0] < self.x_length:
+            self.x_length = length[0]
+        
+        if length and length[1] < self.y_length:
+            self.y_length = length[1]
 
 
     def __iter__(self):

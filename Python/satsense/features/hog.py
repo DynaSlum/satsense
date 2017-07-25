@@ -2,7 +2,6 @@ from .. import SatelliteImage
 from ..bands import RGB
 from .feature import Feature
 from ..extract import CellGenerator
-from ..util.bibtex import inproceedings
 
 import numpy as np
 import scipy.stats
@@ -59,15 +58,15 @@ def heaved_central_shift_moment(histogram, order):
     return v
 
 
-@inproceedings('kumar2003man', {
-    'title': 'Man-made structure detection in natural images using a causal multiscale random field',
-    'author': 'Kumar, Sanjiv and Hebert, Martial',
-    'booktitle': 'Computer vision and pattern recognition, 2003. proceedings. 2003 ieee computer society conference on',
-    'volume': '1',
-    'pages': 'I--I',
-    'year': '2003',
-    'organization': 'IEEE'
-})
+# @inproceedings('kumar2003man', {
+#     'title': 'Man-made structure detection in natural images using a causal multiscale random field',
+#     'author': 'Kumar, Sanjiv and Hebert, Martial',
+#     'booktitle': 'Computer vision and pattern recognition, 2003. proceedings. 2003 ieee computer society conference on',
+#     'volume': '1',
+#     'pages': 'I--I',
+#     'year': '2003',
+#     'organization': 'IEEE'
+# })
 def smoothe_histogram(histogram, kernel, bandwidth):
     """
     Vectorized histogram smoothing implementation
