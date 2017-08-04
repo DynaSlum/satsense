@@ -39,7 +39,8 @@ def mask2multipolygon(mask_data, mask, trans=(1.0, 0.0, 0.0, 0.0, 1.0, 0.0), con
     multi = MultiPolygon([shape(geometries[i]['geometry']) for i in range (len(geometries))])
     
     if not(multi.is_valid):        
-        print('Not a valid polygon!')
+        print('Not a valid polygon, using it''s buffer!')
+        multi = multi.buffer(0)
         
     return multi    
         
