@@ -29,7 +29,10 @@ bwn = ~bwareaopen(~bw, areaNoise/2);
 SE =  strel('square', sizeSE); % for removing shadows
 bwc = imclose(bwn, SE);
 urbanMask = ~bwareaopen(~bwc, areaNoise);
-vegetationMask = imfill(imclose(~urbanMask, SE), 'holes');
+bwv = ~urbanMask;
+bwvn = bwareaopen(bwv, areaNoise);
+bwvnc = imclose(bwvn, SE);
+vegetationMask = bwareaopen(bwvnc, 2*areaNoise);
 %% visualize
 if visualize
     figure;
