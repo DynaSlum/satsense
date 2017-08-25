@@ -68,6 +68,7 @@ switch method
         VEG = (red - blue)./(red + blue);
     case 'RG'
         VEG = (red - green)./(red + green);
+        %thresh =10/255;
     case 'HSVDT'
         %Set the hue value to zero if it isless than 50 or great than 150
         H((H < 50) | (H > 150)) = 0;
@@ -80,6 +81,8 @@ end
         
 if strcmp(method,'VARI')
     vegetation_mask_raw = logical((VEG > thresh1)&(VEG < thresh2));
+elseif strcmp(method, 'RG') || strcmp(method, 'RB') %|| strcmp(method,'TGI')
+    vegetation_mask_raw = logical(VEG < thresh);
 else
     vegetation_mask_raw = logical(VEG > thresh);
 end
@@ -111,11 +114,11 @@ if visualize
             axis image; axis on, grid on, colormap(jet); colorbar;
             title('Vegetation index: VVI');    
         case 'TGI'
-            subplot(222); image(uint8(VEG)*255); 
+            subplot(222); image(VEG); 
             axis image; axis on, grid on, colormap(jet); colorbar;
             title('Vegetation index: TGI');
         case 'VDVI'
-            subplot(222); imagesc(uint8(VEG)*255); 
+            subplot(222); imagesc(VEG*255); 
             axis image; axis on, grid on, colormap(jet); colorbar;
             title('Vegetation index: VDVI');
         case 'VARI'
@@ -123,11 +126,11 @@ if visualize
             axis image; axis on, grid on, colormap(jet); colorbar;
             title('Vegetation index: VARI');            
         case 'RB'
-            subplot(222); image(uint8(VEG)*255); 
+            subplot(222); image(VEG*255); 
             axis image; axis on, grid on, colormap(jet); colorbar;
             title('Vegetation index: RB');
         case 'RG'
-            subplot(222); image(uint8(VEG)*255); 
+            subplot(222); image(VEG*255); 
             axis image; axis on, grid on, colormap(jet); colorbar;            
             title('Vegetation index: RG');
     end
