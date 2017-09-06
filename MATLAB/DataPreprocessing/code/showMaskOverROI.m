@@ -3,6 +3,9 @@ function [ ] = showMaskOverROI( rgbROI, mask, col)
 % rgbROI- the RGB ROI
 % mask - the binary mask to be displayed over the ROI
 
+if nargin < 3
+    col = 'g';
+end
 if nargin < 2
     error('showMaskOverROI requires at least 2 arguments - an rbg ROI and a mask!');
 end
