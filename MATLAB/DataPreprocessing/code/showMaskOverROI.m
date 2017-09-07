@@ -1,13 +1,14 @@
-function [ ] = showMaskOverROI( rgbROI, mask, col)
+function [ ] = showMaskOverROI( rgbROI, mask, thresh_type, col)
 %% visualizes mask over RGB ROI
 % rgbROI- the RGB ROI
+% thresh_type - the type of thresholidng, can be 'mean' or 'fixed'
 % mask - the binary mask to be displayed over the ROI
 
-if nargin < 3
+if nargin < 4
     col = 'g';
 end
-if nargin < 2
-    error('showMaskOverROI requires at least 2 arguments - an rbg ROI and a mask!');
+if nargin < 3
+    error('showMaskOverROI requires at least 3 arguments - an rbg ROI, a mask!');
 end
 
 % compute mask boundaties
@@ -15,9 +16,12 @@ end
 
 %% visualize
 figure;
-image(rgbROI);
+subplot(131); image(rgbROI); axis image; axis on, grid on, title('RGB Image ROI');
+subplot(132); imshow(mask); axis image; axis on, grid on;
+title(['Vegetation mask: ', thresh_type]);
+subplot(133); image(rgbROI);
 axis image, axis on; grid on;
-title('Vegetation mask over ROI');
+title('Mask over ROI');
 hold on;
 for k = 1:length(B)
     boundary = B{k};
