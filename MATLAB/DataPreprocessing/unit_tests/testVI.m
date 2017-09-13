@@ -1,7 +1,7 @@
 % script to compute and visualize vegetation mask
 
 vi_type = 'VVI';
-vis = false;
+vis = true;
 
 path = fullfile('C:','Projects','DynaSlum','Data','Bangalore','GEImages','Clipped');
 fname = input('Enter the filename: ','s');
