@@ -7,8 +7,23 @@ else
     root_dir = fullfile('C:','Projects', 'DynaSlum');
 end
 
-tile_sizes = [100];
-tile_sizes_m = [80];
+root_dir = '/home/bweel/Documents/projects/dynaslum/data/Bangalore/GE_Images/';
+ROIS = {
+    'ROI1'
+    'ROI2'
+    'ROI3'
+    'ROI4'
+    'ROI5'
+};
+
+testROIS = ROIS;
+leaveOutROI = 5;
+
+% Remove the ROI we used to build the model
+testROIS(leaveOutROI,:) = [];
+
+tile_sizes = [68];
+tile_sizes_m = [10];
 vocabulary_size = [50];
 
 n = 1;
@@ -18,61 +33,65 @@ tile_size_m = tile_sizes_m(n);
 str = ['px' num2str(tile_size) 'm' num2str(tile_size_m)];
 
 sav_path_classifier = fullfile(root_dir, 'Results','Classification3Classes','Classifiers');
-fname = fullfile(sav_path_classifier, ['trained_SURF_SVM_Classifier' num2str(vocabulary_size) '_' str '.mat']) ;
+fname = fullfile(sav_path_classifier, ['trained_SURF_SVM_Classifier' num2str(vocabulary_size) '_' ROIS{leaveOutROI} '_' str '.mat']) ;
 
-random_tiles_path = fullfile(root_dir, 'Results','Classification3Classes','TestTiles', str);
-classes = {'BuiltUp'; 'NonBuiltUp'; 'Slum'};
-classes_visnames = {'BU'; 'NBU';'S'};
-num_classes = length(classes);
-num_random_tiles_per_class = 10;
 
-% the true labels
-true_labels = [];
-predicted_labels = [];
+for i = 1:size(testROIS)
+    roi = testROIS{i};
+    disp(strcat('testing on ROI: ', roi));
+    random_tiles_path = fullfile(root_dir, roi, str);
+    classes = {'BuiltUp'; 'NonBuiltUp'; 'Slum'};
+    classes_visnames = {'BU'; 'NBU';'S'};
+    num_classes = length(classes);
+    num_random_tiles_per_class = 10;
 
-visualize = true;
+    % the true labels
+    true_labels = [];
+    predicted_labels = [];
 
-%% Apply the pre-trained classfier
-load(fname);
+    visualize = true;
 
-% get the filenames
-for c = 1:num_classes
-    class = char(classes{c});
-    filenames{c} = dir(fullfile(random_tiles_path, class,'*.tif'));
-end
+    %% Apply the pre-trained classfier
+    load(fname);
 
-% predict the categories
-i =0;
-if visualize
-    figure('units','normalized','outerposition',[0 0 1 1]);
-end
-for c = 1:num_classes
-    class = char(classes{c});
-    fnames = {filenames{c}.name};
-    paths = {filenames{c}.folder};
-    for n = 1:num_random_tiles_per_class
-        i = i + 1;
-        true_labels{i} = class;
-        % load test tile
-        img_fname = fullfile(paths{n}, fnames{n});       
-        img  = imread(img_fname);
-        % predict
-        [labelIdx, scores] = predict(categoryClassifier, img);
-        predicted_labels{i} = char(categoryClassifier.Labels(labelIdx));
-        if visualize
-            subplot(3,num_random_tiles_per_class,i);
-            imshow(img); axis on;
-            title(['T: ' true_labels{i}]);
-            xlabel(['Pr: ' predicted_labels{i}]);
+    % get the filenames
+    for c = 1:num_classes
+        class = char(classes{c});
+        filenames{c} = dir(fullfile(random_tiles_path, class,'*.tif'));
+    end
+
+    % predict the categories
+    i =0;
+    if visualize
+        figure('units','normalized','outerposition',[0 0 1 1]);
+    end
+    for c = 1:num_classes
+        class = char(classes{c});
+        fnames = {filenames{c}.name};
+        paths = {filenames{c}.folder};
+        for n = 1:num_random_tiles_per_class
+            i = i + 1;
+            true_labels{i} = class;
+            % load test tile
+            img_fname = fullfile(paths{n}, fnames{n});       
+            img  = imread(img_fname);
+            % predict
+            [labelIdx, scores] = predict(categoryClassifier, img);
+            predicted_labels{i} = char(categoryClassifier.Labels(labelIdx));
+            if visualize
+                subplot(3,num_random_tiles_per_class,i);
+                imshow(img); axis on;
+                title(['T: ' true_labels{i}]);
+                xlabel(['Pr: ' predicted_labels{i}]);
+            end
         end
     end
-end
 
 true_labels = categorical(true_labels);
 predicted_labels = categorical(predicted_labels);
 
 %% evaluate
-disp('Evaluating perfomance on the Random tiles');
+disp(strcat('Evaluating perfomance on the Random tiles of ', roi));
 perf_stats_rand = confusionmatStats(true_labels, predicted_labels);
 perf_stats_rand.confusionMat
 P = table( perf_stats_rand.accuracy*100, perf_stats_rand.sensitivity*100,...
@@ -82,3 +101,4 @@ P = table( perf_stats_rand.accuracy*100, perf_stats_rand.sensitivity*100,...
     'VariableNames', {'accuracy';'sensitivity'; 'specificity';...
     'precision';'recall';'Fscore'});
 disp(P);
+end

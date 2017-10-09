@@ -4,17 +4,19 @@
 
 %% setup parameters
 if isunix
-    root_dir = fullfile('/home','elena','DynaSlum');
+    root_dir = fullfile('/home','bweel','Documents','projects','dynaslum', 'SatelliteImaging','MATLAB');
 else
     root_dir = fullfile('C:','Projects', 'DynaSlum');
 end
 
-base_path = fullfile(root_dir, 'Data','Kalyan', 'Datasets3Classes');
-sav_path_datastores = fullfile(root_dir, 'Results','Classification3Classes','DatastoresAndFeatures');
-sav_path_classifier = fullfile(root_dir, 'Results','Classification3Classes','Classifiers');
+data_dir = '/home/bweel/Documents/projects/dynaslum/data/Bangalore/GE_Images/';
+roi = 'ROI5';
+base_path = fullfile(data_dir, roi);
+sav_path_datastores = fullfile(data_dir, 'Results','Classification3Classes','DatastoresAndFeatures');
+sav_path_classifier = fullfile(data_dir, 'Results','Classification3Classes','Classifiers');
 
-tile_sizes = [100];
-tile_sizes_m = [80];
+tile_sizes = [135];
+tile_sizes_m = [20];
 %vocabulary_sizes = [10 20 50];
 vocabulary_sizes = [50];
 n = 1;
@@ -36,9 +38,10 @@ summary_flag = true;
 preview_flag = true; % preview of the datastore
 verbose = true;
 visualize = false; % visualization still doesn't work!
-sav = false;
+sav = true;
 %% create image datastore
 
+disp(roi);
 disp(['Creating image data store for tile size: ' num2str(tile_size) ' pixels = ' num2str(tile_size_m) ' meters.']);
 
 image_dataset_location = fullfile(base_path,str);
@@ -103,7 +106,7 @@ for point_selection = point_selections
         disp('-----------------------------------------------------------------');
         % save the trained classifier
         if sav
-            fname = fullfile(sav_path_classifier, ['trained_SURF_SVM_Classifier' num2str(vocabulary_size) '_' str '.mat']) ;
+            fname = fullfile(sav_path_classifier, ['trained_SURF_SVM_Classifier' num2str(vocabulary_size) '_' roi '_' str '.mat']) ;
             save(fname, 'categoryClassifier');
         end
     end

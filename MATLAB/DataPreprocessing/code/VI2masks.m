@@ -1,4 +1,4 @@
-function [urbanMask, vegetationMask] = VI2masks( VI, thresh_type, visualize)
+function [urbanMask, vegetationMask] = VI2masks( VI, thresh_type, visualize, thresh_value, method)
 %% generates a urban mask froom vegetation index (VI)
 % VI - the vegetation index values matrix
 % thresh_type - the type of thresholidng, can be 'mean' or 'fixed'
@@ -15,13 +15,16 @@ end
 if nargin < 1
     error('VI2urban requires at least 1 argument - a vegetation index matrix!');
 end
+if nargin < 4
+    thresh_value = 25;
+end
 
 %% threshold the VI matrix with it's mean value
 switch thresh_type
     case 'mean'    
         thresh = mean(mean(VI));
     case 'fixed'
-        thresh = 25;
+        thresh = thresh_value;
     otherwise
         error('Unknown threshold type! Chose `mean` or `fixed` ');
 end
@@ -51,8 +54,11 @@ urbanMask = ~vegetationMask;
 if visualize
     figure;
     
-    subplot(231); image(VI); colormap(jet); axis image; axis on, grid on, title('Vegetation index: VVI');
-    subplot(232); imshow(bw); axis image; axis on, grid on, title('Thresholded (mean) VVI');
+    if max(max(VI)) <= 1
+        VI = VI * 255.0;
+    end
+    subplot(231); image(VI); colormap(jet); axis image; axis on, grid on, title(strcat('Vegetation index: ', method));
+    subplot(232); imshow(bw); axis image; axis on, grid on, title(strcat('Thresholded (mean) ', method));
     subplot(233); imshow(bwn); axis image; axis on, grid on, title('Area Opening- noise removal');
     subplot(234); imshow(bwc); axis image; axis on, grid on, title('Closing');
     subplot(236); imshow(urbanMask); axis image; axis on, grid on, title('UrbanMask');
