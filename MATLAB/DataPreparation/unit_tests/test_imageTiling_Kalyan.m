@@ -1,4 +1,4 @@
-% Testing of imageTiling
+% Testing of imageTiling for Kalyan
 
 %% parameters
 if isunix
