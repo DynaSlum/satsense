@@ -1,4 +1,11 @@
-data_dir = '/home/bweel/Documents/projects/dynaslum/data/Bangalore/GE_Images/';
+%% setup parameters
+berend = true;
+
+if berend
+    data_dir = '/home/bweel/Documents/projects/dynaslum/data/Bangalore/GE_Images/';
+    masks_dir = fullfile(data_dir,'masks');
+end
+
 ROIS = {
     'ROI1'
     'ROI2'
@@ -7,21 +14,20 @@ ROIS = {
     'ROI5'
 };
 
-
+% Tile Size in Pixels
+tile_sizes = [135, 135];
+% Corresponding tile size in meters
+tile_sizes_m = [20];
+% Step to take between tile
+tile_step = [68, 68];
+% Factor of true label to be present in the tile
+factor = 0.9;
+    
 for i = 1:size(ROIS)
     disp('-----------------------------------------------------------');
     roi = ROIS{i};
     disp(strcat('Creating tile sets for ROI: ', roi));
     base_path = fullfile(data_dir, roi);
-
-    % Tile Size in Pixels
-    tile_sizes = [135, 135];
-    % Corresponding tile size in meters
-    tile_sizes_m = [20];
-    % Step to take between tile
-    tile_step = [68, 68];
-    % Factor of true label to be present in the tile
-    factor = 0.9;
 
     n = 1;
     tile_size = tile_sizes(n);
