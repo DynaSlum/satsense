@@ -12,17 +12,11 @@ data_dir = fullfile(data_root_dir, 'Clipped','fixed');
 masks_dir = fullfile(data_root_dir, 'masks');
 
 base_tiles_path = fullfile(data_root_dir, 'Datasets4MATLAB');
-factor = 0.9;
+factor = 0.8;
 save_mixed = false;
-%tile_sizes = [67 134 200 268 334 400];
-%%these are approx! real are 10.05 20.1 30 40.2 50.1 and 60
-%tile_sizes_m = [10 20 30 40 50 60] ;
-tile_sizes = [67 134 200 268 334];
-%these are approx! real are 10.05 20.1 30 40.2 and 50.1
-tile_sizes_m = [10 20 30 40 50]; 
-
-%tile_sizes = [400];
-%tile_sizes_m = [60];
+tile_sizes = [67 134 200 268 334 400];
+%these are approx! real are 10.05 20.1 30 40.2, 50.1  and 60
+tile_sizes_m = [10 20 30 40 50 60]; 
 
 ROIs = {
     'ROI1'
