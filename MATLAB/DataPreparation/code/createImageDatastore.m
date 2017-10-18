@@ -1,15 +1,15 @@
 function [imds] = createImageDatastore( image_dataset_location, summary_flag,...
     preview_flag)
-%% createImageDatastore  wrapper aroind imageDatastore for datasets with 
+%% createImageDatastore  wrapper aroind imageDatastore for datasets with
 %   some preset parameters
 %   INPUT:
 %   image_dataset_location -top folder of the images. Each subfolder
-%       corresponds to 4 classes with class labels 1:'Slum', 2: 'BuiltUp' 
-%       and 3: 'NonBuiltUp', 4: 'Mixed'. The funciton uses as default 
-%       settings for imageDatastore parameters as follows: 
+%       corresponds to 4 classes with class labels 1:'Slum', 2: 'BuiltUp'
+%       and 3: 'NonBuiltUp', 4: 'Mixed'. The funciton uses as default
+%       settings for imageDatastore parameters as follows:
 %       'IncludeSubfolders' = true and 'LabelSource' = 'foldernames'
 %   summary_flag -if true class names and counts are displayed
-%   preview_flag - if true mosaic of sample for classes is shown 
+%   preview_flag - if true mosaic of sample for classes is shown
 %   OUPUT:
 %   imgs - returns image datastore object
 %   optionally displays class names and counts and shows mosaic of class
@@ -28,18 +28,40 @@ if summary_flag || preview_flag
     tbl = countEachLabel(imds);                     %#ok
 end
 
-if summary_flag    
+if summary_flag
     disp(tbl);
 end
 
 %% Show sampling of all data
-sample = splitEachLabel(imds,16);
+sample = splitEachLabel(imds, 4, 'randomized');
 
 if preview_flag
-    for ii = 1:3
-        sf = (ii-1)*16 +1;
-        ax(ii) = subplot(2,2,ii);
-        montage(sample.Files(sf:sf+3));
-        title(char(tbl.Label(ii)));
+    figure;
+    b=0; n=0; s = 0;
+    for i = 1:12
+        switch sample.Labels(i)
+            case 'BuiltUp'
+                b = b+1;
+                files_builtup(b) = sample.Files(i);
+            case 'NonBuiltUp'
+                n = n+1;
+                files_nonbuiltup(n) = sample.Files(i);
+            case 'Slum'
+                s = s+1;
+                files_slum(s) = sample.Files(i);
+        end
     end
+    subplot(1,3,1);
+    montage(files_builtup);
+    title('BuiltUp');
+    
+    subplot(1,3,2);
+    montage(files_nonbuiltup);
+    title('NonBuiltUp');
+    
+    subplot(1,3,3);
+    montage(files_slum);
+    title('Slum');
+    
+end
 end
