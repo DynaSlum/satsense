@@ -40,20 +40,22 @@ for r = 1:num_ROIs
     builtup_mask = strcat('Bangalore_',roi,'_urbanMask.tif');
     nonbuiltup_mask = strcat('Bangalore_',roi,'_vegetationMask.tif');
     
+    
+    image_fullfname = fullfile(data_dir, strcat('Bangalore_', roi, '.tif'));
+    masks_fullfnames = {fullfile(masks_dir, slum_mask), ...
+        fullfile(masks_dir, builtup_mask),...
+        fullfile(masks_dir, nonbuiltup_mask)};
+        
     for n = 1: num_datasets
         tile_size = tile_sizes(n);
         tile_size_m = tile_sizes_m(n);
         stepY = floor(tile_size/2);
         stepX = stepY;
         tile_step = [stepX stepY];
-        
-        image_fullfname = fullfile(data_dir, strcat('Bangalore_', roi, '.tif'));
-        masks_fullfnames = {fullfile(masks_dir, slum_mask), ...
-            fullfile(masks_dir, builtup_mask),...
-            fullfile(masks_dir, nonbuiltup_mask)};
+
         
         str = ['px' num2str(tile_size) 'm' num2str(tile_size_m)];
-        tiles_path = fullfile(base_tiles_path, str);
+        tiles_path = fullfile(base_tiles_path, str, roi);
         
         if exist(tiles_path,'dir')==7
             rmdir(tiles_path,'s');
