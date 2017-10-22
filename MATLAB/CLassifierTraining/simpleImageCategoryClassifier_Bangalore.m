@@ -17,6 +17,7 @@ else
     
     sav_path_datastores = fullfile(results_dir, 'DatastoresAndFeatures');
     sav_path_classifier = fullfile(results_dir, 'Classifiers');
+    sav_path_performance = fullfile(results_dir, 'Performance');
     
 end
 
@@ -68,6 +69,10 @@ if sav
     
     if not(exist(sav_path_classifier,'dir')==7)
         mkdir(sav_path_classifier);
+    end
+    
+    if not(exist(sav_path_performance,'dir')==7)
+        mkdir(sav_path_performance);
     end
 end
 
@@ -141,6 +146,13 @@ for d = 1: num_datasets
             'VariableNames', {'accuracy';'sensitivity'; 'specificity';...
             'precision';'recall';'Fscore'});
         disp(TrT);
+        
+        % save the performance results
+        if sav
+            disp('Evaluating perfomance on the Training set');
+            fname = fullfile(sav_path_performance, ['performance_train_' num2str(vocabulary_size) '_' str '.mat']) ;
+            save(fname, 'confmatTrain', 'TrT');
+        end
         disp('-----------------------------------------------------------------');
         disp('Evaluating perfomance on the Test set');
         [confmatTest] = evaluate(categoryClassifier, imdsTest);
@@ -152,15 +164,22 @@ for d = 1: num_datasets
             'VariableNames', {'accuracy';'sensitivity'; 'specificity';...
             'precision';'recall';'Fscore'});
         disp(TrTs);
+        % save the performance results
+        if sav
+            disp('Saving perfomance on the Test set');
+            fname = fullfile(sav_path_performance, ['performance_test_' num2str(vocabulary_size) '_' str '.mat']) ;
+            save(fname, 'confmatTest', 'TrTs');
+        end
         disp('-----------------------------------------------------------------');
         % save the trained classifier
         if sav
-            fname = fullfile(sav_path_classifier, ['trained_SURF_SVM_Classifier' str '_' num2str(vocabulary_size) '_' roi '_' str '.mat']) ;
+            fname = fullfile(sav_path_classifier, ['trained_SURF_SVM_Classifier_' num2str(vocabulary_size) '_' roi '_' str '.mat']) ;
             save(fname, 'categoryClassifier');
         end
-        disp('Paused. Press any key to continue');
-        pause;
+
     end % vocabulary sizes
-    
+    disp('**********************************************************************************')
+    disp('Paused. Press any key to continue');
+    pause;   
 end % for num_datasets
     
