@@ -52,7 +52,7 @@ if nargin < npar || isempty(titles_str)
     
 end
 % variable parameters
-argn = 11;
+argn = npar;
 if nargin > argn
     xlabel_str = varargin{argn+1};
 else
