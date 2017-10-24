@@ -55,6 +55,7 @@ for vocabulary_size = vocabulary_sizes
         sensitivity_train(v,d,:) = TrT.sensitivity;
         specificity_train(v,d,:) = TrT.specificity;
         precision_train(v,d,:) = TrT.precision;
+        fscore_train(v,d,:) = TrT.Fscore;
         
         fname = fullfile(sav_path_performance, ['performance_test_' num2str(vocabulary_size) '_' str '.mat']) ;
         load(fname, 'TrTs');
@@ -62,6 +63,7 @@ for vocabulary_size = vocabulary_sizes
         sensitivity_test(v,d,:) = TrTs.sensitivity;
         specificity_test(v,d,:) = TrTs.specificity;
         precision_test(v,d,:) = TrTs.precision;
+        fscore_test(v,d,:) = TrTs.Fscore;
         
     end
 end
@@ -71,4 +73,7 @@ plot_acc_sens_spec_prec_all( accuracy_train, ...
     sensitivity_train, specificity_train, precision_train);
 
 plot_acc_sens_spec_prec_all( accuracy_test, ...
-    sensitivity_test, specificity_test, precision_test);    
+    sensitivity_test, specificity_test, precision_test); 
+
+plot_fscore_all( fscore_train);
+plot_fscore_all( fscore_test);
