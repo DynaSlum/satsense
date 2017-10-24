@@ -21,7 +21,8 @@ end
 %% default parameter values
 npar = 5;
 if nargin < npar || isempty(tile_sizes)
-    tile_sizes = [10 20 30 40 50 60];
+    %tile_sizes = [10 20 30 40 50 60];
+    tile_sizes = [10 20 30 40];
 end
 npar = npar +1;
 if nargin < npar || isempty(vocabulary_sizes)

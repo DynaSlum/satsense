@@ -18,9 +18,9 @@ else
     
 end
 
-tile_sizes = [67 134 200 268 334 400];
+tile_sizes = [67 134 200 268];
 %these are approx! real are 10.05 20.1 30 40.2, 50.1  and 60
-tile_sizes_m = [10 20 30 40 50 60];
+tile_sizes_m = [10 20 30 40];
 
 num_datasets = length(tile_sizes);
 
@@ -45,7 +45,7 @@ for vocabulary_size = vocabulary_sizes
         tile_size_m = tile_sizes_m(d);
         str = ['px' num2str(tile_size) 'm' num2str(tile_size_m)];
         
-        if verbose
+        if verbose68
             disp(['Loading performance files for dataset: ' str '...']);
         end
                 
