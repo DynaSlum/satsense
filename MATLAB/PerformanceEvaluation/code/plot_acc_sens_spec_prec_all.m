@@ -19,25 +19,32 @@ if (nargin < 4)
 end
 
 %% default parameter values
-if nargin < 5 || isempty(tile_sizes)
+npar = 5;
+if nargin < npar || isempty(tile_sizes)
     tile_sizes = [10 20 30 40 50 60];
 end
-if nargin < 6 || isempty(vocabulary_sizes)
+npar = npar +1;
+if nargin < npar || isempty(vocabulary_sizes)
     vocabulary_sizes = [10 20 50];
 end
-if nargin < 7 || isempty(classes)
+npar = npar +1;
+if nargin < npar || isempty(classes)
     classes = {'BuiltUp';'NonBuiltUp';'Slum'};
 end
-if nargin < 8 || isempty(builtup_bar_color)
+npar = npar +1;
+if nargin < npar || isempty(builtup_bar_color)
     builtup_bar_color = [0 0 1]; % blue
 end
-if nargin < 9 || isempty(nonbuiltup_bar_color)
+npar = npar +1;
+if nargin < npar || isempty(nonbuiltup_bar_color)
     nonbuiltup_bar_color = [0 1 0]; % green
 end
-if nargin < 10 || isempty(slum_bar_color)
+npar = npar +1;
+if nargin < npar || isempty(slum_bar_color)
     slum_bar_color = [1 0 0]; % red
 end
-if nargin < 11 || isempty(titles_str)
+npar = npar +1;
+if nargin < npar || isempty(titles_str)
     titles_str{1} = 'Accuracy';
     titles_str{2} = 'Sensitivity/Recall';
     titles_str{3} = 'Specificity';
