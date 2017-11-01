@@ -19,7 +19,7 @@ stepX = stepY;
 tile_step = [stepX stepY];
 
 data_path = fullfile(root_dir, 'Data','Kalyan','Rasterized_Lourens');
-sav_path = fullfile(root_dir, 'Results', 'Segmentation');
+sav_path = fullfile(root_dir, 'Results', 'Segmentation','Kalyan');
 image_fname = 'Mumbai_P4_R1C1_3_clipped_rgb.tif';
 str = ['px' num2str(tile_size) 'm' num2str(tile_size_m)];
 sav_path_classifier = fullfile(root_dir, 'Results','Classification3Classes','Classifiers');
