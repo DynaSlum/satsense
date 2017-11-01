@@ -173,7 +173,7 @@ for d = 1: num_datasets
         disp('-----------------------------------------------------------------');
         % save the trained classifier
         if sav
-            fname = fullfile(sav_path_classifier, ['trained_SURF_SVM_Classifier_' num2str(vocabulary_size) '_' roi '_' str '.mat']) ;
+            fname = fullfile(sav_path_classifier, ['trained_SURF_SVM_Classifier_' num2str(vocabulary_size) '_' str '.mat']) ;
             save(fname, 'categoryClassifier');
         end
 
