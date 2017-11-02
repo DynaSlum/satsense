@@ -46,7 +46,8 @@ for r = 1: nrows_step : nrows
        
         sc = max(1, c - half_ncols_tile);
         ec = min(ncols, c + half_ncols_tile - 1);
-        disp('Processing pixel :'); pixel = [r c]
+        disp(['Processing pixel : (' num2str(r) '/' num2str(nrows) ',' ...
+            num2str(c) '/' num2str(ncols), ')']);
         
         
         % get the image tile
@@ -54,7 +55,7 @@ for r = 1: nrows_step : nrows
         
         % classify the image using the classifier
         tic
-        [labelIdx, scores] = predict(classifier, image_tile);
+        [labelIdx, ~] = predict(classifier, image_tile);
         toc
         class_label = char(classifier.Labels(labelIdx))
         
