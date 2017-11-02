@@ -14,7 +14,7 @@ if not(exist(results_dir,'dir')==7)
 end
 
 classifier_dir = fullfile(results_dir, 'Classification3Classes', 'Classifiers');
-segmentation_dir = fullfile(results_dir, 'Segmentaiton');
+segmentation_dir = fullfile(results_dir, 'Segmentation');
     
 
 
@@ -25,13 +25,13 @@ best_tile_size = [268];
 best_tile_size_m = [40];
 str = ['px' num2str(best_tile_size) 'm' num2str(best_tile_size_m)];
 
-stepY = 20;
+stepY = 10;
 stepX = stepY;
 tile_step = [stepX stepY];
 
 ROIs = {
-    'ROI1'
-%     'ROI2'
+%    'ROI1'
+     'ROI2'
 %     'ROI3'
 %     'ROI4'
 %     'ROI5'
@@ -74,7 +74,7 @@ for r = 1:num_ROIs
         map = [0 0 1; 0 1 0; 1 0 0; 1 1 1]; % White, Blue, Green, Red, White = 1,2,3, NaN
         RGB = ind2rgb(segmented_image,map);
         
-        figure; imshow(RGB, map); title('Segmented Kalyan cropped image (every 5th pixel)');
+        figure; imshow(RGB, map); title('Segmented Bangalore cropped image (every 10th pixel)');
         %legend('Not processed','BuiltUp', 'NonBuiltUp', 'Slum');
         colorbar('Ticks', [0.1 0.35 0.65 0.9], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum', 'Not Processed'});
         axis on, grid on
@@ -82,7 +82,7 @@ for r = 1:num_ROIs
     
     %% save
     if sav
-        sav_fname = fullfile(segmentation_dir,['SegmentedImage_SURF_SVM_Classifier' num2str(vocabulary_size) '_' str '.mat']);
+        sav_fname = fullfile(segmentation_dir,['SegmentedImage_SURF_SVM_Classifier' num2str(vocabulary_size) '_' str '_' roi '.mat']);
         save(sav_fname,'segmented_image');
     end
     disp('DONE!');
