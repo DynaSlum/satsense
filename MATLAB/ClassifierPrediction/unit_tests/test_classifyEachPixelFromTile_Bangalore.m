@@ -25,14 +25,14 @@ best_tile_size = [268];
 best_tile_size_m = [40];
 str = ['px' num2str(best_tile_size) 'm' num2str(best_tile_size_m)];
 
-stepY = 5;
+stepY = 20;
 stepX = stepY;
 tile_step = [stepX stepY];
 
 ROIs = {
-%    'ROI1'
+    'ROI1'
 %     'ROI2'
-     'ROI3'
+%     'ROI3'
 %     'ROI4'
 %     'ROI5'
      };
