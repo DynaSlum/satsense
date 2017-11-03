@@ -1,54 +1,18 @@
 % Testing of classifyEachPixelFromTile_Bangalore
 
-%% setup parameters
+%% params
+[ paths, processing_params, exec_flags] = config_params_Bangalore();
 
-if isunix
-    root_dir = fullfile('/home','elena','DynaSlum');
-else
-    root_dir = fullfile('C:','Projects', 'DynaSlum');
-end
-data_root_dir = fullfile(root_dir, 'Data','Bangalore','GEImages');
-results_dir = fullfile(root_dir, 'Results','Bangalore');
-if not(exist(results_dir,'dir')==7)
-    mkdir(results_dir);
-end
-
-classifier_dir = fullfile(results_dir, 'Classification3Classes', 'Classifiers');
-segmentation_dir = fullfile(results_dir, 'Segmentation');
-    
+[data_dir, masks_dir, classifier_dir, segmentaiton_dir] = v2struct(paths);
+[vocabulary_size, best_tile_size, best_tile_size_m, tile_step, ROIs] = v2struct(processing_params);
+[verbose, visualize, sav] = v2struct(exec_flags);
 
 
-data_dir = fullfile(data_root_dir, 'Clipped','fixed');
-masks_dir = fullfile(data_root_dir, 'masks');
-
-best_tile_size = [268];
-best_tile_size_m = [40];
 str = ['px' num2str(best_tile_size) 'm' num2str(best_tile_size_m)];
-
-stepY = 10;
-stepX = stepY;
-tile_step = [stepX stepY];
-
-ROIs = {
-%    'ROI1'
-     'ROI2'
-%     'ROI3'
-%     'ROI4'
-%     'ROI5'
-     };
 num_ROIs = length(ROIs);
 
-
-%% feature parameters
-vocabulary_size = [50];
 fname = fullfile(classifier_dir, ['trained_SURF_SVM_Classifier_' num2str(vocabulary_size) '_' str '.mat']) ;
 load(fname); % contains categoryClassifier
-
-
-%% execution flags
-verbose = true;
-visualize = true;
-sav = true;
 
 
 %% segmentation
