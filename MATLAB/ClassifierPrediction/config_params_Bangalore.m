@@ -4,8 +4,8 @@
 % author: Elena Ranguelova, NLeSc
 % date created: 3 November 2017
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% last modification date: 
-% modification details: 
+% last modification date: 8 Nov 2017
+% modification details: added window_size for filling the missing pixels
 %**************************************************************************
 % INPUTS:
 %**************************************************************************
@@ -41,6 +41,8 @@ best_tile_size_m = [40];
 stepY = 10;
 stepX = stepY;
 tile_step = [stepX stepY];
+wsY = 20;wsX = wsY;
+window_size = [wsX wsY];
 
 ROIs = {
     'ROI1'
@@ -49,7 +51,7 @@ ROIs = {
 %     'ROI4'
 %     'ROI5'
      };
-processing_params = v2struct(vocabulary_size, best_tile_size, best_tile_size_m, tile_step, ROIs);
+processing_params = v2struct(vocabulary_size, best_tile_size, best_tile_size_m, tile_step, window_size, ROIs);
 
 %% exec_params
 verbose = true;
