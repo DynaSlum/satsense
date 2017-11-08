@@ -41,7 +41,7 @@ best_tile_size_m = [40];
 stepY = 10;
 stepX = stepY;
 tile_step = [stepX stepY];
-wsY = 20;wsX = wsY;
+wsY = 22;wsX = wsY;
 window_size = [wsX wsY];
 
 ROIs = {
