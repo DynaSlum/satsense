@@ -3,7 +3,7 @@
 %% params
 [ paths, processing_params, exec_flags] = config_params_Bangalore();
 
-[data_dir, masks_dir, classifier_dir, segmentaiton_dir] = v2struct(paths);
+[data_dir, masks_dir, classifier_dir, segmentation_dir] = v2struct(paths);
 [vocabulary_size, best_tile_size, best_tile_size_m, tile_step, ~, ROIs] = v2struct(processing_params);
 [verbose, visualize, sav] = v2struct(exec_flags);
 
@@ -38,7 +38,7 @@ for r = 1:num_ROIs
         map = [0 0 1; 0 1 0; 1 0 0; 1 1 1]; % White, Blue, Green, Red, White = 1,2,3, NaN
         RGB = ind2rgb(segmented_image,map);
         
-        figure; imshow(RGB, map); title('Segmented Bangalore cropped image (every 10th pixel)');
+        figure; imshow(RGB, map); title('Segmented Bangalore cropped ROI (every 10th pixel)');
         %legend('Not processed','BuiltUp', 'NonBuiltUp', 'Slum');
         colorbar('Ticks', [0.1 0.35 0.65 0.9], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum', 'Not Processed'});
         axis on, grid on
