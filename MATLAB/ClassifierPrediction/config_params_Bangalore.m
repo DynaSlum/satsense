@@ -5,7 +5,8 @@
 % date created: 3 November 2017
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % last modification date: 8 Nov 2017
-% modification details: added window_size for filling the missing pixels
+% modification details: added window_sizes for filling the missing pixels
+% and for the majority filter
 %**************************************************************************
 % INPUTS:
 %**************************************************************************
@@ -13,7 +14,7 @@
 % paths
 % data_dir - the folder containing the image data
 % classifier_dir - the folder containing the trained classifier
-% 
+% ...
 %**************************************************************************
 function [ paths, processing_params, exec_flags] = config_params_Bangalore()
     
@@ -42,7 +43,9 @@ stepY = 10;
 stepX = stepY;
 tile_step = [stepX stepY];
 wsY = 22;wsX = wsY;
-window_size = [wsX wsY];
+window_size_miss = [wsX wsY];
+wsY = 15;wsX = wsY;
+window_size_filt = [wsX wsY];
 
 ROIs = {
     'ROI1'
@@ -51,7 +54,8 @@ ROIs = {
 %     'ROI4'
 %     'ROI5'
      };
-processing_params = v2struct(vocabulary_size, best_tile_size, best_tile_size_m, tile_step, window_size, ROIs);
+processing_params = v2struct(vocabulary_size, best_tile_size, ...
+    best_tile_size_m, tile_step, window_size_miss, window_size_filt, ROIs);
 
 %% exec_params
 verbose = true;

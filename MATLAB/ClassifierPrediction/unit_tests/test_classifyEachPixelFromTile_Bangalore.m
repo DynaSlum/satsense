@@ -4,7 +4,8 @@
 [ paths, processing_params, exec_flags] = config_params_Bangalore();
 
 [data_dir, masks_dir, classifier_dir, segmentation_dir] = v2struct(paths);
-[vocabulary_size, best_tile_size, best_tile_size_m, tile_step, ~, ROIs] = v2struct(processing_params);
+[vocabulary_size, best_tile_size, best_tile_size_m, tile_step, ~,~, ROIs] = ...
+    v2struct(processing_params);
 [verbose, visualize, sav] = v2struct(exec_flags);
 
 
