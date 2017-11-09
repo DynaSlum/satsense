@@ -37,7 +37,7 @@ for r = 1:num_ROIs
     axis on, grid on
     
     %% save
-    if saving
+    if sav
         save(inp_fname,'segmented_image_denoised','-append');
     end;
     
