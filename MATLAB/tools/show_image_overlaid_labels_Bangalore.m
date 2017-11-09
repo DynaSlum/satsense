@@ -1,4 +1,4 @@
-%% load the image data
+
 %% params
 [ paths, processing_params, exec_flags] = config_params_Bangalore();
 
@@ -8,6 +8,7 @@
 
 num_ROIs = length(ROIs);
 
+%% displaying
 for r = 1 %1:num_ROIs
     roi = ROIs{r};
     

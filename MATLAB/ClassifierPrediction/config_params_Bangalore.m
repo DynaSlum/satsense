@@ -44,15 +44,15 @@ stepX = stepY;
 tile_step = [stepX stepY];
 wsY = 22;wsX = wsY;
 window_size_miss = [wsX wsY];
-wsY = 15;wsX = wsY;
+wsY = 30;wsX = wsY;
 window_size_filt = [wsX wsY];
 
 ROIs = {
     'ROI1'
-%     'ROI2'
-%     'ROI3'
-%     'ROI4'
-%     'ROI5'
+    'ROI2'
+    'ROI3'
+    'ROI4'
+    'ROI5'
      };
 processing_params = v2struct(vocabulary_size, best_tile_size, ...
     best_tile_size_m, tile_step, window_size_miss, window_size_filt, ROIs);
