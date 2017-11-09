@@ -1,3 +1,4 @@
 *.asv
 .ipynb_checkpoints/
 .vscode
+*.m~
