@@ -9,7 +9,7 @@
 num_ROIs = length(ROIs);
 
 %% displaying
-for r = 1 %1:num_ROIs
+for r = 1%:num_ROIs
     roi = ROIs{r};
     
     if verbose
@@ -46,11 +46,11 @@ for r = 1 %1:num_ROIs
     hg=imshow(green);
     set(hg, 'AlphaData', 0.2*nonbuiltup_mask);
     hb=imshow(blue);
-    set(hb, 'AlphaData', 0.22*builtup_mask);
+    set(hb, 'AlphaData', 0.2*builtup_mask);
     hold off
     map = [0 0 1; 0 1 0; 1 0 0]; % Blue, Green, Red = 1,2,3
     
-    %axis on, grid on;
+    axis on, grid on;
     %title('Ground truth overalyed on Kalyan cropped image');
     colormap(map);
     colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
