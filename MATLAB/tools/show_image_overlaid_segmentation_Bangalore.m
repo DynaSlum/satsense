@@ -21,7 +21,7 @@ result_only = false;
 mapw = [0 0 1; 0 1 0; 1 0 0; 1 1 1]; % Blue, Green, Red, White = 1,2,3, NaN
 map = [0 0 1; 0 1 0; 1 0 0]; % Blue, Green, Red = 1,2,3
 
-for r = 1%:num_ROIs
+for r = 3 %1:num_ROIs
     roi = ROIs{r};
     
     if verbose

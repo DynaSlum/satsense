@@ -9,7 +9,7 @@
 num_ROIs = length(ROIs);
 
 %% displaying
-for r = 1%:num_ROIs
+for r = 3 %1:num_ROIs
     roi = ROIs{r};
     
     if verbose
@@ -53,7 +53,22 @@ for r = 1%:num_ROIs
             image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_r,...
             labels_str, 'Font', 'LucidaTypewriterBold','FontSize',36,'TextColor','white',...
                         'Color', 'red', 'TextBoxOpacity',0.7,'LineWidth',6);
-            
+        case 3
+            rec_pos_b = [3171 1419 1734 1139];
+            labels_str = {'GT1'};
+            image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_b,...
+                        labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
+                        'TextColor','white', 'Color', 'blue', 'TextBoxOpacity',0.7,'LineWidth',12);            
+            rec_pos_g = [3411 2631 642 835];
+            labels_str = {'GT2'};
+            image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_g,...
+                        labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
+                        'TextColor','black', 'Color', 'green', 'TextBoxOpacity',0.7,'LineWidth',12);
+            rec_pos_r = [3578 3800 457 366];
+            labels_str = {'GT3'};
+            image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_r,...
+            labels_str, 'Font', 'LucidaTypewriterBold','FontSize',36,'TextColor','white',...
+                        'Color', 'red', 'TextBoxOpacity',0.7,'LineWidth',6);     
         otherwise
             error('Unsupported ROI');
     end
@@ -73,5 +88,12 @@ for r = 1%:num_ROIs
     %title('Ground truth overalyed on Kalyan cropped image');
     colormap(map);
     colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
-    axis([3000 ncols 3900 nrows]);
+    switch r
+        case 1
+            axis([3000 ncols 3900 nrows]);
+        case 3
+            axis([3100 5000 1300 4200]);
+        otherwise
+            error('Unsupported ROI');
+    end
 end

@@ -9,7 +9,7 @@
 num_ROIs = length(ROIs);
 
 %% displaying
-for r = 1%:num_ROIs
+for r = 3 %1:num_ROIs
     roi = ROIs{r};
     
     if verbose

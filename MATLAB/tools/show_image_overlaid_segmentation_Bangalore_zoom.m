@@ -21,7 +21,7 @@ result_only = false;
 mapw = [0 0 1; 0 1 0; 1 0 0; 1 1 1]; % Blue, Green, Red, White = 1,2,3, NaN
 map = [0 0 1; 0 1 0; 1 0 0]; % Blue, Green, Red = 1,2,3
 
-for r = 1%:num_ROIs
+for r = 3 %1:num_ROIs
     roi = ROIs{r};
     
     if verbose
@@ -116,8 +116,8 @@ for r = 1%:num_ROIs
             switch r
                 case 1
                     rec_pos_g = [5210 4796 79 194; 4932 4184 64 118;...
-                                 4188 4432 77 63; 3158 4841 170 249;
-                                 3171 4249 98 93];
+                        4188 4432 77 63; 3158 4841 170 249;
+                        3171 4249 98 93];
                     labels_str = {'S1'; 'S2'; 'S3'; 'S4'; 'S5'};
                     image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_g,...
                         labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
@@ -127,6 +127,17 @@ for r = 1%:num_ROIs
                     image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_b,...
                         labels_str, 'Font', 'LucidaTypewriterBold','FontSize',42,'TextColor','white',...
                         'Color', 'blue', 'TextBoxOpacity',0.7,'LineWidth',12);
+                case 3
+                    rec_pos_g = [3883 3311 850 636];
+                    labels_str = {'S2'};
+                    image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_g,...
+                        labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
+                        'TextColor','black', 'Color', 'green', 'TextBoxOpacity',0.7,'LineWidth',12);
+                    rec_pos_r = [4191 2643 629 516];
+                    labels_str = {'S1'};
+                    image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_r,...
+                        labels_str, 'Font', 'LucidaTypewriterBold','FontSize',42,'TextColor','white',...
+                        'Color', 'red', 'TextBoxOpacity',0.7,'LineWidth',12);
                     
                 otherwise
                     error('Unsupported ROI');
@@ -151,8 +162,14 @@ for r = 1%:num_ROIs
             % title('Denoised segmentation overlaid on Kalyan cropped image');
             colormap(map);
             colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
-            axis([3000 ncols 3900 nrows]); 
+            switch r
+                case 1
+                    axis([3000 ncols 3900 nrows]);
+                case 3
+                    axis([3100 5000 1300 4200]);
+                otherwise
+                    error('Unsupported ROI');
+            end
         end
     end
-end
-
+end % for ROIs
