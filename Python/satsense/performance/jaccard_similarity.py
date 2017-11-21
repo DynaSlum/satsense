@@ -11,7 +11,7 @@ from sklearn.metrics import jaccard_similarity_score as jss
 
 # JI between 2 binary masks
 def jaccard_index_binary_masks(truth_mask, predicted_mask):
-    return jss(truth_mask, predicted_mask)
+    return jss(truth_mask, predicted_mask, normalize=True)
 
 # JI between 2 multipolygons
 def jaccard_index_multipolygons(truth_multi, predicted_multi):
