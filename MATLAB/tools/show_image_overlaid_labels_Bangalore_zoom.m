@@ -9,7 +9,7 @@
 num_ROIs = length(ROIs);
 
 %% displaying
-for r = 3 %1:num_ROIs
+for r = 5 %1:num_ROIs
     roi = ROIs{r};
     
     if verbose
@@ -68,7 +68,9 @@ for r = 3 %1:num_ROIs
             labels_str = {'GT3'};
             image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_r,...
             labels_str, 'Font', 'LucidaTypewriterBold','FontSize',36,'TextColor','white',...
-                        'Color', 'red', 'TextBoxOpacity',0.7,'LineWidth',6);     
+                        'Color', 'red', 'TextBoxOpacity',0.7,'LineWidth',6);  
+        case 5
+            disp('To be implemented...')
         otherwise
             error('Unsupported ROI');
     end
@@ -93,6 +95,8 @@ for r = 3 %1:num_ROIs
             axis([3000 ncols 3900 nrows]);
         case 3
             axis([3100 5000 1300 4200]);
+        case 5
+            axis([1 2000 1500 3500]);  
         otherwise
             error('Unsupported ROI');
     end

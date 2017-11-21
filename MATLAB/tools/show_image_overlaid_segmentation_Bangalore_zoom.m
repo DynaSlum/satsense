@@ -21,7 +21,7 @@ result_only = false;
 mapw = [0 0 1; 0 1 0; 1 0 0; 1 1 1]; % Blue, Green, Red, White = 1,2,3, NaN
 map = [0 0 1; 0 1 0; 1 0 0]; % Blue, Green, Red = 1,2,3
 
-for r = 3 %1:num_ROIs
+for r = 5 %1:num_ROIs
     roi = ROIs{r};
     
     if verbose
@@ -138,7 +138,8 @@ for r = 3 %1:num_ROIs
                     image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_r,...
                         labels_str, 'Font', 'LucidaTypewriterBold','FontSize',42,'TextColor','white',...
                         'Color', 'red', 'TextBoxOpacity',0.7,'LineWidth',12);
-                    
+                case 5
+                    disp('To be implemented...')
                 otherwise
                     error('Unsupported ROI');
             end
@@ -167,6 +168,8 @@ for r = 3 %1:num_ROIs
                     axis([3000 ncols 3900 nrows]);
                 case 3
                     axis([3100 5000 1300 4200]);
+                case 5
+                    axis([1 2000 1500 3500]);
                 otherwise
                     error('Unsupported ROI');
             end
