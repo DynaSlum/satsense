@@ -9,9 +9,8 @@
 base_tiles_path = fullfile(data_dir, 'Datasets4MATLAB');
 factor = 0.8;
 save_mixed = false;
-tile_sizes = [34 50 67 84 100];
-%these are approx! real are 10.2 20.4 30 40.2, 50.4  and 60
-tile_sizes_m = [20 30 40 50 60];
+tile_sizes_m = [50 100 150 200 250];
+tile_sizes = [84 167 250 334 417];
 
 num_datasets = length(tile_sizes);
 
@@ -26,7 +25,7 @@ masks_fullfnames = {fullfile(masks_dir, slum_mask), ...
     fullfile(masks_dir, builtup_mask),...
     fullfile(masks_dir, nonbuiltup_mask)};
 
-for n = 1: num_datasets
+for n = 1:num_datasets
     tile_size = tile_sizes(n);
     tile_size_m = tile_sizes_m(n);
     stepY = floor(tile_size/2);

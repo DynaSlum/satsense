@@ -2,20 +2,24 @@
 
 %% parameters
 
-[ paths, processing_params, exec_flags] = config_params_Kalyan();
+if isunix
+    root_dir = fullfile('/home','elena','DynaSlum');
+else
+    root_dir = fullfile('C:','Projects', 'DynaSlum');
+end
 
-[data_dir, masks_dir, ~, ~] = v2struct(paths);
-[~, ~, ~, ~, ~, ~, roi] = v2struct(processing_params);
-[verbose, visualize, sav] = v2struct(exec_flags);
+% base_path = 'C:\Projects\DynaSlum\Data\Kalyan\Datasets4ClassesInclMixed\';
+% sav_path = 'C:\Projects\DynaSlum\Results\Classification4ClassesInclMixed\DatastoresAndFeatures\';
+% tile_sizes = [417 333 250 167 83];
+% tile_sizes_m = [250 200 150 100 50];
 
-base_tiles_path = fullfile(data_dir, 'Datasets4MATLAB');
-factor = 0.8;
-save_mixed = false;
-tile_sizes_m = [50 100 150 200];
-tile_sizes = [84 167 250 334];
+base_path = fullfile(root_dir, 'Data','Kalyan', 'Datasets3Classes');
+sav_path = fullfile(root_dir, 'Results','Classification3Classes','DatastoresAndFeatures');
+% tile_sizes = [417 333 250 167];
+% tile_sizes_m = [250 200 150 100];
 
-num_datasets = length(tile_sizes);
-
+tile_sizes = [100];
+tile_sizes_m = [80];
 
 num_datasets = length(tile_sizes);
 
@@ -25,13 +29,13 @@ preview_flag = true;
 save_flag = false;
 
 %% create image datastore and show summary and sample of the 4 classes
-for n = 4
+for n = 1: num_datasets
     disp(['Creating image data store # ', num2str(n), ' out of ', ...
         num2str(num_datasets)]);
     tile_size = tile_sizes(n);
     tile_size_m = tile_sizes_m(n);
     str = ['px' num2str(tile_size) 'm' num2str(tile_size_m)];
-    image_dataset_location = fullfile(base_tiles_path,str);
+    image_dataset_location = fullfile(base_path,str);
     [imds] = createImageDatastore( image_dataset_location, summary_flag,...
         preview_flag);
     if save_flag
