@@ -1,51 +1,48 @@
 % Testing of imageTiling for Kalyan
-
 %% parameters
-if isunix
-    root_dir = fullfile('/home','elena','DynaSlum');
-else
-    root_dir = fullfile('C:','Projects', 'DynaSlum');
-end
+[ paths, processing_params, exec_flags] = config_params_Kalyan();
 
-% base_path = fullfile(root_dir, 'Data', 'Kalyan', 'Datasets4ClassesInclMixed');
-% factor = 0.52;
-% save_mixed = true;
-% tile_sizes = [417 333 250 167 83];
-% tile_sizes_m = [250 200 150 100 50];
+[data_dir, masks_dir, ~, ~] = v2struct(paths);
+[~, ~, ~, ~, ~, ~, roi] = v2struct(processing_params);
+[verbose, visualize, sav] = v2struct(exec_flags);
 
-base_path = fullfile(root_dir, 'Data','Kalyan', 'Datasets3Classes');
-factor = 0.75;
+base_tiles_path = fullfile(data_dir, 'Datasets4MATLAB');
+factor = 0.8;
 save_mixed = false;
-tile_sizes = [417 333 250 167];
-tile_sizes_m = [250 200 150 100];
-
+tile_sizes = [34 50 67 84 100];
+%these are approx! real are 10.2 20.4 30 40.2, 50.4  and 60
+tile_sizes_m = [20 30 40 50 60];
 
 num_datasets = length(tile_sizes);
 
-data_path = fullfile(root_dir, 'Data','Kalyan','Rasterized_Lourens');
-image_fname = 'Mumbai_P4_R1C1_3_clipped_rgb.tif';
-slum_mask = 'all_slums.tif';
-builtup_mask = 'builtup_mask.tif';
-nonbuiltup_mask = 'nonbuiltup_mask.tif';
-
 %% create datasets
+slum_mask = strcat('Kalyan_', roi, '_slumMask.tif');
+builtup_mask = strcat('Kalyan_',roi,'_urbanMask.tif');
+nonbuiltup_mask = strcat('Kalyan_',roi,'_vegetationMask.tif');
+
+
+image_fullfname = fullfile(data_dir, ['Mumbai_P4_R1C1_3_ROI_fixed_clipped.tif']);
+masks_fullfnames = {fullfile(masks_dir, slum_mask), ...
+    fullfile(masks_dir, builtup_mask),...
+    fullfile(masks_dir, nonbuiltup_mask)};
+
 for n = 1: num_datasets
     tile_size = tile_sizes(n);
     tile_size_m = tile_sizes_m(n);
-    stepY = floor(tile_size/4);
+    stepY = floor(tile_size/2);
     stepX = stepY;
     tile_step = [stepX stepY];
     
-    image_fullfname = fullfile(data_path, image_fname);
-    masks_fullfnames = {fullfile(data_path, slum_mask), ...
-        fullfile(data_path, builtup_mask),...
-        fullfile(data_path, nonbuiltup_mask)};
     
     str = ['px' num2str(tile_size) 'm' num2str(tile_size_m)];
-    tiles_path = fullfile(base_path, str);
+    tiles_path = fullfile(base_tiles_path, str, roi);
+    
+    if exist(tiles_path,'dir')==7
+        rmdir(tiles_path,'s');
+    end
     
     % tile the image
-    disp(['Tiling for dataset ' num2str(n) '...']);
+    disp(['Tiling for dataset ' num2str(n) ':' str '...']);
     [number_images]= imageTiling( image_fullfname, [tile_size tile_size], tile_step, factor, ...
         masks_fullfnames, tiles_path);
     disp(['There are ', num2str(number_images.slum), ' number of images for class Slum.']);
@@ -56,9 +53,8 @@ for n = 1: num_datasets
     else
         disp(['There are ' , num2str(number_images.mixed), ' number of images for class Mixed, but they are not saved!.']);
     end
-    disp('Done!');
+    disp(['Done for dataset: '  num2str(n) '!']);
     disp('---------------------------------');
 end
-
 
 disp('DONE!');
