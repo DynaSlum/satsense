@@ -36,9 +36,6 @@ paths = v2struct(data_dir, masks_dir, classifier_dir, segmentation_dir);
 
 roi = 'ROI1';
 %% processing params
-vocabulary_sizes = [10 20 50];
-tile_sizes = [17 34 50 67 84 100];
-tile_sizes_m = [10 20 30 40 50 60];
 vocabulary_size = [];
 best_tile_size = [];
 best_tile_size_m = [];
