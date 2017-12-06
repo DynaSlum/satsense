@@ -9,7 +9,7 @@
 num_ROIs = length(ROIs);
 
 %% displaying
-for r = 3 %1:num_ROIs
+for r = 1 %1:num_ROIs
     roi = ROIs{r};
     
     if verbose
@@ -25,7 +25,7 @@ for r = 3 %1:num_ROIs
     slum_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_slumMask.tif']));
     slum_mask = slum_mask * 255;
     builtup_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_urbanMask.tif']));
-   % builtup_mask = builtup_mask * 255;
+    builtup_mask = builtup_mask * 255;
     nonbuiltup_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_vegetationMask.tif']));
    % nonbuiltup_mask = nonbuiltup_mask * 255;
     %% prepare colored overlays
@@ -50,9 +50,14 @@ for r = 3 %1:num_ROIs
     hold off
     map = [0 0 1; 0 1 0; 1 0 0]; % Blue, Green, Red = 1,2,3
     
-    axis on, grid on;
+    %axis on, grid on;
     %title('Ground truth overalyed on Kalyan cropped image');
     colormap(map);
-    colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
+    %colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'}, 'FontSize',26);
+    handleToColorBar = colorbar('Ticks', [0.2 0.5 0.8]);
+    set(handleToColorBar,'YTickLabel', []);
+    hYLabel = ylabel(handleToColorBar,['BuiltUp           NonBuiltUp          Slum']);     
+    set(hYLabel,'Rotation',90);
+    set(hYLabel,'FontSize',26);
     
 end

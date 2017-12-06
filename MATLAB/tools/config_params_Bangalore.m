@@ -1,5 +1,5 @@
 %[ paths, processing_params, exec_flags] = config_params_Bangalore()
-% config_params_Bangalore - parameter configurations for the Bangalore predition scripts
+% config_params_Bangalore - parameter configurations for the Bangalore scripts
 % **************************************************************************
 % author: Elena Ranguelova, NLeSc
 % date created: 3 November 2017
