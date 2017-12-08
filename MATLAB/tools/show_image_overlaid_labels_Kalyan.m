@@ -9,7 +9,7 @@
 
 %% displaying
 
-image_data = imread(fullfile(data_dir,['Mumbai_P4_R1C1_3_ROI_fixed_clipped.tif']));
+image_data = imread(fullfile(data_dir,['Mumbai_P4_R1C1_3_ROI_clipped.tif']));
 
 nrows = size(image_data,1);
 ncols = size(image_data,2);

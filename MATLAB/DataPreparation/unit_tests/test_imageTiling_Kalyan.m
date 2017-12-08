@@ -20,7 +20,7 @@ builtup_mask = strcat('Kalyan_',roi,'_urbanMask.tif');
 nonbuiltup_mask = strcat('Kalyan_',roi,'_vegetationMask.tif');
 
 
-image_fullfname = fullfile(data_dir, ['Mumbai_P4_R1C1_3_ROI_fixed_clipped.tif']);
+image_fullfname = fullfile(data_dir, ['Mumbai_P4_R1C1_3_ROI_clipped.tif']);
 masks_fullfnames = {fullfile(masks_dir, slum_mask), ...
     fullfile(masks_dir, builtup_mask),...
     fullfile(masks_dir, nonbuiltup_mask)};
