@@ -25,7 +25,7 @@ for r = 2 %1:num_ROIs
     slum_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_slumMask.tif']));
     slum_mask = slum_mask * 255;
     builtup_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_urbanMask.tif']));
-    builtup_mask = builtup_mask * 255;
+   % builtup_mask = builtup_mask * 255;
     nonbuiltup_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_vegetationMask.tif']));
    % nonbuiltup_mask = nonbuiltup_mask * 255;
     %% prepare colored overlays
