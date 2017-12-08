@@ -1,6 +1,6 @@
 % simplest default training and testing of an Image category classifier
 % using SURF detector and descriptor on Bag of Visual Words (BoVW)
-% classifiation framework and multiclass SVM classifier on the 2 ROIs from
+% classifiation framework and multiclass SVM classifier on the 5 ROIs from
 % GE Images of Bangalore
 
 %% setup parameters
