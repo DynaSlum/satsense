@@ -39,15 +39,15 @@ paths = v2struct(data_dir, masks_dir, datastores_dir, classifier_dir, performanc
 
 roi = 'ROI1';
 %% processing params
-vocabulary_size = [];
-best_tile_size = [];
-best_tile_size_m = [];
-stepY = 0;
+vocabulary_size = [50];
+best_tile_size = [250];
+best_tile_size_m = [150];
+stepY = 10;
 stepX = stepY;
 tile_step = [stepX stepY];
-wsY = 0;wsX = wsY;
+wsY = 22;wsX = wsY;
 window_size_miss = [wsX wsY];
-wsY = 0;wsX = wsY;
+wsY = 30;wsX = wsY;
 window_size_filt = [wsX wsY];
 
 
