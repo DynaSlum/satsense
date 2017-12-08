@@ -2,7 +2,7 @@
 %% parameters
 [ paths, processing_params, exec_flags] = config_params_Kalyan();
 
-[data_dir, masks_dir, ~, ~] = v2struct(paths);
+[data_dir, masks_dir, ~, ~, ~, ~] = v2struct(paths);
 [~, ~, ~, ~, ~, ~, roi] = v2struct(processing_params);
 [verbose, visualize, sav] = v2struct(exec_flags);
 

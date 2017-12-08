@@ -26,13 +26,16 @@ end
 data_root_dir = fullfile(root_dir, 'Data','Kalyan');
 results_dir = fullfile(root_dir, 'Results','Kalyan');
 
+datastores_dir = fullfile(results_dir, 'Classification3Classes', 'DatastoresAndFeatures');
 classifier_dir = fullfile(results_dir, 'Classification3Classes', 'Classifiers');
+performance_dir = fullfile(results_dir, 'Classification3Classes', 'Performance');
+
 segmentation_dir = fullfile(results_dir, 'Segmentation');
     
 data_dir = fullfile(data_root_dir, 'Data4Matlab3ClassExperiment');
 masks_dir = fullfile(data_root_dir, 'masks','threshold_13'); 
 
-paths = v2struct(data_dir, masks_dir, classifier_dir, segmentation_dir);
+paths = v2struct(data_dir, masks_dir, datastores_dir, classifier_dir, performance_dir, segmentation_dir);
 
 roi = 'ROI1';
 %% processing params
