@@ -13,15 +13,15 @@ str = ['px' num2str(best_tile_size) 'm' num2str(best_tile_size_m)];
 
 num_ROIs = length(ROIs);
 vis_initial_result = true;
-vis_filled_result = true;
-vis_final_result = true;
+vis_filled_result = false;
+vis_final_result = false;
 
 overlay = false;
 result_only = true;
 mapw = [0 0 1; 0 1 0; 1 0 0; 1 1 1]; % Blue, Green, Red, White = 1,2,3, NaN
 map = [0 0 1; 0 1 0; 1 0 0]; % Blue, Green, Red = 1,2,3
 
-fs = 20
+fs = 16;
 for r = 1 %1:num_ROIs
     roi = ROIs{r};
     
@@ -47,10 +47,10 @@ for r = 1 %1:num_ROIs
             %colorbar('Ticks', [0.1 0.35 0.65 0.9], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum', 'Not Processed'});
             handleToColorBar = colorbar('Ticks', [0.1 0.35 0.65 0.9]);
             set(handleToColorBar,'YTickLabel', []);
-            hYLabel = ylabel(handleToColorBar,['BuiltUp         NonBuiltUp        Slum       Not Processed']);
+            hYLabel = ylabel(handleToColorBar,['BuiltUp       NonBuiltUp      Slum      Unprocessed']);
             set(hYLabel,'Rotation',90);
             set(hYLabel,'FontSize',fs);
-            axis on, grid on
+            %axis on, grid on
             if r==1
                 axis([2200 2700 2000 2500]);
             end
@@ -71,7 +71,7 @@ for r = 1 %1:num_ROIs
             hb=imshow(blue);
             set(hb, 'AlphaData', 0.2*masks(:,:,1));
             hold off
-            axis on, grid on;
+           % axis on, grid on;
             % title('Segmentation overlaid on Kalyan cropped image');
             colormap(mapw);
             
@@ -90,7 +90,7 @@ for r = 1 %1:num_ROIs
             hYLabel = ylabel(handleToColorBar,['BuiltUp        NonBuiltUp       Slum']);
             set(hYLabel,'Rotation',90);
             set(hYLabel,'FontSize',fs);
-            axis on, grid on
+          %  axis on, grid on
             if r==1
                 axis([2200 2700 2000 2500]);
             end
@@ -111,7 +111,7 @@ for r = 1 %1:num_ROIs
             hb=imshow(blue);
             set(hb, 'AlphaData', 0.2*masks(:,:,1));
             hold off
-            axis on, grid on;
+           % axis on, grid on;
             % title('Filled segmentation overlaid on Kalyan cropped image');
             colormap(map);
             %colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
@@ -136,7 +136,7 @@ for r = 1 %1:num_ROIs
             hYLabel = ylabel(handleToColorBar,['BuiltUp        NonBuiltUp       Slum']);
             set(hYLabel,'Rotation',90);
             set(hYLabel,'FontSize',fs);
-            axis on, grid on
+           % axis on, grid on
             if r==1
                 axis([2200 2700 2000 2500]);
             end
@@ -189,7 +189,7 @@ for r = 1 %1:num_ROIs
             hb=imshow(blue);
             set(hb, 'AlphaData', 0.2*masks(:,:,1));
             hold off
-            axis on, grid on;
+           % axis on, grid on;
             % title('Denoised segmentation overlaid on Kalyan cropped image');
             colormap(map);
             %  colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
