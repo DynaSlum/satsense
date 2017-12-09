@@ -10,6 +10,7 @@
 [verbose, visualize, sav] = v2struct(exec_flags);
 
 overlay = false;
+fs = 16;
 
 num_ROIs = length(ROIs);
 %% displaying
@@ -53,8 +54,13 @@ for r = 1:num_ROIs
         map = [0 0 1; 0 1 0; 1 0 0]; % Blue, Green, Red = 1,2,3
         RGB = ind2rgb(multiclass_mask, map);
         figure; imshow(RGB, map); %title('Ground truth: Bangalore');
-        colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
-        axis on, grid on
+       % colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
+       % axis on, grid on
+        handleToColorBar = colorbar('Ticks', [0.2 0.5 0.8]);
+        set(handleToColorBar,'YTickLabel', []);
+        hYLabel = ylabel(handleToColorBar,['BuiltUp        NonBuiltUp       Slum']);
+        set(hYLabel,'Rotation',90);
+        set(hYLabel,'FontSize',fs);
     end
     
 end

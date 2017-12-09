@@ -16,12 +16,15 @@ vis_initial_result = false;
 vis_filled_result = false;
 vis_final_result = true;
 
-overlay = true;
-result_only = false;
+overlay = false;
+result_only = true;
 mapw = [0 0 1; 0 1 0; 1 0 0; 1 1 1]; % Blue, Green, Red, White = 1,2,3, NaN
 map = [0 0 1; 0 1 0; 1 0 0]; % Blue, Green, Red = 1,2,3
 
-for r = 3 %1:num_ROIs
+fs = 16;
+
+%%displays
+for r = 1:num_ROIs
     roi = ROIs{r};
     
     if verbose
@@ -41,10 +44,14 @@ for r = 3 %1:num_ROIs
     if vis_initial_result
         if result_only
             RGB1 = ind2rgb(segmented_image, mapw);
-            figure; imshow(RGB1, mapw); %title('Segmented Bangalore cropped image');
-            %xlabel('Every 10th pixel is processed');
-            colorbar('Ticks', [0.1 0.35 0.65 0.9], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum', 'Not Processed'});
-            axis on, grid on
+            figure; imshow(RGB1, mapw);
+            %colorbar('Ticks', [0.1 0.35 0.65 0.9], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum', 'Not Processed'});
+            %axis on, grid on
+            handleToColorBar = colorbar('Ticks', [0.2 0.5 0.8]);
+            set(handleToColorBar,'YTickLabel', []);
+            hYLabel = ylabel(handleToColorBar,['BuiltUp        NonBuiltUp       Slum']);
+            set(hYLabel,'Rotation',90);
+            set(hYLabel,'FontSize',fs);
         end
         if overlay
             %% make 3 masks from the multiclass mask
@@ -62,9 +69,12 @@ for r = 3 %1:num_ROIs
             hb=imshow(blue);
             set(hb, 'AlphaData', 0.2*masks(:,:,1));
             hold off
-            axis on, grid on;
-            % title('Segmentation overlaid on Kalyan cropped image');
             colormap(mapw);
+            handleToColorBar = colorbar('Ticks', [0.2 0.5 0.8]);
+            set(handleToColorBar,'YTickLabel', []);
+            hYLabel = ylabel(handleToColorBar,['BuiltUp        NonBuiltUp       Slum']);
+            set(hYLabel,'Rotation',90);
+            set(hYLabel,'FontSize',fs);
             
         end
     end
@@ -73,10 +83,14 @@ for r = 3 %1:num_ROIs
     if vis_filled_result
         if result_only
             RGB2 = ind2rgb(filled_segm_image, map);
-            figure; imshow(RGB2, map); %title('Filled segmented Kalyan cropped image');
-            %xlabel('Missing pixels filled with majority vote fom a 20x20 window');
-            colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
-            axis on, grid on
+            figure; imshow(RGB2, map);
+            %colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
+            %axis on, grid on
+            handleToColorBar = colorbar('Ticks', [0.2 0.5 0.8]);
+            set(handleToColorBar,'YTickLabel', []);
+            hYLabel = ylabel(handleToColorBar,['BuiltUp        NonBuiltUp       Slum']);
+            set(hYLabel,'Rotation',90);
+            set(hYLabel,'FontSize',fs);
         end
         if overlay
             %% make 3 masks from the multiclass mask
@@ -94,11 +108,13 @@ for r = 3 %1:num_ROIs
             hb=imshow(blue);
             set(hb, 'AlphaData', 0.2*masks(:,:,1));
             hold off
-            axis on, grid on;
-            % title('Filled segmentation overlaid on Kalyan cropped image');
             colormap(map);
-            colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
-            
+            %colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
+            handleToColorBar = colorbar('Ticks', [0.2 0.5 0.8]);
+            set(handleToColorBar,'YTickLabel', []);
+            hYLabel = ylabel(handleToColorBar,['BuiltUp        NonBuiltUp       Slum']);
+            set(hYLabel,'Rotation',90);
+            set(hYLabel,'FontSize',fs);
         end
     end
     
@@ -106,10 +122,14 @@ for r = 3 %1:num_ROIs
     if vis_final_result
         if result_only
             RGB3 = ind2rgb(segmented_image_denoised, map);
-            figure; imshow(RGB3, map); %title('Denoised segmented Kalyan cropped image');
-            %xlabel('Majority filter of size 40x40 is used');
-            colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
-            axis on, grid on
+            figure; imshow(RGB3, map);
+            %colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
+            %axis on, grid on
+            handleToColorBar = colorbar('Ticks', [0.2 0.5 0.8]);
+            set(handleToColorBar,'YTickLabel', []);
+            hYLabel = ylabel(handleToColorBar,['BuiltUp        NonBuiltUp       Slum']);
+            set(hYLabel,'Rotation',90);
+            set(hYLabel,'FontSize',fs);
         end
         if overlay
             %% make 3 masks from the multiclass mask
@@ -127,11 +147,13 @@ for r = 3 %1:num_ROIs
             hb=imshow(blue);
             set(hb, 'AlphaData', 0.2*masks(:,:,1));
             hold off
-            axis on, grid on;
-            % title('Denoised segmentation overlaid on Kalyan cropped image');
             colormap(map);
-            colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
-            
+            %colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
+            handleToColorBar = colorbar('Ticks', [0.2 0.5 0.8]);
+            set(handleToColorBar,'YTickLabel', []);
+            hYLabel = ylabel(handleToColorBar,['BuiltUp        NonBuiltUp       Slum']);
+            set(hYLabel,'Rotation',90);
+            set(hYLabel,'FontSize',fs);
         end
     end
 end
