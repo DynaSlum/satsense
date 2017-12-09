@@ -10,7 +10,7 @@ num_ROIs = length(ROIs);
 
 fs = 18; 
 %% displaying
-for r = 3 %1:num_ROIs
+for r = 5 %1:num_ROIs
     roi = ROIs{r};
     
     if verbose
@@ -24,7 +24,7 @@ for r = 3 %1:num_ROIs
     
     %% load the mask data
     slum_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_slumMask.tif']));
-    %slum_mask = slum_mask * 255;
+    slum_mask = slum_mask * 255;
     builtup_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_urbanMask.tif']));
     %builtup_mask = builtup_mask * 255;
     nonbuiltup_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_vegetationMask.tif']));
@@ -94,7 +94,7 @@ for r = 3 %1:num_ROIs
     handleToColorBar = colorbar('Ticks', [0.2 0.5 0.8]);
     set(handleToColorBar,'YTickLabel', []);
     switch r
-        case 1
+        case {1, 5}  
             hYLabel = ylabel(handleToColorBar,['BuiltUp              NonBuiltUp            Slum']);
         case 3
             hYLabel = ylabel(handleToColorBar,['BuiltUp                             NonBuiltUp                           Slum']);

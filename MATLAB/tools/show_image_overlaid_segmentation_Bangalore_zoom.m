@@ -22,7 +22,7 @@ mapw = [0 0 1; 0 1 0; 1 0 0; 1 1 1]; % Blue, Green, Red, White = 1,2,3, NaN
 map = [0 0 1; 0 1 0; 1 0 0]; % Blue, Green, Red = 1,2,3
 
 fs = 18;
-for r = 1 %1:num_ROIs
+for r = 3 %1:num_ROIs
     roi = ROIs{r};
     
     if verbose
@@ -71,7 +71,7 @@ for r = 1 %1:num_ROIs
             hb=imshow(blue);
             set(hb, 'AlphaData', 0.2*masks(:,:,1));
             hold off
-           % axis on, grid on;
+            % axis on, grid on;
             % title('Segmentation overlaid on Kalyan cropped image');
             colormap(mapw);
             handleToColorBar = colorbar('Ticks', [0.1 0.35 0.65 0.9]);
@@ -95,7 +95,7 @@ for r = 1 %1:num_ROIs
             hYLabel = ylabel(handleToColorBar,['BuiltUp        NonBuiltUp       Slum']);
             set(hYLabel,'Rotation',90);
             set(hYLabel,'FontSize',fs);
-          %  axis on, grid on
+            %  axis on, grid on
             if r==1
                 axis([2200 2700 2000 2500]);
             end
@@ -116,7 +116,7 @@ for r = 1 %1:num_ROIs
             hb=imshow(blue);
             set(hb, 'AlphaData', 0.2*masks(:,:,1));
             hold off
-           % axis on, grid on;
+            % axis on, grid on;
             % title('Filled segmentation overlaid on Kalyan cropped image');
             colormap(map);
             %colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
@@ -141,7 +141,7 @@ for r = 1 %1:num_ROIs
             hYLabel = ylabel(handleToColorBar,['BuiltUp        NonBuiltUp       Slum']);
             set(hYLabel,'Rotation',90);
             set(hYLabel,'FontSize',fs);
-           % axis on, grid on
+            % axis on, grid on
             if r==1
                 axis([2200 2700 2000 2500]);
             end
@@ -194,14 +194,19 @@ for r = 1 %1:num_ROIs
             hb=imshow(blue);
             set(hb, 'AlphaData', 0.2*masks(:,:,1));
             hold off
-           % axis on, grid on;
+            % axis on, grid on;
             % title('Denoised segmentation overlaid on Kalyan cropped image');
             colormap(map);
             %  colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
             handleToColorBar = colorbar('Ticks', [0.2 0.5 0.8]);
             set(handleToColorBar,'YTickLabel', []);
-            hYLabel = ylabel(handleToColorBar,['BuiltUp              NonBuiltUp            Slum']);
-            set(hYLabel,'Rotation',90);
+            switch r
+                case {1, 5}
+                    hYLabel = ylabel(handleToColorBar,['BuiltUp              NonBuiltUp            Slum']);
+                case 3
+                    hYLabel = ylabel(handleToColorBar,['BuiltUp                             NonBuiltUp                           Slum']);
+            end
+            
             set(hYLabel,'FontSize',fs);
             switch r
                 case 1
