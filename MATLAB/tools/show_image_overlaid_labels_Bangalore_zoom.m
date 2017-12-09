@@ -8,8 +8,9 @@
 
 num_ROIs = length(ROIs);
 
+fs = 18; 
 %% displaying
-for r = 5 %1:num_ROIs
+for r = 3 %1:num_ROIs
     roi = ROIs{r};
     
     if verbose
@@ -23,9 +24,9 @@ for r = 5 %1:num_ROIs
     
     %% load the mask data
     slum_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_slumMask.tif']));
-    slum_mask = slum_mask * 255;
+    %slum_mask = slum_mask * 255;
     builtup_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_urbanMask.tif']));
-    % builtup_mask = builtup_mask * 255;
+    %builtup_mask = builtup_mask * 255;
     nonbuiltup_mask = imread(fullfile(masks_dir,['Bangalore_' roi '_vegetationMask.tif']));
     % nonbuiltup_mask = nonbuiltup_mask * 255;
     %% prepare colored overlays
@@ -46,29 +47,29 @@ for r = 5 %1:num_ROIs
                 3312 4685 115 123];
             labels_str = {'GT1'; 'GT2'; 'GT3'; 'GT4'; 'GT5'};
             image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_g,...
-                        labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
-                        'TextColor','black', 'Color', 'green', 'TextBoxOpacity',0.7,'LineWidth',12);
+                labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
+                'TextColor','black', 'Color', 'green', 'TextBoxOpacity',0.7,'LineWidth',12);
             rec_pos_r = [3801 5023 108 71; 4886 5051 87 47];
             labels_str = {'GT6';'GT7'};
             image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_r,...
-            labels_str, 'Font', 'LucidaTypewriterBold','FontSize',36,'TextColor','white',...
-                        'Color', 'red', 'TextBoxOpacity',0.7,'LineWidth',6);
+                labels_str, 'Font', 'LucidaTypewriterBold','FontSize',36,'TextColor','white',...
+                'Color', 'red', 'TextBoxOpacity',0.7,'LineWidth',6);
         case 3
             rec_pos_b = [3171 1419 1734 1139];
             labels_str = {'GT1'};
             image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_b,...
-                        labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
-                        'TextColor','white', 'Color', 'blue', 'TextBoxOpacity',0.7,'LineWidth',12);            
+                labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
+                'TextColor','white', 'Color', 'blue', 'TextBoxOpacity',0.7,'LineWidth',12);
             rec_pos_g = [3411 2631 642 835];
             labels_str = {'GT2'};
             image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_g,...
-                        labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
-                        'TextColor','black', 'Color', 'green', 'TextBoxOpacity',0.7,'LineWidth',12);
+                labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
+                'TextColor','black', 'Color', 'green', 'TextBoxOpacity',0.7,'LineWidth',12);
             rec_pos_r = [3578 3800 457 366];
             labels_str = {'GT3'};
             image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_r,...
-            labels_str, 'Font', 'LucidaTypewriterBold','FontSize',36,'TextColor','white',...
-                        'Color', 'red', 'TextBoxOpacity',0.7,'LineWidth',6);  
+                labels_str, 'Font', 'LucidaTypewriterBold','FontSize',36,'TextColor','white',...
+                'Color', 'red', 'TextBoxOpacity',0.7,'LineWidth',6);
         case 5
             disp('To be implemented...')
         otherwise
@@ -86,17 +87,27 @@ for r = 5 %1:num_ROIs
     hold off
     map = [0 0 1; 0 1 0; 1 0 0]; % Blue, Green, Red = 1,2,3
     
-    axis on, grid on;
+    % axis on, grid on;
     %title('Ground truth overalyed on Kalyan cropped image');
     colormap(map);
-    colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
+    %colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', {'BuiltUp', 'NonBuiltUp', 'Slum'});
+    handleToColorBar = colorbar('Ticks', [0.2 0.5 0.8]);
+    set(handleToColorBar,'YTickLabel', []);
+    switch r
+        case 1
+            hYLabel = ylabel(handleToColorBar,['BuiltUp              NonBuiltUp            Slum']);
+        case 3
+            hYLabel = ylabel(handleToColorBar,['BuiltUp                             NonBuiltUp                           Slum']);
+    end
+    set(hYLabel,'Rotation',90);
+    set(hYLabel,'FontSize',fs);
     switch r
         case 1
             axis([3000 ncols 3900 nrows]);
         case 3
             axis([3100 5000 1300 4200]);
         case 5
-            axis([1 2000 1500 3500]);  
+            axis([1 2000 1500 3500]);
         otherwise
             error('Unsupported ROI');
     end
