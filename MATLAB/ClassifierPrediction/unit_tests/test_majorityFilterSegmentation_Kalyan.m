@@ -1,31 +1,19 @@
-% Testing of fillMissingPixels
-
+% Testing of fillMissingPixels for Kalyan ROI
 %% parameters
-if isunix
-    root_dir = fullfile('/home','elena','DynaSlum');
-else
-    root_dir = fullfile('C:','Projects', 'DynaSlum');
-end
+[ paths, processing_params, exec_flags] = config_params_Kalyan();
 
-saving = true;
+[~, ~, ~,~, ~, segmentation_dir] = v2struct(paths);
+[vocabulary_size, best_tile_size, best_tile_size_m, ~, ~, window_size, roi] = ...
+    v2struct(processing_params);
+[verbose, visualize, sav] = v2struct(exec_flags);
+disp('Window_size: '); disp(window_size);
 
-n = 1;
-tile_sizes = [100];
-tile_sizes_m = [80];
-vocabulary_size = [50];
-tile_size = tile_sizes(n);
-tile_size_m = tile_sizes_m(n);
-wsY = 40; %20;
-wsX = wsY;
-window_size = [wsX wsY];
-
-sav_path = fullfile(root_dir, 'Results', 'Segmentation');
-%image_fname = 'Mumbai_P4_R1C1_3_clipped_rgb.tif';
-str = ['px' num2str(tile_size) 'm' num2str(tile_size_m)];
-inp_fname = fullfile(sav_path,['SegmentedImage_SURF_SVM_Classifier' num2str(vocabulary_size) '_' str '.mat']);
-load(inp_fname); % contains filled_segm_image
+str = ['px' num2str(best_tile_size) 'm' num2str(best_tile_size_m)];
 
 %% filter  missing pixels
+
+inp_fname = fullfile(segmentation_dir,['SegmentedImage_SURF_SVM_Classifier' num2str(vocabulary_size) '_' str '_' roi '.mat']);
+load(inp_fname); % contains segmented_image
 tic
 [ segmented_image_denoised] = majorityFilterSegmentation( filled_segm_image, window_size);
 disp('Done!');
@@ -33,17 +21,16 @@ toc
 %% visualize
 map = [0 0 1; 0 1 0; 1 0 0 ]; % Blue, Green, Red = 1,2,3
 RGB = ind2rgb(segmented_image_denoised,map);
-figure; imshow(RGB, map); title('Denoised segmented Kalyan cropped image');
+figure; imshow(RGB, map); title('Denoised segmented Bangalore ROI');
 xlabel(['Majority filter of size: ',...
-    num2str(wsX), ' x ', num2str(wsY), ' is used'] );
-%legend('Not processed','BuiltUp', 'NonBuiltUp', 'Slum');
+    num2str(window_size(1)), ' x ', num2str(window_size(2)) ' is used'] );
 colorbar('Ticks', [0.2 0.5 0.8], 'TickLabels', ...
     {'BuiltUp', 'NonBuiltUp', 'Slum'});
 axis on, grid on
 
 %% save
-if saving 
-save(inp_fname,'segmented_image_denoised','-append');
+if sav
+    save(inp_fname,'segmented_image_denoised','-append');
 end;
 
 disp('DONE!');
