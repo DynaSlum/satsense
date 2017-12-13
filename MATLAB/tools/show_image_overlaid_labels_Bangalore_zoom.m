@@ -10,7 +10,7 @@ num_ROIs = length(ROIs);
 
 fs = 18; 
 %% displaying
-for r = 5 %1:num_ROIs
+for r = 3 %1:num_ROIs
     roi = ROIs{r};
     
     if verbose
@@ -60,7 +60,7 @@ for r = 5 %1:num_ROIs
             image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_b,...
                 labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
                 'TextColor','white', 'Color', 'blue', 'TextBoxOpacity',0.7,'LineWidth',12);
-            rec_pos_g = [3411 2631 642 835];
+            rec_pos_g = [3708 2516 480 750];
             labels_str = {'GT2'};
             image_data = insertObjectAnnotation(image_data,'Rectangle',rec_pos_g,...
                 labels_str, 'Font', 'LucidaTypewriterBold', 'FontSize',42, ...
