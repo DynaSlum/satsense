@@ -4,3 +4,5 @@
 __pycache__
 satsense.egg-info/
 *.pyc
+.project
+.pydevproject
