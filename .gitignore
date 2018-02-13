@@ -1,4 +1,6 @@
 *.asv
 .ipynb_checkpoints/
 .vscode
-*.m~
+__pycache__
+satsense.egg-info/
+*.pyc
