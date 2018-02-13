@@ -4,7 +4,7 @@ Satsense is a library for remote sensing using satellite imagery.
 It is based on gdal and numpy.
 
 * satsense - library for analysing satellite images, performance evaluation, etc.
-* Notebooks - IPython notebooks for illustrating and testing the usage of Satsense
+* notebooks - IPython notebooks for illustrating and testing the usage of Satsense
 
 ## Installation
 We are using python 3.5 and jupyter notebook for our code.
