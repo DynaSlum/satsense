@@ -97,8 +97,6 @@ class Texton(Feature):
 
         # Calculate Difference-of-Gaussian
         dog = np.expand_dims(gaussian(im_grayscale, sigma=1) - gaussian(im_grayscale, sigma=3), axis=2)
-        print(descriptors.shape)
-        print(dog.shape)
         self.descriptors = np.append(descriptors, dog, axis=2)
 
     def texton(self, window: Cell, kmeans: MiniBatchKMeans):
