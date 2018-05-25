@@ -4,7 +4,6 @@ from typing import List, Iterator
 from satsense import SatelliteImage, WORLDVIEW3
 from satsense.generators import CellGenerator
 from satsense.generators.cell_generator import Cell
-from satsense.util.calc import count_codewords
 from .feature import Feature
 from sklearn.cluster import MiniBatchKMeans
 from scipy import ndimage as ndi
@@ -119,26 +118,10 @@ class Texton(Feature):
         descriptors = descriptors.reshape((descriptors.shape[0] * descriptors.shape[1], descriptors.shape[2]))
 
         codewords = kmeans.predict(descriptors)
-        counts = count_codewords(codewords, cluster_count)
+        counts = np.bincount(codewords, minlength=cluster_count)
 
         # Perform normalization
         if self.normalized:
             counts = counts / cluster_count
 
         return counts
-
-
-def test_texton():
-    base_path = "/home/max/Documents/ai/scriptie/data/Clip"
-    image_name = 'section_1'
-    extension = 'tif'
-    image_file = "{base_path}/{image_name}.{extension}".format(
-        base_path=base_path,
-        image_name=image_name,
-        extension=extension
-    )
-    bands = WORLDVIEW3
-    sat_image = SatelliteImage.load_from_file(image_file, bands)
-    generator = CellGenerator(image=sat_image, size=(25, 25))
-
-    texton_cluster(sat_image)
