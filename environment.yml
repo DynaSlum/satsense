@@ -12,6 +12,7 @@ dependencies:
   - matplotlib
   - nb_conda
   - numpy
+  - opencv
   - rasterio
   - scikit-image
   - scipy
