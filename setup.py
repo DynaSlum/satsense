@@ -25,10 +25,11 @@ setup(
     tests_require=['pytest'],
     install_requires=[
         'gdal==2.1.3',
-        'numpy==1.12.1',
         'descartes==1.1.0',
         'fiona==1.7.8',
-        'shapely==1.5.17'
+        'numpy==1.12.1',
+        'opencv-python',
+        'shapely==1.5.17',
     ],
     extras_require={
         'test': ['pytest', 'pytest-flake8', 'pytest-cov'],
