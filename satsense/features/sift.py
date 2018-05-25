@@ -6,7 +6,6 @@ from .feature import Feature
 from sklearn.cluster import KMeans, MiniBatchKMeans
 from sklearn.preprocessing import MinMaxScaler
 from numba import jit
-from satsense.util.calc import count_codewords
 from typing import Iterator
 
 def sift_cluster(sat_images: Iterator[SatelliteImage], n_clusters=32, sample_size=100000) -> MiniBatchKMeans:
@@ -71,7 +70,7 @@ class Sift(Feature):
             return np.zeros((cluster_count))
 
         codewords = kmeans.predict(descriptors)
-        counts = count_codewords(codewords, cluster_count)
+        counts = np.bincount(codewords, minlength=cluster_count)
 
         # Perform normalization
         if self.normalized:
