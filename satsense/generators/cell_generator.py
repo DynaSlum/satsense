@@ -58,7 +58,7 @@ class Cell(Window):
 class CellGenerator:
     def __init__(self, image: SatelliteImage, size: tuple, length=None):
         self.cur_x = 0
-        self.cur_y = 0
+        self.cur_y = -1
 
         self.x_size, self.y_size = size
         self.image = image
@@ -97,25 +97,19 @@ class CellGenerator:
         return Cell(im, x, y, x_range, y_range, orig=self.image)
 
     def next_slice(self):
-        if self.cur_y < self.y_length:
-            x_start = self.x_size * self.cur_x
-            x_end = self.x_size * (self.cur_x+1)
-            y_start = self.y_size * self.cur_y
-            y_end = self.y_size * (self.cur_y+1)
+        if self.cur_y + 1 < self.y_length:
             self.cur_y += 1
-
-            return self.cur_x, self.cur_y - 1, slice(x_start, x_end, 1), slice(y_start, y_end, 1)
         elif self.cur_x + 1 < self.x_length:
             self.cur_y = 0
             self.cur_x += 1
-
-            x_start = self.x_size * self.cur_x
-            x_end = self.x_size * (self.cur_x+1)
-            y_start = self.y_size * self.cur_y
-            y_end = self.y_size * (self.cur_y+1)
-            return self.cur_x, self.cur_y, slice(x_start, x_end, 1), slice(y_start, y_end, 1)
         else:
-            raise StopIteration()
+            raise StopIteration
+
+        x_start = self.cur_x * self.x_size
+        x_end = x_start + self.x_size
+        y_start = self.cur_y * self.y_size
+        y_end = y_start + self.y_size
+        return self.cur_x, self.cur_y, slice(x_start, x_end), slice(y_start, y_end)
 
     def slice_at_index(self, index):
         x = math.floor(index / self.y_length)
