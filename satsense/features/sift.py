@@ -1,3 +1,4 @@
+"""Sift feature."""
 from typing import Iterator
 
 import cv2
@@ -11,33 +12,38 @@ from .feature import Feature
 def sift_cluster(sat_images: Iterator[SatelliteImage],
                  n_clusters=32,
                  sample_size=100000) -> MiniBatchKMeans:
+    """Create the clusters needed to compute the sift feature."""
     sift = cv2.xfeatures2d.SIFT_create()
-    base_descriptors = None
+    descriptors = None
     for sat_image in sat_images:
-        kp, descriptors = sift.detectAndCompute(sat_image.gray_ubyte, None)
-        del kp  # Free up memory
+        _, new_descriptors = sift.detectAndCompute(sat_image.gray_ubyte, None)
+        del _  # Free up memory
 
         # Add descriptors if we already had some
-        if base_descriptors is None:
-            base_descriptors = descriptors
+        if descriptors is None:
+            descriptors = new_descriptors
         else:
-            base_descriptors = np.append(base_descriptors, descriptors, axis=0)
+            descriptors = np.append(descriptors, new_descriptors, axis=0)
 
     # Sample {sample_size} descriptors from all descriptors
     # (Takes random rows) and cluster these
-    X = base_descriptors[np.random.choice(
-        base_descriptors.shape[0], sample_size, replace=False), :]
+    descriptors = descriptors[np.random.choice(
+        descriptors.shape[0], sample_size, replace=False), :]
 
-    mbkmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=42).fit(X)
+    mbkmeans = MiniBatchKMeans(
+        n_clusters=n_clusters, random_state=42).fit(descriptors)
 
     return mbkmeans
 
 
 class Sift(Feature):
+    """Sift feature."""
+
     def __init__(self,
                  kmeans: MiniBatchKMeans,
                  windows=((25, 25), ),
                  normalized=True):
+        """Create sift feature."""
         super(Sift, self)
         self.windows = windows
         self.kmeans = kmeans
@@ -57,16 +63,14 @@ class Sift(Feature):
         return result
 
     def __str__(self):
-        normalized = "normalized" if self.normalized == True else "not-normalized"
+        normalized = "normalized" if self.normalized else "not-normalized"
         return "Sift-{}-{}".format(str(self.windows), normalized)
 
     def sift(self, window_gray_ubyte, kmeans: MiniBatchKMeans):
-        """
-        Calculate the sift feature on the given window
-        """
-        kp, descriptors = self.sift_obj.detectAndCompute(
+        """Calculate the sift feature on the given window."""
+        _, descriptors = self.sift_obj.detectAndCompute(
             window_gray_ubyte, None)
-        del kp  # Free up memory
+        del _  # Free up memory
 
         # Is none if no descriptors are found, i.e. on 0 input range
         cluster_count = kmeans.n_clusters
