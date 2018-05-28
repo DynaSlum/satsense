@@ -1,8 +1,7 @@
 import math
-from collections import namedtuple
-from ..image import Image, Window, SatelliteImage
 
-import numpy as np
+from ..image import Image, SatelliteImage, Window
+
 
 class Cell(Window):
     def __init__(self, image: Image, x, y, x_range, y_range, orig=None):
@@ -68,10 +67,9 @@ class CellGenerator:
 
         if length and length[0] < self.x_length:
             self.x_length = length[0]
-        
+
         if length and length[1] < self.y_length:
             self.y_length = length[1]
-
 
     def __iter__(self):
         return self
@@ -99,21 +97,23 @@ class CellGenerator:
     def next_slice(self):
         if self.cur_y < self.y_length:
             x_start = self.x_size * self.cur_x
-            x_end = self.x_size * (self.cur_x+1)
+            x_end = self.x_size * (self.cur_x + 1)
             y_start = self.y_size * self.cur_y
-            y_end = self.y_size * (self.cur_y+1)
+            y_end = self.y_size * (self.cur_y + 1)
             self.cur_y += 1
 
-            return self.cur_x, self.cur_y - 1, slice(x_start, x_end, 1), slice(y_start, y_end, 1)
+            return self.cur_x, self.cur_y - 1, slice(x_start, x_end, 1), slice(
+                y_start, y_end, 1)
         elif self.cur_x + 1 < self.x_length:
             self.cur_y = 0
             self.cur_x += 1
 
             x_start = self.x_size * self.cur_x
-            x_end = self.x_size * (self.cur_x+1)
+            x_end = self.x_size * (self.cur_x + 1)
             y_start = self.y_size * self.cur_y
-            y_end = self.y_size * (self.cur_y+1)
-            return self.cur_x, self.cur_y, slice(x_start, x_end, 1), slice(y_start, y_end, 1)
+            y_end = self.y_size * (self.cur_y + 1)
+            return self.cur_x, self.cur_y, slice(x_start, x_end, 1), slice(
+                y_start, y_end, 1)
         else:
             raise StopIteration()
 
@@ -123,12 +123,12 @@ class CellGenerator:
 
         if x < self.x_length and y < self.y_length and x >= 0 and y >= 0:
             x_start = self.x_size * x
-            x_end = self.x_size * (x+1)
+            x_end = self.x_size * (x + 1)
             y_start = self.y_size * y
-            y_end = self.y_size * (y+1)
+            y_end = self.y_size * (y + 1)
 
             return x, y - 1, slice(x_start, x_end, 1), slice(y_start, y_end, 1)
         else:
-            raise IndexError("index out of range:", index,
-                             " e.g. (", x, ",", y, ") does not fall within",
-                             "image bounds: (", self.x_size, ",", self.y_size, ")")
+            raise IndexError("index out of range:", index, " e.g. (", x, ",",
+                             y, ") does not fall within", "image bounds: (",
+                             self.x_size, ",", self.y_size, ")")

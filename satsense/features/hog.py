@@ -1,11 +1,10 @@
-from .. import SatelliteImage
-from ..bands import RGB
-from .feature import Feature
-from ..extract import CellGenerator
-
+import cv2
 import numpy as np
 import scipy.stats
-import cv2
+
+from ..bands import RGB
+from .feature import Feature
+
 
 def heaved_central_shift_moment(histogram, order):
     """
@@ -26,10 +25,12 @@ def heaved_central_shift_moment(histogram, order):
         The order of the moment to calculate, a number between [0, inf) 
     """
     if len(histogram.shape) > 1:
-        raise("Can only calculate moments on a 1d array histogram, but shape is:"+histogram.shape)
+        raise (
+            "Can only calculate moments on a 1d array histogram, but shape is:"
+            + histogram.shape)
 
     if order < 0:
-        raise("Order cannot be below 0")
+        raise ("Order cannot be below 0")
 
     bins = histogram.shape[0]
     v0 = np.mean(histogram)
@@ -91,8 +92,8 @@ def smoothe_histogram(histogram, kernel, bandwidth):
     The smoothed histogram
     """
     if len(histogram.shape) > 1:
-        raise("Can only smooth a 1d array histogram")
-    
+        raise ("Can only smooth a 1d array histogram")
+
     bins = histogram.shape[0]
 
     # Make a bins x bins matrix with the inter-bin distances
@@ -100,7 +101,8 @@ def smoothe_histogram(histogram, kernel, bandwidth):
     # for i in bins:
     #     for j in bins
     #         matrix[i, j] = (i - j) / bandwidth
-    matrix = np.array([i - np.arange(bins) for i in np.arange(bins)]) / bandwidth
+    matrix = np.array([i - np.arange(bins)
+                       for i in np.arange(bins)]) / bandwidth
     smoothing_matrix = kernel(matrix)
 
     smoothing_factor_totals = np.sum(smoothing_matrix, axis=1)
@@ -134,14 +136,14 @@ def orientation_histogram(angles, magnitudes, number_of_orientations):
         The centers of the created bins with angles in degrees
     """
     if len(angles.shape) > 2:
-        raise("Only 2d windows are supported")
+        raise ("Only 2d windows are supported")
 
     if angles.shape != magnitudes.shape:
-        raise("Angle and magnitude arrays do not match shape: {0} vs. {1}".format(angles.shape, magnitudes.shape))
+        raise ("Angle and magnitude arrays do not match shape: {0} vs. {1}".
+               format(angles.shape, magnitudes.shape))
 
     number_of_orientations_per_360 = 360. / number_of_orientations
     x_size, y_size = angles.shape
-
 
     histogram = np.zeros(number_of_orientations)
     bin_centers = np.zeros(number_of_orientations)
@@ -154,14 +156,20 @@ def orientation_histogram(angles, magnitudes, number_of_orientations):
         total = 0
         for x in range(x_size):
             for y in range(y_size):
-                if angles[x, y] >= orientation_start and angles[x, y] < orientation_end:
+                if angles[x,
+                          y] >= orientation_start and angles[x,
+                                                             y] < orientation_end:
                     total += magnitudes[x, y]
 
         histogram[i] = total
     return histogram, bin_centers
 
 
-def hog_features(window, bands=RGB, bins=50, kernel=scipy.stats.norm().pdf, bandwidth=0.7):
+def hog_features(window,
+                 bands=RGB,
+                 bins=50,
+                 kernel=scipy.stats.norm().pdf,
+                 bandwidth=0.7):
     """
     Calculates the hog features on the window.
     Features are the 1st and 2nd order heaved central shift moments
@@ -213,8 +221,9 @@ def hog_features(window, bands=RGB, bins=50, kernel=scipy.stats.norm().pdf, band
 
     return np.array([v1, v2, delta1, delta2, beta])
 
+
 class HistogramOfGradients(Feature):
-    def __init__(self, windows=((25,25),)):
+    def __init__(self, windows=((25, 25), )):
         super(HistogramOfGradients, self)
         self.windows = windows
         self.feature_len = 5
@@ -226,5 +235,11 @@ class HistogramOfGradients(Feature):
         for i, window in enumerate(self.windows):
             win = cell.super_cell(window, padding=True)
 
-            result[i * self.feature_len : (i+1) * self.feature_len] = hog_features(win.grayscale, bands=win.bands, bins=50, kernel=scipy.stats.norm().pdf, bandwidth = 0.7)
+            result[i * self.feature_len:(i + 1) *
+                   self.feature_len] = hog_features(
+                       win.grayscale,
+                       bands=win.bands,
+                       bins=50,
+                       kernel=scipy.stats.norm().pdf,
+                       bandwidth=0.7)
         return result
