@@ -11,7 +11,7 @@ WORLDVIEW2 = {
     'red': 4,
     'red-edge': 5,
     'nir-1': 6,
-    'nir-2': 7
+    'nir-2': 7,
 }
 
 WORLDVIEW3 = {
@@ -22,24 +22,24 @@ WORLDVIEW3 = {
     'red': 4,
     'red-edge': 5,
     'nir-1': 6,
-    'nir-2': 7
+    'nir-2': 7,
 }
 
 QUICKBIRD = {
     'blue': 0,
     'green': 1,
     'red': 2,
-    'nir-1': 3
+    'nir-1': 3,
 }
 
 RGB = {
     'red': 0,
     'green': 1,
-    'blue': 2
+    'blue': 2,
 }
 
 MONOCHROME = {
-    'pan': 0
+    'pan': 0,
 }
 
 PLEIADES = {
@@ -47,5 +47,5 @@ PLEIADES = {
     'blue': 1,
     'green': 2,
     'red': 3,
-    'nir-1': 4
+    'nir-1': 4,
 }

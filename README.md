@@ -1,4 +1,7 @@
 ## Satsense
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2a8eb394c4e64228b7f8501c2fadbc51)](https://app.codacy.com/app/DynaSlum/satsense?utm_source=github.com&utm_medium=referral&utm_content=DynaSlum/satsense&utm_campaign=badger)
+
 Satsense is a library for remote sensing using satellite imagery.
 
 It is based on gdal and numpy.
@@ -9,11 +12,13 @@ It is based on gdal and numpy.
 ## Installation
 We are using python 3.5 and jupyter notebook for our code.
 
-Assuming you have anaconda and have a new virtual environment:
+Assuming you have [conda](https://conda.io) installed and are in the
+directory where you have checked out this repository:
 
 ```bash
-conda install numpy scipy gdal fiona shapely rasterio matplotlib ipython-notebook nb_conda scikit-image
-conda install -c ioos descartes=1.0.2 
+conda create --name satsense python=3
+source activate satsense
+conda env update
 ```
 
 To install satsense from the git repo in development mode use:
