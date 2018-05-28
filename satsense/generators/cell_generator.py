@@ -85,7 +85,7 @@ class CellGenerator:
         x = self.x_length - x if x < 0 else x
         y = self.y_length - y if y < 0 else y
 
-        if x > self.x_length or y > self.y_length:
+        if x >= self.x_length or y >= self.y_length:
             raise IndexError('{} out of range for image of shape {}'.format(
                 index, self.shape))
 
