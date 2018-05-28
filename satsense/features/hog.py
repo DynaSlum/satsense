@@ -1,7 +1,5 @@
-from .. import SatelliteImage
 from ..bands import RGB
 from .feature import Feature
-from ..extract import CellGenerator
 
 import numpy as np
 import scipy.stats
