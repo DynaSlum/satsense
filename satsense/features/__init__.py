@@ -5,6 +5,5 @@ from .feature import Feature, FeatureSet
 
 __all__ = [
     'NirNDVI', 'RgNDVI', 'RbNDVI', 'print_ndvi_statistics',
-    'HistogramOfGradients', 'pantex', 'Pantex',
-    'Feature', 'FeatureSet'
+    'HistogramOfGradients', 'pantex', 'Pantex', 'Feature', 'FeatureSet'
 ]
