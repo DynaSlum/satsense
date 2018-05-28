@@ -1,11 +1,8 @@
 import numpy as np
 import scipy as sp
-
 from skimage.feature import greycomatrix, greycoprops
 
 from .feature import Feature
-from .. import SatelliteImage
-from ..generators import CellGenerator
 
 
 def get_rii_dist_angles():
@@ -25,34 +22,39 @@ def get_rii_dist_angles():
         pixels_dist_3 = np.array([[2, 2], [2, -2]])
 
         angles_1 = np.arctan2(pixels_dist_1[:, 0], pixels_dist_1[:, 1])
-        distances_1 = [sp.spatial.distance.euclidean([0, 0],
-                                                     [pixels_dist_1[i, 0],
-                                                      pixels_dist_1[i, 1]])
-                       for i in range(len(pixels_dist_1[:, 0]))]
+        distances_1 = [
+            sp.spatial.distance.euclidean(
+                [0, 0], [pixels_dist_1[i, 0], pixels_dist_1[i, 1]])
+            for i in range(len(pixels_dist_1[:, 0]))
+        ]
 
         angles_14 = np.arctan2(pixels_dist_14[:, 0], pixels_dist_14[:, 1])
-        distances_14 = [sp.spatial.distance.euclidean([0, 0],
-                                                      [pixels_dist_14[i, 0],
-                                                       pixels_dist_14[i, 1]])
-                        for i in range(len(pixels_dist_14[:, 0]))]
+        distances_14 = [
+            sp.spatial.distance.euclidean(
+                [0, 0], [pixels_dist_14[i, 0], pixels_dist_14[i, 1]])
+            for i in range(len(pixels_dist_14[:, 0]))
+        ]
 
         angles_2 = np.arctan2(pixels_dist_2[:, 0], pixels_dist_2[:, 1])
-        distances_2 = [sp.spatial.distance.euclidean([0, 0],
-                                                     [pixels_dist_2[i, 0],
-                                                      pixels_dist_2[i, 1]])
-                       for i in range(len(pixels_dist_2[:, 0]))]
+        distances_2 = [
+            sp.spatial.distance.euclidean(
+                [0, 0], [pixels_dist_2[i, 0], pixels_dist_2[i, 1]])
+            for i in range(len(pixels_dist_2[:, 0]))
+        ]
 
         angles_223 = np.arctan2(pixels_dist_223[:, 0], pixels_dist_223[:, 1])
-        distances_223 = [sp.spatial.distance.euclidean([0, 0],
-                                                       [pixels_dist_223[i, 0],
-                                                        pixels_dist_223[i, 1]])
-                         for i in range(len(pixels_dist_223[:, 0]))]
+        distances_223 = [
+            sp.spatial.distance.euclidean(
+                [0, 0], [pixels_dist_223[i, 0], pixels_dist_223[i, 1]])
+            for i in range(len(pixels_dist_223[:, 0]))
+        ]
 
         angles_3 = np.arctan2(pixels_dist_3[:, 0], pixels_dist_3[:, 1])
-        distances_3 = [sp.spatial.distance.euclidean([0, 0],
-                                                     [pixels_dist_3[i, 0],
-                                                      pixels_dist_3[i, 1]])
-                       for i in range(len(pixels_dist_3[:, 0]))]
+        distances_3 = [
+            sp.spatial.distance.euclidean(
+                [0, 0], [pixels_dist_3[i, 0], pixels_dist_3[i, 1]])
+            for i in range(len(pixels_dist_3[:, 0]))
+        ]
 
         offsets_1 = np.stack((distances_1, angles_1), axis=1)
         offsets_14 = np.stack((distances_14, angles_14), axis=1)
@@ -84,15 +86,18 @@ def pantex(window, maximum=255):
 
     pan = np.zeros(len(offsets))
     for i, offset in enumerate(offsets):
-        glcm = greycomatrix(window, [offset[0]], [offset[1]], symmetric=True,
-                            normed=True, levels=maximum + 1)
+        glcm = greycomatrix(
+            window, [offset[0]], [offset[1]],
+            symmetric=True,
+            normed=True,
+            levels=maximum + 1)
         pan[i] = greycoprops(glcm, 'contrast')
 
     return pan.min()
 
 
 class Pantex(Feature):
-    def __init__(self, windows=((25, 25),)):
+    def __init__(self, windows=((25, 25), )):
         super(Pantex, self)
         self.windows = windows
         self.feature_size = len(self.windows)
