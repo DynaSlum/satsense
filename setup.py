@@ -8,8 +8,8 @@ from setuptools import find_packages, setup
 
 def read(*names, **kwargs):
     with io.open(
-        os.path.join(os.path.dirname(__file__), *names),
-        encoding=kwargs.get('encoding', 'utf8'),
+            os.path.join(os.path.dirname(__file__), *names),
+            encoding=kwargs.get('encoding', 'utf8'),
     ) as fp:
         return fp.read()
 
@@ -35,9 +35,7 @@ setup(
         'test': ['pytest', 'pytest-flake8', 'pytest-cov'],
     },
     author_email='b.weel@esiencecenter.nl',
-    description=(
-        'Library for multispectral remote imaging.'
-    ),
+    description=('Library for multispectral remote imaging.'),
     long_description=readme,
     packages=find_packages(),
     include_package_data=True,
@@ -51,5 +49,4 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
         'Topic :: Software Development :: Libraries :: Python Modules',
-    ]
-)
+    ])

@@ -4,6 +4,5 @@ from .image import SatelliteImage
 
 __all__ = [
     'RGB', 'PLEIADES', 'WORLDVIEW2', 'WORLDVIEW3', 'QUICKBIRD', 'MONOCHROME',
-    "extract_features",
-    "SatelliteImage"
+    "extract_features", "SatelliteImage"
 ]

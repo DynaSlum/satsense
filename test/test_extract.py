@@ -1,14 +1,9 @@
-from satsense import SatelliteImage
-from satsense.generators import CellGenerator
-from satsense.extract import extract_features
-from satsense.features import FeatureSet, Pantex, HistogramOfGradients
-
-
-
 # Supported image formats include RGB, Quickbird and Worldview
-from satsense  import RGB, QUICKBIRD, WORLDVIEW2
-import numpy as np
-import pytest
+from satsense import QUICKBIRD, SatelliteImage
+from satsense.extract import extract_features
+from satsense.features import FeatureSet, Pantex
+from satsense.generators import CellGenerator
+
 
 def load_image():
     # URI to the image
@@ -36,7 +31,7 @@ def test_padding():
     generator = CellGenerator(image, (25, 25), length=(2, 180))
     for cell in generator:
         assert cell.shape == (25, 25, 4)
-        assert cell.super_cell((100,100)).shape == (100, 100, 4)
+        assert cell.super_cell((100, 100)).shape == (100, 100, 4)
 
 
 def test_extract_features():

@@ -2,18 +2,18 @@
 Methods for loading images
 """
 
-from six import iteritems
-
-import numpy as np
 import math
-from osgeo import gdal
-
-from skimage import color, img_as_ubyte
-from .bands import RGB, MONOCHROME
-
 import warnings
 
+import numpy as np
+from osgeo import gdal
+from six import iteritems
+from skimage import color, img_as_ubyte
+
+from .bands import MONOCHROME, RGB
+
 gdal.AllRegister()
+
 
 class Image:
     def __init__(self, image, bands):
@@ -32,7 +32,6 @@ class Image:
             'numstds': 2
         }
 
-
     @property
     def bands(self):
         return self._bands
@@ -40,8 +39,8 @@ class Image:
     @property
     def normalized(self):
         if self._normalized_image is None:
-            self._normalized_image = normalize_image(self.raw, self.bands,
-                                                     **self._normalization_parameters)
+            self._normalized_image = normalize_image(
+                self.raw, self.bands, **self._normalization_parameters)
         return self._normalized_image
 
     @property
@@ -72,8 +71,8 @@ class Image:
         # We need a normalized image, because normalization breaks
         # if you do it on a smaller range
         if self._normalized_image is None:
-            self._normalized_image = normalize_image(self.raw, self.bands,
-                                                     **self._normalization_parameters)
+            self._normalized_image = normalize_image(
+                self.raw, self.bands, **self._normalization_parameters)
 
         im._normalized_image = self._normalized_image[x_range, y_range]
 
@@ -106,26 +105,36 @@ class Image:
         return im
 
     def pad(self, x_pad_before, x_pad_after, y_pad_before, y_pad_after):
-        self.raw = np.pad(self.raw, ((x_pad_before, x_pad_after), (y_pad_before, y_pad_after),
-                                     (0, 0)), 'constant', constant_values=0)
+        self.raw = np.pad(
+            self.raw, ((x_pad_before, x_pad_after),
+                       (y_pad_before, y_pad_after), (0, 0)),
+            'constant',
+            constant_values=0)
 
         if self._normalized_image is not None:
-            self._normalized_image = np.pad(self._normalized_image, ((x_pad_before, x_pad_after),
-                                                                     (y_pad_before, y_pad_after),
-                                                                     (0, 0)), 'constant',
-                                                                     constant_values=0)
+            self._normalized_image = np.pad(
+                self._normalized_image, ((x_pad_before, x_pad_after),
+                                         (y_pad_before, y_pad_after), (0, 0)),
+                'constant',
+                constant_values=0)
         if self._rgb_image is not None:
-            self._rgb_image = np.pad(self._rgb_image, ((x_pad_before, x_pad_after),
-                                                       (y_pad_before, y_pad_after),
-                                                       (0, 0)), 'constant', constant_values=0)
+            self._rgb_image = np.pad(
+                self._rgb_image, ((x_pad_before, x_pad_after),
+                                  (y_pad_before, y_pad_after), (0, 0)),
+                'constant',
+                constant_values=0)
         if self._grayscale_image is not None:
-            self._grayscale_image = np.pad(self._grayscale_image, ((x_pad_before, x_pad_after),
-                                                                   (y_pad_before, y_pad_after),
-                                                                   (0, 0)), 'constant', constant_values=0)
+            self._grayscale_image = np.pad(
+                self._grayscale_image, ((x_pad_before, x_pad_after),
+                                        (y_pad_before, y_pad_after), (0, 0)),
+                'constant',
+                constant_values=0)
         if self._gray_ubyte_image is not None:
-            self._gray_ubyte_image = np.pad(self._gray_ubyte_image, ((x_pad_before, x_pad_after),
-                                                           (y_pad_before, y_pad_after),
-                                                           (0, 0)), 'constant', constant_values=0)
+            self._gray_ubyte_image = np.pad(
+                self._gray_ubyte_image, ((x_pad_before, x_pad_after),
+                                         (y_pad_before, y_pad_after), (0, 0)),
+                'constant',
+                constant_values=0)
 
 
 class Window(Image):
@@ -133,8 +142,14 @@ class Window(Image):
     Part of an image at a certain x, y location
     with a x_range, y_range extent (slice)
     """
-    def __init__(self, image: Image, x: int, y: int,
-                 x_range: slice, y_range: slice, orig: Image=None):
+
+    def __init__(self,
+                 image: Image,
+                 x: int,
+                 y: int,
+                 x_range: slice,
+                 y_range: slice,
+                 orig: Image = None):
         super(Window, self).__init__(None, image.bands)
 
         self.raw = image.raw
@@ -153,11 +168,11 @@ class Window(Image):
         else:
             self.image = image
 
+
 class SatelliteImage(Image):
     def __init__(self, dataset, array, bands):
         super(SatelliteImage, self).__init__(array, bands)
         self.__dataset = dataset
-
 
     @staticmethod
     def load_from_file(path, bands):
@@ -183,8 +198,11 @@ class SatelliteImage(Image):
         return SatelliteImage(dataset, image, bands)
 
 
-def normalize_image(image, bands, technique='cumulative',
-                    percentiles=[2.0, 98.0], numstds=2):
+def normalize_image(image,
+                    bands,
+                    technique='cumulative',
+                    percentiles=[2.0, 98.0],
+                    numstds=2):
     """
     Normalizes the image based on the band maximum
     """
@@ -206,11 +224,14 @@ def normalize_image(image, bands, technique='cumulative',
             new_max = normalized_image[:, :, band].max()
 
         if new_min:
-            normalized_image[normalized_image[:, :, band] < new_min, band] = new_min
+            normalized_image[normalized_image[:, :, band] < new_min,
+                             band] = new_min
         if new_max:
-            normalized_image[normalized_image[:, :, band] > new_max, band] = new_max
+            normalized_image[normalized_image[:, :, band] > new_max,
+                             band] = new_max
 
-        normalized_image[:, :, band] = remap(normalized_image[:, :, band], new_min, new_max, 0, 1)
+        normalized_image[:, :, band] = remap(normalized_image[:, :, band],
+                                             new_min, new_max, 0, 1)
 
     return normalized_image
 
