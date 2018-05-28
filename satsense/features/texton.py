@@ -1,27 +1,35 @@
+from typing import Iterator
+
 import numpy as np
+from scipy import ndimage
 from skimage.filters import gabor_kernel, gaussian
-from typing import List, Iterator
-from satsense import SatelliteImage, WORLDVIEW3
-from satsense.generators import CellGenerator
-from satsense.generators.cell_generator import Cell
-from .feature import Feature
 from sklearn.cluster import MiniBatchKMeans
-from scipy import ndimage as ndi
+
+from .. import SatelliteImage
+from ..generators.cell_generator import Cell
+from .feature import Feature
 
 
-def texton_cluster(sat_images: Iterator[SatelliteImage], n_clusters=32, sample_size=100000) -> MiniBatchKMeans:
+def texton_cluster(sat_images: Iterator[SatelliteImage],
+                   n_clusters=32,
+                   sample_size=100000) -> MiniBatchKMeans:
     base_descriptors = None
 
     # prepare filter bank kernels
     kernels = create_kernels()
     for sat_image in sat_images:
-        print("Computing texton descriptors for sat_image {}".format(str(sat_image.shape)))
+        print("Computing texton descriptors for sat_image {}".format(
+            str(sat_image.shape)))
         descriptors = compute_feats(sat_image.grayscale, kernels)
-        descriptors = descriptors.reshape((descriptors.shape[0] * descriptors.shape[1], descriptors.shape[2]))
+        descriptors = descriptors.reshape(
+            (descriptors.shape[0] * descriptors.shape[1],
+             descriptors.shape[2]))
 
         # Compute DoG
-        dog = np.expand_dims((gaussian(sat_image.grayscale, sigma=1) - gaussian(sat_image.grayscale, sigma=3)).ravel(),
-                             axis=1)
+        dog = np.expand_dims(
+            (gaussian(sat_image.grayscale, sigma=1) - gaussian(
+                sat_image.grayscale, sigma=3)).ravel(),
+            axis=1)
         descriptors = np.append(descriptors, dog, axis=1)
 
         # Add descriptors if we already had some
@@ -30,11 +38,11 @@ def texton_cluster(sat_images: Iterator[SatelliteImage], n_clusters=32, sample_s
         else:
             base_descriptors = np.append(base_descriptors, descriptors, axis=0)
 
-
     # Sample {sample_size} descriptors from all descriptors
     # (Takes random rows) and cluster these
     print("Sampling from {}".format(str(base_descriptors.shape)))
-    X = base_descriptors[np.random.choice(base_descriptors.shape[0], sample_size, replace=False), :]
+    X = base_descriptors[np.random.choice(
+        base_descriptors.shape[0], sample_size, replace=False), :]
 
     mbkmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=42).fit(X)
 
@@ -47,26 +55,30 @@ def create_kernels():
     thetas = np.linspace(0, np.pi, angles)
     for theta in thetas:
         # theta = theta / 8. * np.pi
-        for sigma in (1,):
-            for frequency in (0.05,):
-                kernel = np.real(gabor_kernel(frequency, theta=theta,
-                                              sigma_x=sigma, sigma_y=sigma))
+        for sigma in (1, ):
+            for frequency in (0.05, ):
+                kernel = np.real(
+                    gabor_kernel(
+                        frequency, theta=theta, sigma_x=sigma, sigma_y=sigma))
                 kernels.append(kernel)
 
     return kernels
 
 
 def compute_feats(image, kernels):
-    feats = np.zeros(image.shape + (len(kernels),), dtype=np.double)
+    feats = np.zeros(image.shape + (len(kernels), ), dtype=np.double)
     for k, kernel in enumerate(kernels):
-        filtered = ndi.convolve(image, kernel, mode='wrap')
+        filtered = ndimage.convolve(image, kernel, mode='wrap')
         feats[:, :, k] = filtered
 
     return feats
 
 
 class Texton(Feature):
-    def __init__(self, kmeans: MiniBatchKMeans, windows=((25, 25),), normalized=True):
+    def __init__(self,
+                 kmeans: MiniBatchKMeans,
+                 windows=((25, 25), ),
+                 normalized=True):
         super(Texton, self)
         self.windows = windows
         self.kmeans = kmeans
@@ -82,7 +94,7 @@ class Texton(Feature):
             win = cell.super_cell(window, padding=True)
             start_index = i * n_clusters
             end_index = (i + 1) * n_clusters
-            result[start_index: end_index] = self.texton(win, self.kmeans)
+            result[start_index:end_index] = self.texton(win, self.kmeans)
         return result
 
     def __str__(self):
@@ -95,7 +107,9 @@ class Texton(Feature):
         descriptors = compute_feats(im_grayscale, self.kernels)
 
         # Calculate Difference-of-Gaussian
-        dog = np.expand_dims(gaussian(im_grayscale, sigma=1) - gaussian(im_grayscale, sigma=3), axis=2)
+        dog = np.expand_dims(
+            gaussian(im_grayscale, sigma=1) - gaussian(im_grayscale, sigma=3),
+            axis=2)
         self.descriptors = np.append(descriptors, dog, axis=2)
 
     def texton(self, window: Cell, kmeans: MiniBatchKMeans):
@@ -115,7 +129,9 @@ class Texton(Feature):
         cluster_count = kmeans.n_clusters
 
         descriptors = self.descriptors[window.x_range, window.y_range, :]
-        descriptors = descriptors.reshape((descriptors.shape[0] * descriptors.shape[1], descriptors.shape[2]))
+        descriptors = descriptors.reshape(
+            (descriptors.shape[0] * descriptors.shape[1],
+             descriptors.shape[2]))
 
         codewords = kmeans.predict(descriptors)
         counts = np.bincount(codewords, minlength=cluster_count)
