@@ -139,17 +139,16 @@ class Image:
         ]
 
         for image_format in image_formats:
-            pad_width = ((x_pad_before, x_pad_after), (y_pad_before,
-                                                       y_pad_after), (0, 0))
             im = getattr(self, image_format)
             if im is None:
                 continue
 
-            if len(im.shape) < 3:
-                pad_width = (
-                    (x_pad_before, x_pad_after),
-                    (y_pad_before, y_pad_after),
-                )
+            pad_width = (
+                (x_pad_before, x_pad_after),
+                (y_pad_before, y_pad_after),
+            )
+            if len(im.shape) == 3:
+                pad_width += ((0, 0), )
 
             im = np.pad(im, pad_width, 'constant', constant_values=0)
             setattr(self, image_format, im)
@@ -224,20 +223,18 @@ class SatelliteImage(Image):
 def normalize_image(image,
                     bands,
                     technique='cumulative',
-                    percentiles=[2.0, 98.0],
+                    percentiles=(2.0, 98.0),
                     numstds=2):
     """
     Normalizes the image based on the band maximum
     """
-    # technique = 'meanstd'
 
     normalized_image = image.copy()
     for name, band in iteritems(bands):
         # print("Normalizing band number: {0} {1}".format(band, name))
         if technique == 'cumulative':
             percents = np.percentile(image[:, :, band], percentiles)
-            new_min = percents[0]
-            new_max = percents[1]
+            new_min, new_max = percents
         elif technique == 'meanstd':
             mean = normalized_image[:, :, band].mean()
             std = normalized_image[:, :, band].std()
@@ -248,15 +245,14 @@ def normalize_image(image,
             new_min = normalized_image[:, :, band].min()
             new_max = normalized_image[:, :, band].max()
 
-        if new_min:
-            normalized_image[normalized_image[:, :, band] < new_min,
-                             band] = new_min
-        if new_max:
-            normalized_image[normalized_image[:, :, band] > new_max,
-                             band] = new_max
-
         normalized_image[:, :, band] = remap(normalized_image[:, :, band],
                                              new_min, new_max, 0, 1)
+
+        np.clip(
+            normalized_image[:, :, band],
+            a_min=0,
+            a_max=1,
+            out=normalized_image[:, :, band])
 
     return normalized_image
 
@@ -282,12 +278,10 @@ def remap(x, o_min, o_max, n_min, n_max):
     if o_min == o_max:
         # print("Warning: Zero input range")
         return 0
-        # return None
 
     if n_min == n_max:
         # print("Warning: Zero output range")
         return 0
-        # return None
 
     # check reversed input range
     reverse_input = False
@@ -304,16 +298,18 @@ def remap(x, o_min, o_max, n_min, n_max):
         reverse_output = True
 
     # print("Remapping from range [{0}-{1}] to [{2}-{3}]".format(old_min, old_max, new_min, new_max))
-    portion = (x - old_min) * (new_max - new_min) / (old_max - old_min)
+    scale = (new_max - new_min) / (old_max - old_min)
     if reverse_input:
-        portion = (old_max - x) * (new_max - new_min) / (old_max - old_min)
+        portion = (old_max - x) * scale
+    else:
+        portion = (x - old_min) * scale
 
-    result = portion + new_min
     if reverse_output:
         result = new_max - portion
+    else:
+        result = portion + new_min
 
-    # TODO: Maybe Fix
-    return np.where(result <= n_max, result, n_max)
+    return result
 
 
 def get_grayscale_image(image, bands=RGB):
