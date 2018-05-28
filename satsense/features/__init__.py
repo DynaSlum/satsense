@@ -1,5 +1,6 @@
 from .feature import Feature, FeatureSet
 from .hog import HistogramOfGradients
+from .lacunarity import Lacunarity
 from .ndvi import NirNDVI, RbNDVI, RgNDVI, print_ndvi_statistics
 from .pantex import Pantex, pantex
 from .sift import Sift, sift_cluster
