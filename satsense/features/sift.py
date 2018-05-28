@@ -4,8 +4,7 @@ import cv2
 import numpy as np
 from sklearn.cluster import MiniBatchKMeans
 
-from satsense import SatelliteImage
-
+from .. import SatelliteImage
 from .feature import Feature
 
 
