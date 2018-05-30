@@ -33,7 +33,7 @@ class Image:
         self._normalization_parameters = {
             'technique': 'cumulative',
             'percentiles': [2.0, 98.0],
-            'numstds': 2
+            'numstds': 2,
         }
 
     @property
@@ -133,7 +133,7 @@ class Image:
         ]
 
         for image_format in image_formats:
-            im = getattr(self, image_format)
+            im = getattr(self, image_format, None)
             if im is None:
                 continue
 
@@ -168,6 +168,7 @@ class Window(Image):
         self._rgb_image = image._rgb_image
         self._grayscale_image = image._grayscale_image
         self._gray_ubyte_image = image._gray_ubyte_image
+        self._canny_edge_image = image._canny_edge_image
 
         self.x = x
         self.y = y
