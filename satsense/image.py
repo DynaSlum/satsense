@@ -6,12 +6,12 @@ import math
 import warnings
 
 import numpy as np
-import skimage.morphology as morp
 from osgeo import gdal
 from six import iteritems
 from skimage import color, img_as_ubyte
-from skimage.feature import canny as canny_edge
-from skimage.filters import rank
+from skimage.feature import canny
+from skimage.filters.rank import equalize
+from skimage.morphology import disk
 
 from .bands import MONOCHROME, RGB
 
@@ -67,16 +67,14 @@ class Image:
 
     @property
     def canny_edged(self):
-        try:
-            if self._canny_edge_image is None:
-                grayscale = np.copy(self.grayscale)
-                # local histogram equalization
-                grayscale = rank.equalize(grayscale, selem=morp.disk(30))
-
-                self._canny_edge_image = canny_edge(grayscale, sigma=0.5)
-        except TypeError:
-            print("CANNY TYPE ERROR")
-            return np.zeros(self.shape)
+        if self._canny_edge_image is None:
+            # local histogram equalization
+            grayscale = equalize(self.grayscale, selem=disk(30))
+            try:
+                self._canny_edge_image = canny(grayscale, sigma=0.5)
+            except TypeError:
+                print("CANNY TYPE ERROR")
+                self._canny_edge_image = np.zeros(self.shape)
 
         return self._canny_edge_image
 
@@ -89,11 +87,7 @@ class Image:
 
         # We need a normalized image, because normalization breaks
         # if you do it on a smaller range
-        if self._normalized_image is None:
-            self._normalized_image = normalize_image(
-                self.raw, self.bands, **self._normalization_parameters)
-
-            im._normalized_image = self._normalized_image[x_range, y_range]
+        im._normalized_image = self.normalized[x_range, y_range]
 
         # These we can calculate later if they do not exist
         if self._rgb_image is not None:
