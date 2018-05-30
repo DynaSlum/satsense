@@ -68,13 +68,11 @@ class Image:
     @property
     def canny_edged(self):
         if self._canny_edge_image is None:
-            # local histogram equalization
-            grayscale = equalize(self.grayscale, selem=disk(30))
-            try:
-                self._canny_edge_image = canny(grayscale, sigma=0.5)
-            except TypeError:
-                print("CANNY TYPE ERROR")
-                self._canny_edge_image = np.zeros(self.shape)
+            if isinstance(self, Window):
+                raise ValueError("Unable to compute canny_edged on Window, "
+                                 "compute this on the full image.")
+            self._canny_edge_image = get_canny_edge_image(
+                self.grayscale, radius=30, sigma=0.5)
 
         return self._canny_edge_image
 
@@ -331,3 +329,16 @@ def get_gray_ubyte_image(image, bands=RGB):
         warnings.simplefilter("ignore")
         # Ignore loss of precision warning
         return img_as_ubyte(gray)
+
+
+def get_canny_edge_image(image, radius, sigma):
+    """
+    Compute Canny edge image
+    """
+    # local histogram equalization
+    grayscale = equalize(image, selem=disk(radius))
+    try:
+        return canny(grayscale, sigma=sigma)
+    except TypeError:
+        print("Canny type error")
+        return np.zeros(image.shape)
