@@ -15,28 +15,27 @@ def texton_cluster(sat_images: Iterator[SatelliteImage],
                    n_clusters=32,
                    sample_size=100000) -> MiniBatchKMeans:
     """Compute texton clusters."""
-    base_descriptors = None
+    descriptors = None
 
     for sat_image in sat_images:
-        print("Computing texton descriptors for sat_image {}".format(
-            str(sat_image.shape)))
-        descriptors = get_texton_descriptors(sat_image.grayscale)
-        shape = descriptors.shape
-        descriptors.shape = (shape[0] * shape[1], shape[2])
+        new_descriptors = get_texton_descriptors(sat_image.grayscale)
+        shape = new_descriptors.shape
+        new_descriptors.shape = (shape[0] * shape[1], shape[2])
 
         # Add descriptors if we already had some
-        if base_descriptors is None:
-            base_descriptors = descriptors
+        if descriptors is None:
+            descriptors = new_descriptors
         else:
-            base_descriptors = np.append(base_descriptors, descriptors, axis=0)
+            descriptors = np.append(descriptors, new_descriptors, axis=0)
 
     # Sample {sample_size} descriptors from all descriptors
     # (Takes random rows) and cluster these
-    print("Sampling from {}".format(str(base_descriptors.shape)))
-    X = base_descriptors[np.random.choice(
-        base_descriptors.shape[0], sample_size, replace=False), :]
+    print("Sampling from {}".format(descriptors.shape))
+    descriptors = descriptors[np.random.choice(
+        descriptors.shape[0], sample_size, replace=False), :]
 
-    mbkmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=42).fit(X)
+    mbkmeans = MiniBatchKMeans(
+        n_clusters=n_clusters, random_state=42).fit(descriptors)
 
     return mbkmeans
 
@@ -60,6 +59,8 @@ def create_kernels():
 
 def get_texton_descriptors(image):
     """Compute texton descriptors."""
+    print("Computing texton descriptors for image with shape {}"
+          .format(image.shape))
     kernels = create_kernels()
     length = len(kernels) + 1
     descriptors = np.zeros(image.shape + (length, ), dtype=np.double)
@@ -75,6 +76,7 @@ def get_texton_descriptors(image):
 
 class Texton(Feature):
     """Texton feature."""
+
     def __init__(self,
                  kmeans: MiniBatchKMeans,
                  windows=((25, 25), ),
@@ -84,7 +86,6 @@ class Texton(Feature):
         self.kmeans = kmeans
         self.feature_size = len(self.windows) * kmeans.n_clusters
         self.normalized = normalized
-        self.kernels = create_kernels()
         self.descriptors = None
 
     def __call__(self, cell):
@@ -94,7 +95,7 @@ class Texton(Feature):
             win = cell.super_cell(window, padding=True)
             start_index = i * n_clusters
             end_index = (i + 1) * n_clusters
-            result[start_index:end_index] = self.texton(win, self.kmeans)
+            result[start_index:end_index] = self.texton(win)
         return result
 
     def __str__(self):
@@ -105,21 +106,15 @@ class Texton(Feature):
         """Compute texton descriptors for the image."""
         self.descriptors = get_texton_descriptors(sat_image.grayscale)
 
-    def texton(self, window: Cell, kmeans: MiniBatchKMeans):
-        """
-        Calculate the sift feature on the given window
-
-        Args:
-            window (nparray): A window of an image
-            maximum (int): The maximum value in the image
-        """
-        cluster_count = kmeans.n_clusters
+    def texton(self, window: Cell):
+        """Calculate the texton feature on the given window."""
+        cluster_count = self.kmeans.n_clusters
 
         descriptors = self.descriptors[window.x_range, window.y_range, :]
         shape = descriptors.shape
         descriptors = descriptors.reshape(shape[0] * shape[1], shape[2])
 
-        codewords = kmeans.predict(descriptors)
+        codewords = self.kmeans.predict(descriptors)
         counts = np.bincount(codewords, minlength=cluster_count)
 
         # Perform normalization
