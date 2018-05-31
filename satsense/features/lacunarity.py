@@ -1,3 +1,4 @@
+"""Lacunarity feature implementation."""
 import numpy as np
 from numba import jit, prange
 
@@ -30,6 +31,7 @@ def lacunarity(edged_image, box_size):
 
 
 class Lacunarity(Feature):
+    """Lacunarity feature."""
     def __init__(self, windows=((25, 25), ), box_sizes=(10, 20, 30)):
         # Check input
         for window in windows:
