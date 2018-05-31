@@ -1,3 +1,4 @@
+"""Texton feature implementation."""
 from typing import Iterator
 
 import numpy as np
@@ -13,24 +14,15 @@ from .feature import Feature
 def texton_cluster(sat_images: Iterator[SatelliteImage],
                    n_clusters=32,
                    sample_size=100000) -> MiniBatchKMeans:
+    """Compute texton clusters."""
     base_descriptors = None
 
-    # prepare filter bank kernels
-    kernels = create_kernels()
     for sat_image in sat_images:
         print("Computing texton descriptors for sat_image {}".format(
             str(sat_image.shape)))
-        descriptors = compute_feats(sat_image.grayscale, kernels)
-        descriptors = descriptors.reshape(
-            (descriptors.shape[0] * descriptors.shape[1],
-             descriptors.shape[2]))
-
-        # Compute DoG
-        dog = np.expand_dims(
-            (gaussian(sat_image.grayscale, sigma=1) - gaussian(
-                sat_image.grayscale, sigma=3)).ravel(),
-            axis=1)
-        descriptors = np.append(descriptors, dog, axis=1)
+        descriptors = get_texton_descriptors(sat_image.grayscale)
+        shape = descriptors.shape
+        descriptors.shape = (shape[0] * shape[1], shape[2])
 
         # Add descriptors if we already had some
         if base_descriptors is None:
@@ -50,6 +42,7 @@ def texton_cluster(sat_images: Iterator[SatelliteImage],
 
 
 def create_kernels():
+    """Create filter bank kernels."""
     kernels = []
     angles = 8
     thetas = np.linspace(0, np.pi, angles)
@@ -65,16 +58,23 @@ def create_kernels():
     return kernels
 
 
-def compute_feats(image, kernels):
-    feats = np.zeros(image.shape + (len(kernels), ), dtype=np.double)
+def get_texton_descriptors(image):
+    """Compute texton descriptors."""
+    kernels = create_kernels()
+    length = len(kernels) + 1
+    descriptors = np.zeros(image.shape + (length, ), dtype=np.double)
     for k, kernel in enumerate(kernels):
-        filtered = ndimage.convolve(image, kernel, mode='wrap')
-        feats[:, :, k] = filtered
+        descriptors[:, :, k] = ndimage.convolve(image, kernel, mode='wrap')
 
-    return feats
+    # Calculate Difference-of-Gaussian
+    dog = gaussian(image, sigma=1) - gaussian(image, sigma=3)
+    descriptors[:, :, length - 1] = dog
+
+    return descriptors
 
 
 class Texton(Feature):
+    """Texton feature."""
     def __init__(self,
                  kmeans: MiniBatchKMeans,
                  windows=((25, 25), ),
@@ -98,19 +98,12 @@ class Texton(Feature):
         return result
 
     def __str__(self):
-        normalized = "normalized" if self.normalized == True else "not-normalized"
+        normalized = "normalized" if self.normalized else "not-normalized"
         return "Texton1-dog-{}-{}".format(str(self.windows), normalized)
 
     def initialize(self, sat_image: SatelliteImage):
-        im_grayscale = sat_image.grayscale
-
-        descriptors = compute_feats(im_grayscale, self.kernels)
-
-        # Calculate Difference-of-Gaussian
-        dog = np.expand_dims(
-            gaussian(im_grayscale, sigma=1) - gaussian(im_grayscale, sigma=3),
-            axis=2)
-        self.descriptors = np.append(descriptors, dog, axis=2)
+        """Compute texton descriptors for the image."""
+        self.descriptors = get_texton_descriptors(sat_image.grayscale)
 
     def texton(self, window: Cell, kmeans: MiniBatchKMeans):
         """
@@ -120,18 +113,11 @@ class Texton(Feature):
             window (nparray): A window of an image
             maximum (int): The maximum value in the image
         """
-        # descriptors = compute_feats(window_gray_ubyte, self.kernels)
-        # dog = np.expand_dims((gaussian(window_gray_ubyte, sigma=1) - gaussian(window_gray_ubyte, sigma=3)).ravel(), axis=1)
-        # descriptors = np.append(descriptors, dog, axis=1)
-        # if descriptors is None:
-        #     return np.zeros((cluster_count))
-
         cluster_count = kmeans.n_clusters
 
         descriptors = self.descriptors[window.x_range, window.y_range, :]
-        descriptors = descriptors.reshape(
-            (descriptors.shape[0] * descriptors.shape[1],
-             descriptors.shape[2]))
+        shape = descriptors.shape
+        descriptors = descriptors.reshape(shape[0] * shape[1], shape[2])
 
         codewords = kmeans.predict(descriptors)
         counts = np.bincount(codewords, minlength=cluster_count)
