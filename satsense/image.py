@@ -9,6 +9,9 @@ import numpy as np
 from osgeo import gdal
 from six import iteritems
 from skimage import color, img_as_ubyte
+from skimage.feature import canny
+from skimage.filters.rank import equalize
+from skimage.morphology import disk
 
 from .bands import MONOCHROME, RGB
 
@@ -25,11 +28,12 @@ class Image:
         self._rgb_image = None
         self._grayscale_image = None
         self._gray_ubyte_image = None
+        self._canny_edge_image = None
 
         self._normalization_parameters = {
             'technique': 'cumulative',
             'percentiles': [2.0, 98.0],
-            'numstds': 2
+            'numstds': 2,
         }
 
     @property
@@ -62,27 +66,38 @@ class Image:
         return self._gray_ubyte_image
 
     @property
+    def canny_edged(self):
+        if self._canny_edge_image is None:
+            if isinstance(self, Window):
+                raise ValueError("Unable to compute canny_edged on Window, "
+                                 "compute this on the full image.")
+            self._canny_edge_image = get_canny_edge_image(
+                self.grayscale, radius=30, sigma=0.5)
+
+        return self._canny_edge_image
+
+    @property
     def shape(self):
         return self.raw.shape
 
     def shallow_copy_range(self, x_range, y_range, pad=True):
-        im = Image(self.raw[x_range, y_range], self._bands)
+        img = Image(self.raw[x_range, y_range], self._bands)
 
         # We need a normalized image, because normalization breaks
         # if you do it on a smaller range
-        if self._normalized_image is None:
-            self._normalized_image = normalize_image(
-                self.raw, self.bands, **self._normalization_parameters)
-
-        im._normalized_image = self._normalized_image[x_range, y_range]
+        img._normalized_image = self.normalized[x_range, y_range]
 
         # These we can calculate later if they do not exist
         if self._rgb_image is not None:
-            im._rgb_image = self._rgb_image[x_range, y_range]
+            img._rgb_image = self._rgb_image[x_range, y_range]
         if self._grayscale_image is not None:
-            im._grayscale_image = self._grayscale_image[x_range, y_range]
+            img._grayscale_image = self._grayscale_image[x_range, y_range]
         if self._gray_ubyte_image is not None:
-            im._gray_ubyte_image = self._gray_ubyte_image[x_range, y_range]
+            img._gray_ubyte_image = self._gray_ubyte_image[x_range, y_range]
+
+        # Get canny edged image and automatically calculate it if it was not defined yet.
+        if self._canny_edge_image is not None:
+            img._canny_edge_image = self.canny_edged[x_range, y_range]
 
         # Check whether we need padding. This should only be needed at the
         # right and bottom edges of the image
@@ -100,41 +115,35 @@ class Image:
             y_pad_after = math.ceil(y_range.stop - self.raw.shape[1])
 
         if pad and pad_needed:
-            im.pad(x_pad_before, x_pad_after, y_pad_before, y_pad_after)
+            img.pad(x_pad_before, x_pad_after, y_pad_before, y_pad_after)
 
-        return im
+        return img
 
-    def pad(self, x_pad_before, x_pad_after, y_pad_before, y_pad_after):
-        self.raw = np.pad(
-            self.raw, ((x_pad_before, x_pad_after),
-                       (y_pad_before, y_pad_after), (0, 0)),
-            'constant',
-            constant_values=0)
+    def pad(self, x_pad_before: int, x_pad_after: int, y_pad_before: int,
+            y_pad_after: int):
+        image_formats = [
+            'raw',
+            '_normalized_image',
+            '_rgb_image',
+            '_grayscale_image',
+            '_gray_ubyte_image',
+            '_canny_edge_image',
+        ]
 
-        if self._normalized_image is not None:
-            self._normalized_image = np.pad(
-                self._normalized_image, ((x_pad_before, x_pad_after),
-                                         (y_pad_before, y_pad_after), (0, 0)),
-                'constant',
-                constant_values=0)
-        if self._rgb_image is not None:
-            self._rgb_image = np.pad(
-                self._rgb_image, ((x_pad_before, x_pad_after),
-                                  (y_pad_before, y_pad_after), (0, 0)),
-                'constant',
-                constant_values=0)
-        if self._grayscale_image is not None:
-            self._grayscale_image = np.pad(
-                self._grayscale_image, ((x_pad_before, x_pad_after),
-                                        (y_pad_before, y_pad_after), (0, 0)),
-                'constant',
-                constant_values=0)
-        if self._gray_ubyte_image is not None:
-            self._gray_ubyte_image = np.pad(
-                self._gray_ubyte_image, ((x_pad_before, x_pad_after),
-                                         (y_pad_before, y_pad_after), (0, 0)),
-                'constant',
-                constant_values=0)
+        for image_format in image_formats:
+            img = getattr(self, image_format, None)
+            if img is None:
+                continue
+
+            pad_width = (
+                (x_pad_before, x_pad_after),
+                (y_pad_before, y_pad_after),
+            )
+            if len(img.shape) == 3:
+                pad_width += ((0, 0), )
+
+            img = np.pad(img, pad_width, 'constant', constant_values=0)
+            setattr(self, image_format, img)
 
 
 class Window(Image):
@@ -157,6 +166,7 @@ class Window(Image):
         self._rgb_image = image._rgb_image
         self._grayscale_image = image._grayscale_image
         self._gray_ubyte_image = image._gray_ubyte_image
+        self._canny_edge_image = image._canny_edge_image
 
         self.x = x
         self.y = y
@@ -170,9 +180,14 @@ class Window(Image):
 
 
 class SatelliteImage(Image):
-    def __init__(self, dataset, array, bands):
+    def __init__(self, dataset, array, bands, image_name=''):
         super(SatelliteImage, self).__init__(array, bands)
         self.__dataset = dataset
+        self.__name = image_name
+
+    @property
+    def name(self):
+        return self.__name
 
     @staticmethod
     def load_from_file(path, bands):
@@ -201,18 +216,18 @@ class SatelliteImage(Image):
 def normalize_image(image,
                     bands,
                     technique='cumulative',
-                    percentiles=[2.0, 98.0],
+                    percentiles=(2.0, 98.0),
                     numstds=2):
     """
     Normalizes the image based on the band maximum
     """
+
     normalized_image = image.copy()
     for name, band in iteritems(bands):
         # print("Normalizing band number: {0} {1}".format(band, name))
         if technique == 'cumulative':
             percents = np.percentile(image[:, :, band], percentiles)
-            new_min = percents[0]
-            new_max = percents[1]
+            new_min, new_max = percents
         elif technique == 'meanstd':
             mean = normalized_image[:, :, band].mean()
             std = normalized_image[:, :, band].std()
@@ -223,15 +238,14 @@ def normalize_image(image,
             new_min = normalized_image[:, :, band].min()
             new_max = normalized_image[:, :, band].max()
 
-        if new_min:
-            normalized_image[normalized_image[:, :, band] < new_min,
-                             band] = new_min
-        if new_max:
-            normalized_image[normalized_image[:, :, band] > new_max,
-                             band] = new_max
-
         normalized_image[:, :, band] = remap(normalized_image[:, :, band],
                                              new_min, new_max, 0, 1)
+
+        np.clip(
+            normalized_image[:, :, band],
+            a_min=0,
+            a_max=1,
+            out=normalized_image[:, :, band])
 
     return normalized_image
 
@@ -255,12 +269,12 @@ def get_rgb_bands(image, bands):
 def remap(x, o_min, o_max, n_min, n_max):
     # range check
     if o_min == o_max:
-        print("Warning: Zero input range")
-        return None
+        # print("Warning: Zero input range")
+        return 0
 
     if n_min == n_max:
-        print("Warning: Zero output range")
-        return None
+        # print("Warning: Zero output range")
+        return 0
 
     # check reversed input range
     reverse_input = False
@@ -276,14 +290,18 @@ def remap(x, o_min, o_max, n_min, n_max):
     if not new_min == n_min:
         reverse_output = True
 
-    # print("Remapping from range [{0}-{1}] to [{2}-{3}]".format(old_min, old_max, new_min, new_max))
-    portion = (x - old_min) * (new_max - new_min) / (old_max - old_min)
+#     print("Remapping from range [{0}-{1}] to [{2}-{3}]"
+#           .format(old_min, old_max, new_min, new_max))
+    scale = (new_max - new_min) / (old_max - old_min)
     if reverse_input:
-        portion = (old_max - x) * (new_max - new_min) / (old_max - old_min)
+        portion = (old_max - x) * scale
+    else:
+        portion = (x - old_min) * scale
 
-    result = portion + new_min
     if reverse_output:
         result = new_max - portion
+    else:
+        result = portion + new_min
 
     return result
 
@@ -312,3 +330,16 @@ def get_gray_ubyte_image(image, bands=RGB):
         warnings.simplefilter("ignore")
         # Ignore loss of precision warning
         return img_as_ubyte(gray)
+
+
+def get_canny_edge_image(image, radius, sigma):
+    """
+    Compute Canny edge image
+    """
+    # local histogram equalization
+    grayscale = equalize(image, selem=disk(radius))
+    try:
+        return canny(grayscale, sigma=sigma)
+    except TypeError:
+        print("Canny type error")
+        return np.zeros(image.shape)
