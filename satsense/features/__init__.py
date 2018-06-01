@@ -3,6 +3,7 @@ from .hog import HistogramOfGradients
 from .ndvi import NirNDVI, RbNDVI, RgNDVI, print_ndvi_statistics
 from .pantex import Pantex, pantex
 from .sift import Sift, sift_cluster
+from .texton import Texton, texton_cluster
 
 __all__ = [
     'NirNDVI',
@@ -14,6 +15,8 @@ __all__ = [
     'Pantex',
     'Sift',
     'sift_cluster',
+    'Texton',
+    'texton_cluster',
     'Feature',
     'FeatureSet',
 ]
