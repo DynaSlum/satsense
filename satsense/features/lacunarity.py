@@ -2,9 +2,12 @@
 import numpy as np
 from numba import jit, prange
 
+from satsense.generators import CellGenerator
+from satsense.generators.cell_generator import super_cell
 from . import Feature
 
 
+# @jit("float64(boolean[:, :], int64)", nopython=True, parallel=True)
 @jit("float64(boolean[:, :], int64)", nopython=True)
 def lacunarity(edged_image, box_size):
     """
@@ -23,16 +26,39 @@ def lacunarity(edged_image, box_size):
             # sum the binary-box for the amount of 1s in this box
             accumulator[i, j] = np.sum(
                 edged_image[i:i + box_size, j:j + box_size])
-    mean_sqrd = np.mean(accumulator)**2
+
+    accumulator = accumulator.flatten()
+    mean_sqrd = np.mean(accumulator) ** 2
     if mean_sqrd == 0:
         return 0.0
 
-    return np.var(accumulator) / mean_sqrd + 1
+    return (np.var(accumulator) / mean_sqrd) + 1
+
+
+@jit
+def lacunarity_for_chunk(chunk, box_sizes):
+    len_box_sizes = len(box_sizes)
+    chunk_len = len(chunk)
+
+    chunk_matrix = np.zeros((chunk_len, len_box_sizes))
+    coords = np.zeros((chunk_len, 2))
+    for i in range(0, chunk_len):
+        # Set coordinates
+        coords[i, :] = chunk[i][0:2]
+
+        # feature_vector = np.zeros(len(scales) * len(box_sizes))
+        x, y, edged = chunk[i]
+        for j in range(len_box_sizes):
+            box_size = box_sizes[j]
+            chunk_matrix[i, j] = lacunarity(edged, box_size)
+
+    return coords, chunk_matrix
 
 
 class Lacunarity(Feature):
     """Lacunarity feature."""
-    def __init__(self, windows=((25, 25), ), box_sizes=(10, 20, 30)):
+
+    def __init__(self, windows=((25, 25),), box_sizes=(10, 20, 30)):
         # Check input
         for window in windows:
             for box_size in box_sizes:
@@ -46,19 +72,23 @@ class Lacunarity(Feature):
         self.windows = windows
         self.feature_size = len(self.windows) * len(box_sizes)
 
-    @jit
     def __call__(self, cell):
-        result = np.zeros(self.feature_size)
-        len_box_sizes = len(self.box_sizes)
-        for i, window in enumerate(self.windows):
-            win = cell.super_cell(window, padding=True)
-            # For every box size we have a feature for this window
-            for j in range(len_box_sizes):
-                box_size = self.box_sizes[j]
-                result[i + j] = lacunarity(win.canny_edged, box_size)
+        return lacunarity_for_chunk(cell, self.box_sizes)
 
-        return result
+    def initialize(self, generator: CellGenerator, scale):
+        # Load the canny edged image for the whole image
+        # This so it is not done on a window by window basis...
+        sat_image = generator.image
+        norm = sat_image.normalized
+        ce = sat_image.canny_edged
+
+        data = []
+        for window in generator:
+            edged, _, _ = super_cell(generator.image.canny_edged, scale, window.x_range, window.y_range, padding=True)
+            processing_tuple = (window.x, window.y, edged)
+            data.append(processing_tuple)
+
+        return data
 
     def __str__(self):
-        return "Lacunarity-{}-{}".format(
-            str(self.windows), str(self.box_sizes))
+        return "La-{}-{}".format(str(self.windows), str(self.box_sizes))

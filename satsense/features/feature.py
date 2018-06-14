@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
 
 from six import iteritems
 
@@ -12,6 +13,9 @@ class Feature(object):
     def __init__(self):
         self._indices = None
         self._length = 0
+
+    def __str__(self):
+        return self.__class__.__name__
 
     @abstractmethod
     def __call__(self):
@@ -36,11 +40,17 @@ class Feature(object):
 
 class FeatureSet(object):
     def __init__(self):
-        self._features = {}
+        self._features = OrderedDict()
         self._cur_index = 0
 
     def __iter__(self):
         return iter(self._features)
+
+    def __str__(self):
+        return self.string_presentation()
+
+    def string_presentation(self):
+        return "_".join([str(f) for k, f in self._features.items()])
 
     @property
     def items(self):
@@ -48,7 +58,7 @@ class FeatureSet(object):
 
     def add(self, feature, name=None):
         if not name:
-            name = "{0}-{1}".format(feature.__class__.__name__,
+            name = "{0}-{1}".format(feature.__class__.__name__.upper(),
                                     len(self._features) + 1)
 
         self._features[name] = (feature)
