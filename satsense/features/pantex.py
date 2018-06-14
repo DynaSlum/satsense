@@ -2,6 +2,8 @@ import numpy as np
 import scipy as sp
 from skimage.feature import greycomatrix, greycoprops
 
+from satsense.generators import CellGenerator
+from satsense.generators.cell_generator import super_cell
 from .feature import Feature
 
 
@@ -96,16 +98,38 @@ def pantex(window, maximum=255):
     return pan.min()
 
 
+def pantex_for_chunk(chunk):
+    chunk_len = len(chunk)
+
+    coords = np.zeros((chunk_len, 2))
+    chunk_matrix = np.zeros((chunk_len, 1), dtype=np.float64)
+    for i in range(chunk_len):
+        coords[i, :] = chunk[i][0:2]
+        win_gray_ubyte = chunk[i][2]
+
+        chunk_matrix[i] = pantex(win_gray_ubyte)
+
+    return coords, chunk_matrix
+
+
 class Pantex(Feature):
-    def __init__(self, windows=((25, 25), )):
+    def __init__(self, windows=((25, 25),)):
         super(Pantex, self)
         self.windows = windows
         self.feature_size = len(self.windows)
 
-    def __call__(self, cell):
-        result = np.zeros(self.feature_size)
-        for i, window in enumerate(self.windows):
-            win = cell.super_cell(window, padding=True)
+    def __call__(self, chunk):
+        return pantex_for_chunk(chunk)
 
-            result[i] = pantex(win.gray_ubyte, maximum=255)
-        return result
+    def initialize(self, generator: CellGenerator, scale):
+        data = []
+        for window in generator:
+            win_gray_ubyte, _, _ = super_cell(generator.image.gray_ubyte, scale, window.x_range, window.y_range,
+                                              padding=True)
+            processing_tuple = (window.x, window.y, win_gray_ubyte)
+            data.append(processing_tuple)
+
+        return data
+
+    def __str__(self):
+        return "Pa-{}".format(str(self.windows))
