@@ -21,15 +21,7 @@ gdal.AllRegister()
 class Image:
     def __init__(self, image, bands):
         self._bands = bands
-        self.raw = image
-
-        # Most common image formats for features
-        self._normalized_image = None
-        self._rgb_image = None
-        self._grayscale_image = None
-        self._gray_ubyte_image = None
-        self._canny_edge_image = None
-
+        self._images = {'raw': image}
         self._normalization_parameters = {
             'technique': 'cumulative',
             'percentiles': [2.0, 98.0],
@@ -37,44 +29,48 @@ class Image:
         }
 
     @property
+    def raw(self):
+        return self._images['raw']
+
+    @property
     def bands(self):
         return self._bands
 
     @property
     def normalized(self):
-        if self._normalized_image is None:
-            self._normalized_image = normalize_image(
+        if 'normalized' not in self._images:
+            self._images['normalized'] = normalize_image(
                 self.raw, self.bands, **self._normalization_parameters)
-        return self._normalized_image
+        return self._images['normalized']
 
     @property
     def rgb(self):
-        if self._rgb_image is None:
-            self._rgb_image = get_rgb_bands(self.normalized, self.bands)
-        return self._rgb_image
+        if 'rgb' not in self._images:
+            self._images['rgb'] = get_rgb_bands(self.normalized, self.bands)
+        return self._images['rgb']
 
     @property
     def grayscale(self):
-        if self._grayscale_image is None:
-            self._grayscale_image = get_grayscale_image(self.rgb, RGB)
-        return self._grayscale_image
+        if 'grayscale' not in self._images:
+            self._images['grayscale'] = get_grayscale_image(self.rgb, RGB)
+        return self._images['grayscale']
 
     @property
     def gray_ubyte(self):
-        if self._gray_ubyte_image is None:
-            self._gray_ubyte_image = get_gray_ubyte_image(self.rgb, RGB)
-        return self._gray_ubyte_image
+        if 'gray_ubyte' not in self._images:
+            self._images['gray_ubyte'] = get_gray_ubyte_image(self.rgb, RGB)
+        return self._images['gray_ubyte']
 
     @property
-    def canny_edged(self):
-        if self._canny_edge_image is None:
+    def canny_edge(self):
+        if 'canny_edge' not in self._images:
             if isinstance(self, Window):
                 raise ValueError("Unable to compute canny_edged on Window, "
                                  "compute this on the full image.")
-            self._canny_edge_image = get_canny_edge_image(
+            self._images['canny_edge'] = get_canny_edge_image(
                 self.grayscale, radius=30, sigma=0.5)
 
-        return self._canny_edge_image
+        return self._images['canny_edge']
 
     @property
     def shape(self):
@@ -85,19 +81,11 @@ class Image:
 
         # We need a normalized image, because normalization breaks
         # if you do it on a smaller range
-        img._normalized_image = self.normalized[x_range, y_range]
+        img._images['normalized'] = self.normalized[x_range, y_range]
 
         # These we can calculate later if they do not exist
-        if self._rgb_image is not None:
-            img._rgb_image = self._rgb_image[x_range, y_range]
-        if self._grayscale_image is not None:
-            img._grayscale_image = self._grayscale_image[x_range, y_range]
-        if self._gray_ubyte_image is not None:
-            img._gray_ubyte_image = self._gray_ubyte_image[x_range, y_range]
-
-        # Get canny edged image and automatically calculate it if it was not defined yet.
-        if self._canny_edge_image is not None:
-            img._canny_edge_image = self.canny_edged[x_range, y_range]
+        for img_type in self._images:
+            img._images[img_type] = self._images[img_type][x_range, y_range]
 
         # Check whether we need padding. This should only be needed at the
         # right and bottom edges of the image
@@ -121,29 +109,20 @@ class Image:
 
     def pad(self, x_pad_before: int, x_pad_after: int, y_pad_before: int,
             y_pad_after: int):
-        image_formats = [
-            'raw',
-            '_normalized_image',
-            '_rgb_image',
-            '_grayscale_image',
-            '_gray_ubyte_image',
-            '_canny_edge_image',
-        ]
 
-        for image_format in image_formats:
-            img = getattr(self, image_format, None)
-            if img is None:
-                continue
-
+        for img_type in self._images:
             pad_width = (
                 (x_pad_before, x_pad_after),
                 (y_pad_before, y_pad_after),
             )
-            if len(img.shape) == 3:
+            if len(self._images[img_type].shape) == 3:
                 pad_width += ((0, 0), )
 
-            img = np.pad(img, pad_width, 'constant', constant_values=0)
-            setattr(self, image_format, img)
+            self._images[img_type] = np.pad(
+                self._images[img_type],
+                pad_width,
+                'constant',
+                constant_values=0)
 
 
 class Window(Image):
@@ -161,12 +140,7 @@ class Window(Image):
                  orig: Image = None):
         super(Window, self).__init__(None, image.bands)
 
-        self.raw = image.raw
-        self._normalized_image = image._normalized_image
-        self._rgb_image = image._rgb_image
-        self._grayscale_image = image._grayscale_image
-        self._gray_ubyte_image = image._gray_ubyte_image
-        self._canny_edge_image = image._canny_edge_image
+        self._images = image._images
 
         self.x = x
         self.y = y
@@ -180,14 +154,13 @@ class Window(Image):
 
 
 class SatelliteImage(Image):
-    def __init__(self, dataset, array, bands, image_name=''):
+    def __init__(self, array, bands, name=''):
         super(SatelliteImage, self).__init__(array, bands)
-        self.__dataset = dataset
-        self.__name = image_name
+        self._name = name
 
     @property
     def name(self):
-        return self.__name
+        return self._name
 
     @staticmethod
     def load_from_file(path, bands):
@@ -210,7 +183,7 @@ class SatelliteImage(Image):
 
         image = array.astype('float32')
 
-        return SatelliteImage(dataset, image, bands)
+        return SatelliteImage(image, bands, path)
 
 
 def normalize_image(image,
@@ -289,6 +262,7 @@ def remap(x, o_min, o_max, n_min, n_max):
     new_max = max(n_min, n_max)
     if not new_min == n_min:
         reverse_output = True
+
 
 #     print("Remapping from range [{0}-{1}] to [{2}-{3}]"
 #           .format(old_min, old_max, new_min, new_max))

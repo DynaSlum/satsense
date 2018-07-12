@@ -10,9 +10,9 @@ def lacunarity(edged_image, box_size):
     """
     Calculate the lacunarity value over an image, following these papers:
 
-    Kit, Oleksandr, and Matthias Lüdeke. "Automated detection of slum area change in Hyderabad, India using multitemporal satellite imagery." ISPRS journal of photogrammetry and remote sensing 83 (2013): 130-137.
+    Kit, Oleksandr, and Matthias Luedeke. "Automated detection of slum area change in Hyderabad, India using multitemporal satellite imagery." ISPRS journal of photogrammetry and remote sensing 83 (2013): 130-137.
 
-    Kit, Oleksandr, Matthias Lüdeke, and Diana Reckien. "Texture-based identification of urban slums in Hyderabad, India using remote sensing data." Applied Geography 32.2 (2012): 660-667.
+    Kit, Oleksandr, Matthias Luedeke, and Diana Reckien. "Texture-based identification of urban slums in Hyderabad, India using remote sensing data." Applied Geography 32.2 (2012): 660-667.
     """
 
     # accumulator holds the amount of ones for each position in the image, defined by a sliding window
@@ -32,6 +32,7 @@ def lacunarity(edged_image, box_size):
 
 class Lacunarity(Feature):
     """Lacunarity feature."""
+
     def __init__(self, windows=((25, 25), ), box_sizes=(10, 20, 30)):
         # Check input
         for window in windows:
@@ -55,7 +56,7 @@ class Lacunarity(Feature):
             # For every box size we have a feature for this window
             for j in range(len_box_sizes):
                 box_size = self.box_sizes[j]
-                result[i + j] = lacunarity(win.canny_edged, box_size)
+                result[i + j] = lacunarity(win.canny_edge, box_size)
 
         return result
 
