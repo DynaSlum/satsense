@@ -7,9 +7,11 @@ import warnings
 
 import numpy as np
 from osgeo import gdal
+from scipy import ndimage
 from six import iteritems
 from skimage import color, img_as_ubyte
 from skimage.feature import canny
+from skimage.filters import gabor_kernel, gaussian
 from skimage.filters.rank import equalize
 from skimage.morphology import disk
 
@@ -71,6 +73,17 @@ class Image:
                 self.grayscale, radius=30, sigma=0.5)
 
         return self._images['canny_edge']
+
+    @property
+    def texton_descriptors(self):
+        if 'texton_descriptors' not in self._images:
+            if isinstance(self, Window):
+                raise ValueError("Unable to compute texton descriptors on "
+                                 "Window, compute this on the full image.")
+            self._images['texton_descriptors'] = get_texton_descriptors(
+                self.grayscale)
+
+        return self._images['texton_descriptors']
 
     @property
     def shape(self):
@@ -317,3 +330,35 @@ def get_canny_edge_image(image, radius, sigma):
     except TypeError:
         print("Canny type error")
         return np.zeros(image.shape)
+
+
+def create_texton_kernels():
+    """Create filter bank kernels."""
+    kernels = []
+    angles = 8
+    thetas = np.linspace(0, np.pi, angles)
+    for theta in thetas:
+        # theta = theta / 8. * np.pi
+        for sigma in (1, ):
+            for frequency in (0.05, ):
+                kernel = np.real(
+                    gabor_kernel(
+                        frequency, theta=theta, sigma_x=sigma, sigma_y=sigma))
+                kernels.append(kernel)
+
+    return kernels
+
+
+def get_texton_descriptors(image):
+    """Compute texton descriptors."""
+    kernels = create_texton_kernels()
+    length = len(kernels) + 1
+    descriptors = np.zeros(image.shape + (length, ), dtype=np.double)
+    for k, kernel in enumerate(kernels):
+        descriptors[:, :, k] = ndimage.convolve(image, kernel, mode='wrap')
+
+    # Calculate Difference-of-Gaussian
+    dog = gaussian(image, sigma=1) - gaussian(image, sigma=3)
+    descriptors[:, :, length - 1] = dog
+
+    return descriptors
