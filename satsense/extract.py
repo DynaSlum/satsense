@@ -14,7 +14,7 @@ def extract_features(features, generator):
 
     size = len(generator)
     for i, cell in enumerate(generator):
-        if i % (size // 10) == 0:
+        if i % (size // 10 or 1) == 0:
             print("{}% ready".format(100 * i // size))
         for feature in features.items.values():
             feature_vector[cell.x, cell.y, feature.indices] = feature(cell)
