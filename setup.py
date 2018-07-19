@@ -17,7 +17,7 @@ setup(
         'fiona==1.7.8',
         'numpy==1.12.1',
         'numba',
-        'opencv-python',
+        'opencv-contrib-python-headless',
         'shapely==1.5.17',
     ],
     extras_require={
