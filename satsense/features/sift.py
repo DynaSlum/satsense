@@ -51,6 +51,7 @@ class Sift(Feature):
         self.kmeans = kmeans
         self.feature_size = len(self.windows) * kmeans.n_clusters
         self.normalized = normalized
+        self.base_image = 'gray_ubyte'
 
     def __call__(self, cell):
         result = np.zeros(self.feature_size)

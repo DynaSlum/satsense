@@ -101,6 +101,7 @@ class Pantex(Feature):
         super(Pantex, self)
         self.windows = windows
         self.feature_size = len(self.windows)
+        self.base_image = 'gray_ubyte'
 
     def __call__(self, cell):
         result = np.zeros(self.feature_size)

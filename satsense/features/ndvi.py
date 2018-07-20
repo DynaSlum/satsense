@@ -86,6 +86,7 @@ class NDVI(Feature):
         super(NDVI, self)
         self.windows = windows
         self.feature_size = len(self.windows)
+        self.base_image = 'normalized'
 
     def __call__(self, cell):
         result = np.zeros(self.feature_size)

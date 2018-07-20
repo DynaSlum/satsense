@@ -46,6 +46,7 @@ class Lacunarity(Feature):
         self.box_sizes = box_sizes
         self.windows = windows
         self.feature_size = len(self.windows) * len(box_sizes)
+        self.base_image = 'canny_edge'
 
     @jit
     def __call__(self, cell):

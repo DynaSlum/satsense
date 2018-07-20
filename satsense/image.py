@@ -1,14 +1,11 @@
-"""
-Methods for loading images
-"""
+"""Methods for loading images."""
 
-import math
+import logging
 import warnings
 
 import numpy as np
 from osgeo import gdal
 from scipy import ndimage
-from six import iteritems
 from skimage import color, img_as_ubyte
 from skimage.feature import canny
 from skimage.filters import gabor_kernel, gaussian
@@ -19,11 +16,13 @@ from .bands import MONOCHROME, RGB
 
 gdal.AllRegister()
 
+logger = logging.getLogger(__name__)
+
 
 class Image:
-    def __init__(self, image, bands):
+    def __init__(self, image, bands, itype='raw'):
         self._bands = bands
-        self._images = {'raw': image}
+        self._images = {itype: image}
         self._normalization_parameters = {
             'technique': 'cumulative',
             'percentiles': [2.0, 98.0],
@@ -41,14 +40,14 @@ class Image:
     @property
     def normalized(self):
         if 'normalized' not in self._images:
-            self._images['normalized'] = normalize_image(
+            self._images['normalized'] = get_normalized_image(
                 self.raw, self.bands, **self._normalization_parameters)
         return self._images['normalized']
 
     @property
     def rgb(self):
         if 'rgb' not in self._images:
-            self._images['rgb'] = get_rgb_bands(self.normalized, self.bands)
+            self._images['rgb'] = get_rgb_image(self.normalized, self.bands)
         return self._images['rgb']
 
     @property
@@ -87,18 +86,26 @@ class Image:
 
     @property
     def shape(self):
-        return self.raw.shape
+        return self._images[next(iter(self._images))].shape[:2]
 
     def shallow_copy_range(self, x_range, y_range, pad=True):
-        img = Image(self.raw[x_range, y_range], self._bands)
-
         # We need a normalized image, because normalization breaks
         # if you do it on a smaller range
-        img._images['normalized'] = self.normalized[x_range, y_range]
+        if 'raw' in self._images or 'normalized' in self._images:
+            itype = 'normalized'
+            image = self.normalized
+        else:
+            # Pick something random if the preferred images are not available
+            itype = next(iter(self._images))
+            image = self._images[itype]
+        img = Image(image[x_range, y_range], self._bands, itype=itype)
 
-        # These we can calculate later if they do not exist
-        for img_type in self._images:
-            img._images[img_type] = self._images[img_type][x_range, y_range]
+        for itype in self._images:
+            if itype not in img._images:
+                img._images[itype] = self._images[itype][x_range, y_range]
+
+        if not pad:
+            return img
 
         # Check whether we need padding. This should only be needed at the
         # right and bottom edges of the image
@@ -108,14 +115,14 @@ class Image:
         x_pad_after = 0
         y_pad_after = 0
         pad_needed = False
-        if x_range.stop > self.raw.shape[0]:
+        if x_range.stop is not None and x_range.stop > self.shape[0]:
             pad_needed = True
-            x_pad_after = math.ceil(x_range.stop - self.raw.shape[0])
-        if y_range.stop > self.raw.shape[1]:
+            x_pad_after = x_range.stop - self.shape[0]
+        if y_range.stop is not None and y_range.stop > self.shape[1]:
             pad_needed = True
-            y_pad_after = math.ceil(y_range.stop - self.raw.shape[1])
+            y_pad_after = y_range.stop - self.shape[1]
 
-        if pad and pad_needed:
+        if pad_needed:
             img.pad(x_pad_before, x_pad_after, y_pad_before, y_pad_after)
 
         return img
@@ -137,11 +144,17 @@ class Image:
                 'constant',
                 constant_values=0)
 
+    def collapse(self, itypes):
+        """Precompute images and remove no longer needed image types."""
+        for itype in itypes:
+            getattr(self, itype)
+        self._images = {k: v for k, v in self._images.items() if k in itypes}
+
 
 class Window(Image):
-    """
-    Part of an image at a certain x, y location
-    with a x_range, y_range extent (slice)
+    """Part of an image.
+
+    At a certain x, y location, with an x_range, y_range extent (slice).
     """
 
     def __init__(self,
@@ -177,12 +190,7 @@ class SatelliteImage(Image):
 
     @staticmethod
     def load_from_file(path, bands):
-        """
-        Loads the specified path from file and loads the bands into a numpy array
-
-        @returns dataset The raw gdal dataset
-                image The image loaded as a numpy array
-        """
+        """Load the specified path and bands from file into a numpy array."""
         dataset = gdal.Open(path, gdal.GA_ReadOnly)
         array = dataset.ReadAsArray()
 
@@ -199,60 +207,52 @@ class SatelliteImage(Image):
         return SatelliteImage(image, bands, path)
 
 
-def normalize_image(image,
-                    bands,
-                    technique='cumulative',
-                    percentiles=(2.0, 98.0),
-                    numstds=2):
-    """
-    Normalizes the image based on the band maximum
-    """
-
-    normalized_image = image.copy()
-    for name, band in iteritems(bands):
-        # print("Normalizing band number: {0} {1}".format(band, name))
+def get_normalized_image(image,
+                         bands,
+                         technique='cumulative',
+                         percentiles=(2.0, 98.0),
+                         numstds=2):
+    """Normalize the image based on the band maximum."""
+    logger.debug("Computing normalized image")
+    result = image.copy()
+    for band in bands.values():
         if technique == 'cumulative':
             percents = np.percentile(image[:, :, band], percentiles)
             new_min, new_max = percents
         elif technique == 'meanstd':
-            mean = normalized_image[:, :, band].mean()
-            std = normalized_image[:, :, band].std()
+            mean = result[:, :, band].mean()
+            std = result[:, :, band].std()
 
             new_min = mean - (numstds * std)
             new_max = mean + (numstds * std)
         else:
-            new_min = normalized_image[:, :, band].min()
-            new_max = normalized_image[:, :, band].max()
+            new_min = result[:, :, band].min()
+            new_max = result[:, :, band].max()
 
-        normalized_image[:, :, band] = remap(normalized_image[:, :, band],
-                                             new_min, new_max, 0, 1)
+        result[:, :, band] = remap(result[:, :, band], new_min, new_max, 0, 1)
 
-        np.clip(
-            normalized_image[:, :, band],
-            a_min=0,
-            a_max=1,
-            out=normalized_image[:, :, band])
-
-    return normalized_image
+        np.clip(result[:, :, band], a_min=0, a_max=1, out=result[:, :, band])
+    logger.debug("Done computing normalized image")
+    return result
 
 
-def get_rgb_bands(image, bands):
-    """
-    Converts the image to rgb format.
-    """
+def get_rgb_image(image, bands):
+    """Convert the image to rgb format."""
+    #     logger.debug("Computing rgb image")
     if bands is not MONOCHROME:
         red = image[:, :, bands['red']]
         green = image[:, :, bands['green']]
         blue = image[:, :, bands['blue']]
 
-        img = np.rollaxis(np.array([red, green, blue]), 0, 3)
+        result = np.rollaxis(np.array([red, green, blue]), 0, 3)
     else:
-        img = color.grey2rgb(image)
+        result = color.grey2rgb(image)
 
-    return img
+    #     logger.debug("Done computing rgb image")
+    return result
 
 
-def remap(x, o_min, o_max, n_min, n_max):
+def remap(image, o_min, o_max, n_min, n_max):
     # range check
     if o_min == o_max:
         # print("Warning: Zero input range")
@@ -281,9 +281,9 @@ def remap(x, o_min, o_max, n_min, n_max):
 #           .format(old_min, old_max, new_min, new_max))
     scale = (new_max - new_min) / (old_max - old_min)
     if reverse_input:
-        portion = (old_max - x) * scale
+        portion = (old_max - image) * scale
     else:
-        portion = (x - old_min) * scale
+        portion = (image - old_min) * scale
 
     if reverse_output:
         result = new_max - portion
@@ -294,20 +294,23 @@ def remap(x, o_min, o_max, n_min, n_max):
 
 
 def get_grayscale_image(image, bands=RGB):
+    #     logger.debug("Computing grayscale image")
     if bands is not RGB:
-        rgb_image = get_rgb_bands(image, bands)
+        rgb_image = get_rgb_image(image, bands)
     else:
         rgb_image = image
 
-    return color.rgb2gray(rgb_image)
+    result = color.rgb2gray(rgb_image)
+    #     logger.debug("Done computing grayscale image")
+    return result
 
 
 def get_gray_ubyte_image(image, bands=RGB):
-    """
-    Converts image in 0 - 1 scale format to ubyte 0 - 255 format
+    """Convert image in 0 - 1 scale format to ubyte 0 - 255 format.
 
-    Uses img_as_ubyte from skimage
+    Uses img_as_ubyte from skimage.
     """
+    #     logger.debug("Computing gray ubyte image")
     if bands is not MONOCHROME:
         gray = get_grayscale_image(image, bands)
     else:
@@ -316,20 +319,24 @@ def get_gray_ubyte_image(image, bands=RGB):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         # Ignore loss of precision warning
-        return img_as_ubyte(gray)
+        result = img_as_ubyte(gray)
+
+    #     logger.debug("Done computing gray ubyte image")
+    return result
 
 
 def get_canny_edge_image(image, radius, sigma):
-    """
-    Compute Canny edge image
-    """
+    """Compute Canny edge image."""
+    logger.debug("Computing Canny edge image")
     # local histogram equalization
     grayscale = equalize(image, selem=disk(radius))
     try:
-        return canny(grayscale, sigma=sigma)
+        result = canny(grayscale, sigma=sigma)
     except TypeError:
         print("Canny type error")
-        return np.zeros(image.shape)
+        result = np.zeros(image.shape)
+    logger.debug("Done computing Canny edge image")
+    return result
 
 
 def create_texton_kernels():
@@ -338,7 +345,6 @@ def create_texton_kernels():
     angles = 8
     thetas = np.linspace(0, np.pi, angles)
     for theta in thetas:
-        # theta = theta / 8. * np.pi
         for sigma in (1, ):
             for frequency in (0.05, ):
                 kernel = np.real(
@@ -351,14 +357,15 @@ def create_texton_kernels():
 
 def get_texton_descriptors(image):
     """Compute texton descriptors."""
+    logger.debug("Computing texton descriptors")
     kernels = create_texton_kernels()
     length = len(kernels) + 1
-    descriptors = np.zeros(image.shape + (length, ), dtype=np.double)
+    result = np.zeros(image.shape + (length, ), dtype=np.double)
     for k, kernel in enumerate(kernels):
-        descriptors[:, :, k] = ndimage.convolve(image, kernel, mode='wrap')
+        result[:, :, k] = ndimage.convolve(image, kernel, mode='wrap')
 
     # Calculate Difference-of-Gaussian
     dog = gaussian(image, sigma=1) - gaussian(image, sigma=3)
-    descriptors[:, :, length - 1] = dog
-
-    return descriptors
+    result[:, :, length - 1] = dog
+    logger.debug("Done computing texton descriptors")
+    return result

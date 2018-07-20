@@ -227,7 +227,7 @@ class HistogramOfGradients(Feature):
         super(HistogramOfGradients, self)
         self.windows = windows
         self.feature_len = 5
-        print(self.windows)
+        self.base_image = 'grayscale'
         self.feature_size = self.feature_len * len(self.windows)
 
     def __call__(self, cell):
