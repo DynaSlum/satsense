@@ -29,23 +29,23 @@ class Cell(Window):
         pad_needed = False
         if x_start < 0:
             pad_needed = True
-            x_pad_before = math.floor(math.fabs(x_start))
+            x_pad_before = -x_start
             x_start = 0
         if x_end > self.image.shape[0]:
             pad_needed = True
-            x_pad_after = math.ceil(x_end - self.image.shape[0] + 1)
-            x_end = self.image.shape[0] - 1
+            x_pad_after = x_end - self.image.shape[0]
+            x_end = self.image.shape[0]
         if y_start < 0:
             pad_needed = True
-            y_pad_before = math.floor(math.fabs(y_start))
+            y_pad_before = -y_start
             y_start = 0
         if y_end > self.image.shape[1]:
             pad_needed = True
-            y_pad_after = math.ceil(y_end - self.image.shape[1] + 1)
-            y_end = self.image.shape[1] - 1
+            y_pad_after = y_end - self.image.shape[1]
+            y_end = self.image.shape[1]
 
-        x_range = slice(x_start, x_end, 1)
-        y_range = slice(y_start, y_end, 1)
+        x_range = slice(x_start, x_end)
+        y_range = slice(y_start, y_end)
 
         im = self.image.shallow_copy_range(x_range, y_range)
         if padding and pad_needed:
