@@ -8,6 +8,8 @@ from sklearn.cluster import MiniBatchKMeans
 from .. import SatelliteImage
 from .feature import Feature
 
+SIFT = cv2.xfeatures2d.SIFT_create()
+
 
 def sift_cluster(sat_images: Iterator[SatelliteImage],
                  n_clusters=32,
@@ -48,7 +50,6 @@ class Sift(Feature):
         self.windows = windows
         self.kmeans = kmeans
         self.feature_size = len(self.windows) * kmeans.n_clusters
-        self.sift_obj = cv2.xfeatures2d.SIFT_create()
         self.normalized = normalized
 
     def __call__(self, cell):
@@ -68,8 +69,7 @@ class Sift(Feature):
 
     def sift(self, window_gray_ubyte, kmeans: MiniBatchKMeans):
         """Calculate the sift feature on the given window."""
-        _, descriptors = self.sift_obj.detectAndCompute(
-            window_gray_ubyte, None)
+        _, descriptors = SIFT.detectAndCompute(window_gray_ubyte, None)
         del _  # Free up memory
 
         # Is none if no descriptors are found, i.e. on 0 input range
