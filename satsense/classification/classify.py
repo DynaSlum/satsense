@@ -5,7 +5,6 @@ import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
-from imblearn.over_sampling import SMOTE, RandomOverSampler
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import classification_report, matthews_corrcoef
 
@@ -36,8 +35,7 @@ LABELS = {
 }
 
 def load_masks(image_name):
-    """ Load the vegetation and slum mask from the mask folder specified in
-        classify.ini. """
+    """Load the vegetation and slum mask from the mask folder specified in classify.ini."""
     path = os.path.join(MASK_FOLDER, "vegetation", image_name + ".npy")
     vegetation_mask = Mask.load_from_file(path)
     path = os.path.join(MASK_FOLDER, "slum", image_name + ".npy")
@@ -54,10 +52,12 @@ def load_masks(image_name):
     return slum_mask, vegetation_mask, building_mask
 
 def load_feature_vector(image_name):
+    """Loads the feature vector from the feature folder with the same name as the image."""
     return np.load(os.path.join(FEATURE_FOLDER, image_name + ".npy"))
 
 
 def create_training_set():
+    """Create a training set from the train images and masks."""
     X_train = None
     y_train = None
     for imagefile in TRAIN_IMAGES:
@@ -87,8 +87,9 @@ def create_training_set():
     return X_train, y_train
 
 def create_test_set():
+    """Create a test set from the test image."""
     image_name = os.path.splitext(TEST_IMAGE)[0]
-    slum_mask, vegetation_mask, building_mask = load_masks(image_name)
+    slum_mask, vegetation_mask, _ = load_masks(image_name)
     feature_vector = load_feature_vector(image_name)
 
     y_test = np.full(feature_vector.shape[:2], LABELS['BUILDING'])
@@ -103,30 +104,18 @@ def create_test_set():
 
     return X_test, y_test, feature_vector.shape[:2]
 
+
 if __name__ == "__main__":
     print("Creating training set...")
     X_train, y_train = create_training_set()
-    # print("Oversampling")
-    # print(np.unique(y_train, return_counts=True))
-
-    # ratio = {LABELS["BUILDING"]: np.count_nonzero(y_train == LABELS["BUILDING"]),
-    #          LABELS["VEGETATION"]:  np.count_nonzero(y_train == LABELS["VEGETATION"]),
-    #          LABELS["SLUM"]: np.count_nonzero(y_train == LABELS["BUILDING"]) + np.count_nonzero(y_train == LABELS["VEGETATION"])}
-             
-    # print(ratio)
-    # X_train, y_train = RandomOverSampler(ratio=ratio).fit_sample(X_train, y_train)
     print("Creating test set...")
     X_test, y_test, original_shape = create_test_set()
-
     classifier = GradientBoostingClassifier(verbose=True)
     print("fitting...")
 
-    # with open('gb_s2_b10.pickle', 'rb') as f:
-    #     classifier = pickle.load(f)
-
     classifier.fit(X_train, y_train)
 
-    with open('gb_s3_b10_smt.pickle', 'wb') as f:
+    with open('classifier.pickle', 'wb') as f:
         pickle.dump(classifier, f)
 
     y_pred = classifier.predict(X_test)
@@ -134,9 +123,6 @@ if __name__ == "__main__":
     y_pred[y_pred == LABELS['VEGETATION']] = LABELS['BUILDING']
     y_test[y_test == LABELS['VEGETATION']] = LABELS['BUILDING']
     
-    print(np.unique(y_pred, return_counts=True))
-    print(np.unique(y_test, return_counts=True))
-
     print(matthews_corrcoef(y_test, y_pred))
     print(classification_report(y_test, y_pred))
     result_mask = Mask(np.reshape(y_pred, original_shape))

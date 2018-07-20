@@ -2,7 +2,6 @@ import fiona
 import matplotlib.pyplot as plt
 import numpy as np
 import rasterio
-from rasterio import mask
 from scipy.ndimage import zoom
 from skimage import filters
 
@@ -15,6 +14,7 @@ from ..util import load_mask_from_file, save_mask2file
 
 
 class Mask():
+    """Object representation of a mask"""
     def __init__(self, mask):
         self._mask = np.array(mask)
 
@@ -46,23 +46,27 @@ class Mask():
         plt.imshow(zoomed_mask, cmap='hot', alpha=0.3)
 
     def __and__(self, other):
+        """Perform a binary and operation on the masks."""
         return Mask(np.uint8(np.logical_and(self.mask, other.mask)))
 
     def __or__(self, other):
+        """Perform a binary or operation on the masks."""
         return Mask(np.uint8(np.logical_or(self.mask, other.mask)))
 
     def __invert__(self):
+        """Flip the ones and zeros in the mask."""
         return Mask(np.uint8(np.logical_not(self.mask)))
 
     def __sub__(self, other):
-        """ A & ~B
-            Removes everything from A that is present in B. This is used to
-            remove slums from the vegetation mask.
+        """ 
+        A & ~B; Removes everything from A that is present in B. This is used
+        to remove slums from the vegetation mask.
         """
         m = np.logical_and(self.mask, np.logical_not(other.mask))
         return Mask(np.uint8(m))
 
     def resample(self, size, threshold=0.8):
+        """ Resample the mask to different block sizes."""
         # Need 3d instead of 2d for cell generator
         tmp = self.mask[:, :, np.newaxis]
         mask_image = SatelliteImage(None, tmp, MASK_BANDS)
@@ -75,7 +79,9 @@ class Mask():
                     resampled_mask[cell.x, cell.y] = 1
         return resampled_mask 
 
-class VegetationMask(Mask):   
+class VegetationMask(Mask):
+    """The mask representing the vegetation in the image."""
+
     @staticmethod 
     def create(generator):
         mask = np.zeros(generator.shape)
@@ -87,6 +93,8 @@ class VegetationMask(Mask):
 
 
 class SoilMask(Mask):
+    """The mask representing the soil in the image."""
+
     @staticmethod 
     def create(generator):
         mask = np.zeros(generator.shape)
@@ -96,13 +104,9 @@ class SoilMask(Mask):
         mask = np.uint8(mask > filters.threshold_otsu(mask))
         return VegetationMask(mask)
 
-class OnesMask(Mask):
-    @staticmethod
-    def create(generator):
-        mask = np.ones(generator.shape, dtype=np.uint8)
-        return OnesMask(mask)
-
 class ShapefileMask(Mask):
+    """A mask created from a shapefile"""
+
     def create(shapefile, imagefile, size=(1,1)):
         with fiona.open(shapefile, "r") as sf:
             geoms = [feature["geometry"] for feature in sf]

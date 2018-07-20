@@ -1,7 +1,8 @@
 import numpy as np
 
-
 class Dataset:
+    """An object representing a dataset. It uses a feature vector and masks to create the X and y vectors used for training."""
+
     def __init__(self, feature_vector):
         self._feature_vector = feature_vector
 
