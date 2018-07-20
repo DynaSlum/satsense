@@ -1,5 +1,5 @@
+"""Implementation of the NDXI family of features."""
 import numpy as np
-
 from ..bands import WORLDVIEW3
 from .feature import Feature
 
@@ -12,7 +12,9 @@ NDXI_OPTIONS = {
     'wvsi': ('green', 'yellow'),
 }
 
-def ndxi(image, option, bands=WORLDVIEW3):
+
+def ndxi_feature(image, option, bands=WORLDVIEW3):
+    """Calculates the feature according to the ndxi option provided."""
     band_0_name = NDXI_OPTIONS[option][0]
     band_1_name = NDXI_OPTIONS[option][1]
     band_0 = image[:, :, bands[band_0_name]].astype(np.float64)
@@ -28,10 +30,9 @@ def ndxi(image, option, bands=WORLDVIEW3):
 
     return ndxi
 
+
 def print_ndxi_statistics(ndxi, option):
-    """
-    Prints the ndvi matrix and the, min, max, mean and median
-    """
+    """Prints the ndvi matrix and the, min, max, mean and median."""
     print('{o} matrix: '.format(o=option))
     print(ndxi)
 
@@ -42,8 +43,8 @@ def print_ndxi_statistics(ndxi, option):
 
 
 class NDXI(Feature):
-
-    def __init__(self,  option, windows=((25, 25), )):
+    """The parent class of the family of NDXI features."""
+    def __init__(self, option, windows=((25, 25), )):
         super(NDXI, self)
         self.windows = windows
         self.option = option
@@ -53,40 +54,37 @@ class NDXI(Feature):
         result = np.zeros(self.feature_size)
         for i, window in enumerate(self.windows):
             win = cell.super_cell(window, padding=True)
-            ndxi_result = ndxi(win.normalized, self.option, bands=cell.bands)
+            ndxi_result = ndxi_feature(win.normalized, self.option, bands=cell.bands)
             result[i] = ndxi_result.mean()
         return result
 
 
 class NirNDVI(NDXI):
-    """
-    Calculates the red-green normalized difference vegetation index of the image
-    """
+    """The infrared-green normalized difference vegetation index of the image."""
     def __init__(self, windows=((25, 25), )):
         super(NirNDVI, self).__init__('nir_ndvi', windows=windows)
 
 class RgNDVI(NDXI):
-    """
-    Calculates the red-green normalized difference vegetation index of the image
-    """
+    """The red-green normalized difference vegetation index of the image."""
     def __init__(self, windows=((25, 25), )):
         super(RgNDVI, self).__init__('rg_ndvi', windows=windows)
 
 class RbNDVI(NDXI):
-    """
-    Calculates the red-blue normalized difference vegetation index of the image
-    """
+    """The red-blue normalized difference vegetation index of the image."""
     def __init__(self, windows=((25, 25), )):
         super(RbNDVI, self).__init__('rb_ndvi', windows=windows)
 
 class NDSI(NDXI):
+    """The snow cover index of the image."""
     def __init__(self, windows=((25, 25), )):
         super(NDSI, self).__init__('ndsi', windows=windows)
 
 class NDWI(NDXI):
+    """The water cover index of the image."""
     def __init__(self, windows=((25, 25), )):
         super(NDWI, self).__init__('ndwi', windows=windows)
 
 class WVSI(NDXI):
+    """The soil cover index of the image."""
     def __init__(self, windows=((25, 25), )):
         super(WVSI, self).__init__('wvsi', windows=windows)
