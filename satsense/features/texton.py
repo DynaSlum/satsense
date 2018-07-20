@@ -5,8 +5,6 @@ import numpy as np
 from sklearn.cluster import MiniBatchKMeans
 
 from .. import SatelliteImage
-from ..generators.cell_generator import Cell
-from ..image import get_texton_descriptors
 from .feature import Feature
 
 
@@ -14,22 +12,12 @@ def texton_cluster(sat_images: Iterator[SatelliteImage],
                    n_clusters=32,
                    sample_size=100000) -> MiniBatchKMeans:
     """Compute texton clusters."""
-    descriptors = None
-
-    for sat_image in sat_images:
-        new_descriptors = get_texton_descriptors(sat_image.grayscale)
-        shape = new_descriptors.shape
-        new_descriptors.shape = (shape[0] * shape[1], shape[2])
-
-        # Add descriptors if we already had some
-        if descriptors is None:
-            descriptors = new_descriptors
-        else:
-            descriptors = np.append(descriptors, new_descriptors, axis=0)
+    descriptors = np.vstack(s.texton_descriptors for s in sat_images)
 
     # Sample {sample_size} descriptors from all descriptors
     # (Takes random rows) and cluster these
-    print("Sampling from {}".format(descriptors.shape))
+    shape = descriptors.shape
+    descriptors = descriptors.reshape(shape[0] * shape[1], shape[2])
     descriptors = descriptors[np.random.choice(
         descriptors.shape[0], sample_size, replace=False), :]
 
@@ -51,7 +39,6 @@ class Texton(Feature):
         self.kmeans = kmeans
         self.feature_size = len(self.windows) * kmeans.n_clusters
         self.normalized = normalized
-        self.descriptors = None
 
     def __call__(self, cell):
         result = np.zeros(self.feature_size)
