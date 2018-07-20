@@ -23,7 +23,7 @@ def _get_multiple(value, base):
 def extract_features_parallel(features,
                               image,
                               cell_size,
-                              max_jobs=cpu_count() // 2):
+                              max_jobs=cpu_count()):
     """Extract features in parallel."""
     logger.debug("Extracting features using at most %s processes", max_jobs)
 
