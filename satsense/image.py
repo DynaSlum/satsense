@@ -59,7 +59,7 @@ class Image:
     @property
     def gray_ubyte(self):
         if 'gray_ubyte' not in self._images:
-            self._images['gray_ubyte'] = get_gray_ubyte_image(self.rgb, RGB)
+            self._images['gray_ubyte'] = get_gray_ubyte_image(self.grayscale)
         return self._images['gray_ubyte']
 
     @property
@@ -68,6 +68,7 @@ class Image:
             if isinstance(self, Window):
                 raise ValueError("Unable to compute canny_edged on Window, "
                                  "compute this on the full image.")
+            #TODO: check if we should use gray_ubyte instead
             self._images['canny_edge'] = get_canny_edge_image(
                 self.grayscale, radius=30, sigma=0.5)
 
@@ -305,21 +306,16 @@ def get_grayscale_image(image, bands=RGB):
     return result
 
 
-def get_gray_ubyte_image(image, bands=RGB):
+def get_gray_ubyte_image(image):
     """Convert image in 0 - 1 scale format to ubyte 0 - 255 format.
 
     Uses img_as_ubyte from skimage.
     """
     #     logger.debug("Computing gray ubyte image")
-    if bands is not MONOCHROME:
-        gray = get_grayscale_image(image, bands)
-    else:
-        gray = image
-
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         # Ignore loss of precision warning
-        result = img_as_ubyte(gray)
+        result = img_as_ubyte(image)
 
     #     logger.debug("Done computing gray ubyte image")
     return result
