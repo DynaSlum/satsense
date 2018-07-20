@@ -69,4 +69,4 @@ def test_extract_features_parallel(image):
     generator = CellGenerator(image, cell_size)
     reference = extract_features(features, generator)
 
-    np.testing.assert_array_equal(results, reference)
+    np.testing.assert_array_almost_equal_nulp(results, reference)
