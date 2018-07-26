@@ -198,7 +198,10 @@ class SatelliteImage(Image):
                 image The image loaded as a numpy array
         """
         dataset = gdal.Open(path, gdal.GA_ReadOnly)
+        band = dataset.GetRasterBand(1)
+        
         array = dataset.ReadAsArray()
+        array[array == band.GetNoDataValue()] = 0
 
         if len(array.shape) == 3:
             # The bands column is in the first position, but we want it last
