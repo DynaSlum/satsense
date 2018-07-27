@@ -22,11 +22,13 @@ def test_padding(image):
         assert cell.shape == (25, 25)
         assert cell.super_cell((100, 100)).shape == (100, 100)
 
+
 def assert_image_equivalent(img: Image, other: Image):
     assert img.bands == other.bands
     assert img._normalization_parameters == other._normalization_parameters
     for itype in img._images:
-        np.testing.assert_array_almost_equal_nulp(img._images[itype], getattr(other, itype))
+        np.testing.assert_array_almost_equal_nulp(img._images[itype],
+                                                  getattr(other, itype))
 
 
 def test_generator_split():
@@ -38,7 +40,8 @@ def test_generator_split():
     features.add(HistogramOfGradients(windows=windows))
 
     reference = tuple(CellGenerator(image(), cell_size))
-    generators = CellGenerator(image(), cell_size).split(n_jobs=cpu_count(), features=features)
+    generators = CellGenerator(image(), cell_size).split(
+        n_jobs=cpu_count(), features=features)
 
     cells = []
     i = 0
@@ -47,7 +50,8 @@ def test_generator_split():
             ref = reference[i]
             print(cell.x, cell.y, ref.x, ref.y)
             for window in windows:
-                assert_image_equivalent(cell.super_cell(window), ref.super_cell(window))
+                assert_image_equivalent(
+                    cell.super_cell(window), ref.super_cell(window))
             cells.append(cell)
             i += 1
 
