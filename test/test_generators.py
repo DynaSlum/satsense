@@ -6,7 +6,7 @@ from satsense.features import FeatureSet, HistogramOfGradients
 from satsense.generators import CellGenerator
 from satsense.image import Image
 
-from test.test_extract import image
+from .test_extract import image
 
 
 def test_generator(image):
