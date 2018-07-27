@@ -12,7 +12,7 @@ from satsense.generators import CellGenerator
 def image():
     """Create a test SatelliteImage instance."""
     bands = QUICKBIRD
-    shape = (100, 100, len(bands))
+    shape = (95, 50, len(bands))
     data = np.array(range(np.prod(shape)), dtype=np.float32)
     data.shape = shape
     return SatelliteImage(data, bands)
@@ -30,23 +30,9 @@ def load_image():
     return image
 
 
-def test_generator(image):
-
-    generator = CellGenerator(image, (25, 25))
-    assert len(generator) == len(tuple(generator))
-
-
-def test_padding(image):
-
-    generator = CellGenerator(image, (25, 25), length=(2, 180))
-    for cell in generator:
-        assert cell.shape == (25, 25)
-        assert cell.super_cell((100, 100)).shape == (100, 100)
-
-
 def test_extract_features(image):
 
-    generator = CellGenerator(image, (25, 25), length=(5, 10))
+    generator = CellGenerator(image, (10, 10), length=(10, 5))
 
     features = FeatureSet()
     features.add(Pantex(windows=((25, 25), (50, 50), (100, 100))))
@@ -56,17 +42,19 @@ def test_extract_features(image):
     assert results.any()
 
 
-def test_extract_features_parallel(image):
+@pytest.mark.parametrize("n_jobs", [1, 2, 3, 4, 5, 10])
+def test_extract_features_parallel(image, n_jobs):
     """Test that parallel extraction produces identical results."""
     cell_size = (10, 10)
     windows = [(25, 25), (50, 50)]
 
     features = FeatureSet()
     features.add(HistogramOfGradients(windows=windows))
-    print("Computing features in parallel")
-    results = extract_features_parallel(features, image, cell_size)
     print("Computing reference features")
     generator = CellGenerator(image, cell_size)
     reference = extract_features(features, generator)
+    print("Computing features in parallel")
+    generator = CellGenerator(image, cell_size)
+    results = extract_features_parallel(features, generator, n_jobs)
 
     np.testing.assert_array_almost_equal_nulp(results, reference)
