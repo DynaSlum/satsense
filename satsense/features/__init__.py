@@ -1,8 +1,8 @@
 from .feature import Feature, FeatureSet
 from .hog import HistogramOfGradients
 from .lacunarity import Lacunarity
-from .ndxi import NDXI, NirNDVI, RbNDVI, RgNDVI, NDSI, NDWI, WVSI
-from .ndxi import print_ndxi_statistics
+from .ndxi import (NDSI, NDWI, NDXI, WVSI, NirNDVI, RbNDVI, RgNDVI,
+                   print_ndxi_statistics)
 from .pantex import Pantex, pantex
 from .sift import Sift, sift_cluster
 from .texton import Texton, texton_cluster
