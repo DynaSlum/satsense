@@ -70,3 +70,7 @@ class FeatureSet(object):
             feature.indices = slice(self._cur_index,
                                     self._cur_index + feature.feature_size, 1)
             self._cur_index += feature.feature_size
+
+    @property
+    def base_images(self):
+        return {f.base_image for f in self._features.values()}

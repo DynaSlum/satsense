@@ -115,23 +115,15 @@ class CellGenerator:
     def shape(self):
         return (self.x_length, self.y_length)
 
-    def split(self, n_jobs: int, features):
+    def split(self, n_jobs: int, features, keep_image=False):
         """Split the CellGenerator into at most n_jobs."""
-        # Select the smallest possible set of images to pickle
-        itypes = {f.base_image for f in features.items.values()}
-        selected_images = set()
-        # Images are derived in the following order, select only one
-        order = ('raw', 'normalized', 'rgb', 'grayscale', 'gray_ubyte')
-        for itype in order:
-            if itype in itypes:
-                selected_images.add(itype)
-                break
-        # Add images types that must be computed on the entire image
-        for itype in ('canny_edge', 'texton_descriptors'):
-            if itype in itypes:
-                getattr(self.image, itype)
-                selected_images.add(itype)
-        logger.debug("Images selected for job %s", selected_images)
+        # Pre compute images that need the entire image
+        itypes = self.image.minimal_image_types(features.base_images)
+        logger.debug("Images selected for job %s", itypes)
+        if keep_image:
+            self.image.precompute(itypes)
+        else:
+            self.image.collapse(itypes)
 
         # Split the generator in chunks
         chunk = math.ceil(self.x_length / n_jobs)
@@ -158,7 +150,7 @@ class CellGenerator:
             logger.debug(
                 "job %s, image start %s, image end %s, image shape %s", job,
                 image_start, image_end, image.shape)
-            self.image.collapse(selected_images)
+            self.image.collapse(itypes)
 
             # Create generator to iterate over image
             offset = min(job_start, buffer)

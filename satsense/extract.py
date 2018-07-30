@@ -35,10 +35,8 @@ def extract_features(features, generator):
     logger.debug("Feature vector shape %s", shape)
 
     # Pre compute images
-    itypes = {f.base_image for f in features.items.values()}
-    logger.debug("Using base images: %s", ', '.join(itypes))
-    for itype in itypes:
-        getattr(generator.image, itype)
+    logger.debug("Using base images: %s", ', '.join(features.base_images))
+    generator.image.precompute(features.base_images)
 
     size = len(generator)
     for i, cell in enumerate(generator):

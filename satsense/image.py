@@ -68,7 +68,7 @@ class Image:
             if isinstance(self, Window):
                 raise ValueError("Unable to compute canny_edged on Window, "
                                  "compute this on the full image.")
-            #TODO: check if we should use gray_ubyte instead
+            # TODO: check if we should use gray_ubyte instead
             self._images['canny_edge'] = get_canny_edge_image(
                 self.grayscale, radius=30, sigma=0.5)
 
@@ -87,9 +87,11 @@ class Image:
 
     @property
     def shape(self):
+        """Two dimensional shape of the image."""
         return self._images[next(iter(self._images))].shape[:2]
 
     def shallow_copy_range(self, x_range, y_range, pad=True):
+        """Create a shallow copy."""
         # We need a normalized image, because normalization breaks
         # if you do it on a smaller range
         if 'raw' in self._images or 'normalized' in self._images:
@@ -130,7 +132,7 @@ class Image:
 
     def pad(self, x_pad_before: int, x_pad_after: int, y_pad_before: int,
             y_pad_after: int):
-
+        """Pad the image."""
         for img_type in self._images:
             pad_width = (
                 (x_pad_before, x_pad_after),
@@ -145,11 +147,34 @@ class Image:
                 'constant',
                 constant_values=0)
 
-    def collapse(self, itypes):
-        """Precompute images and remove no longer needed image types."""
+    @staticmethod
+    def minimal_image_types(itypes):
+        """Get the minimal set of images from which itypes can be derived."""
+        required_images = set()
+
+        # Images are derived in the following order, select only one
+        order = ('raw', 'normalized', 'rgb', 'grayscale', 'gray_ubyte')
+        for itype in order:
+            if itype in itypes:
+                required_images.add(itype)
+                break
+
+        # Add additional images types that must be computed on the entire image
+        for itype in ('canny_edge', 'texton_descriptors'):
+            if itype in itypes:
+                required_images.add(itype)
+
+        return required_images
+
+    def precompute(self, itypes):
+        """Precompute images."""
         for itype in itypes:
             getattr(self, itype)
-        self._images = {k: v for k, v in self._images.items() if k in itypes}
+
+    def collapse(self, itypes):
+        """Precompute images and remove no longer needed image types."""
+        required_images = self.minimal_image_types(itypes)
+        self._images = {i: getattr(self, i) for i in required_images}
 
 
 class Window(Image):
@@ -194,7 +219,7 @@ class SatelliteImage(Image):
         """Load the specified path and bands from file into a numpy array."""
         dataset = gdal.Open(path, gdal.GA_ReadOnly)
         band = dataset.GetRasterBand(1)
-        
+
         array = dataset.ReadAsArray()
         array[array == band.GetNoDataValue()] = 0
 
