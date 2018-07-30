@@ -49,3 +49,7 @@ PLEIADES = {
     'red': 3,
     'nir-1': 4,
 }
+
+MASK_BANDS = {
+    'binary': 0
+}
