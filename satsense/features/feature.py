@@ -1,12 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
-from six import iteritems
-
 
 class Feature(object):
-    """
-    Feature superclass
-    """
+    """Feature superclass."""
+
     __metaclass__ = ABCMeta
 
     def __init__(self):
@@ -69,7 +66,7 @@ class FeatureSet(object):
 
     def _recalculate_feature_indices(self):
         self._cur_index = 0
-        for name, feature in iteritems(self._features):
+        for feature in self._features.values():
             feature.indices = slice(self._cur_index,
                                     self._cur_index + feature.feature_size, 1)
             self._cur_index += feature.feature_size

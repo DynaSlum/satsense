@@ -1,9 +1,14 @@
-import numpy as np
+"""Test feature extraction related functions."""
+import os
+import tempfile
 
+import numpy as np
 import pytest
+
 # Supported image formats include RGB, Quickbird and Worldview
 from satsense import QUICKBIRD, SatelliteImage
-from satsense.extract import extract_features, extract_features_parallel
+from satsense.extract import (extract_features, extract_features_parallel,
+                              load_features, save_features)
 from satsense.features import FeatureSet, HistogramOfGradients, Pantex
 from satsense.generators import CellGenerator
 
@@ -18,20 +23,27 @@ def image():
     return SatelliteImage(data, bands)
 
 
-def load_image():
-    # URI to the image
-    imagefile = '/home/bweel/Documents/projects/dynaslum/data/satelite/056239125010_01/056239125010_01_P001_MUL/08NOV02054348-M2AS_R1C1-056239125010_01_P001.TIF'
-    # Set the correct format here, it is used throughout the notebook
-    bands = QUICKBIRD
+def test_save_load_roundtrip():
+    """Test that saving and loading does not modify a feature array."""
+    features = FeatureSet()
+    features.add(HistogramOfGradients())
+    features.add(Pantex())
 
-    # Loading the file
-    image = SatelliteImage.load_from_file(imagefile, bands)
+    shape = (2, 3, features.index_size)
+    feature_vector_in = np.array(range(np.prod(shape)), dtype=float)
+    feature_vector_in.shape = shape
 
-    return image
+    with tempfile.TemporaryDirectory() as out_dir:
+        prefix = out_dir + os.sep
+        save_features(features, feature_vector_in, filename_prefix=prefix)
+        feature_vector_out = load_features(features, filename_prefix=prefix)
+
+    np.testing.assert_array_almost_equal_nulp(feature_vector_in,
+                                              feature_vector_out)
 
 
 def test_extract_features(image):
-
+    """Test that features can be computed."""
     generator = CellGenerator(image, (10, 10), length=(10, 5))
 
     features = FeatureSet()
@@ -44,7 +56,7 @@ def test_extract_features(image):
 
 @pytest.mark.parametrize("n_jobs", [1, 2, 3, 4, 5, 10])
 def test_extract_features_parallel(image, n_jobs):
-    """Test that parallel extraction produces identical results."""
+    """Test that parallel feature computation produces identical results."""
     cell_size = (10, 10)
     windows = [(25, 25), (50, 50)]
 

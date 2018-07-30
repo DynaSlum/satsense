@@ -65,3 +65,19 @@ def save_features(features, feature_vector, filename_prefix=''):
             variable = dataset.createVariable(
                 name, 'f4', dimensions=('y', 'x', 'feature'))
             variable[:] = data
+
+
+def load_features(features, filename_prefix):
+    """Restore saved features."""
+    feature_vector = None
+    for name, feature in features.items.items():
+        filename = filename_prefix + name + '.nc'
+        logger.debug("Loading feature %s from file %s", name, filename)
+        with Dataset(filename, 'r') as dataset:
+            if feature_vector is None:
+                shape = dataset.variables[name].shape[:2] + (
+                    features.index_size, )
+                feature_vector = np.empty(shape, dtype='f4')
+            feature_vector[:, :, feature.indices] = dataset.variables[name][:]
+
+    return feature_vector
