@@ -4,6 +4,7 @@ import logging
 import warnings
 
 import numpy as np
+import rasterio
 from osgeo import gdal
 from scipy import ndimage
 from skimage import color, img_as_ubyte
@@ -217,21 +218,16 @@ class SatelliteImage(Image):
     @staticmethod
     def load_from_file(path, bands):
         """Load the specified path and bands from file into a numpy array."""
-        dataset = gdal.Open(path, gdal.GA_ReadOnly)
-        band = dataset.GetRasterBand(1)
+        with rasterio.open(path) as dataset:
+            image = dataset.read().astype('float32')
 
-        array = dataset.ReadAsArray()
-        array[array == band.GetNoDataValue()] = 0
-
-        if len(array.shape) == 3:
+        if len(image.shape) == 3:
             # The bands column is in the first position, but we want it last
-            array = np.rollaxis(array, 0, 3)
-        elif len(array.shape) == 2:
+            image = np.rollaxis(image, 0, 3)
+        elif len(image.shape) == 2:
             # This image seems to have one band, so we add an axis for ease
             # of use in the rest of the library
-            array = array[:, :, np.newaxis]
-
-        image = array.astype('float32')
+            image = image[:, :, np.newaxis]
 
         return SatelliteImage(image, bands, path)
 
