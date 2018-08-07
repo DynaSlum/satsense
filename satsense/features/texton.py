@@ -13,14 +13,16 @@ def texton_cluster(sat_images: Iterator[SatelliteImage],
                    sample_size=100000) -> MiniBatchKMeans:
     """Compute texton clusters."""
     descriptors = np.vstack(s.texton_descriptors for s in sat_images)
-
-    # Sample {sample_size} descriptors from all descriptors
-    # (Takes random rows) and cluster these
     shape = descriptors.shape
     descriptors = descriptors.reshape(shape[0] * shape[1], shape[2])
-    descriptors = descriptors[np.random.choice(
-        descriptors.shape[0], sample_size, replace=False), :]
 
+    if descriptors.shape[0] > sample_size:
+        # Limit the number of descriptors to sample_size
+        # by randomly selecting some rows
+        descriptors = descriptors[np.random.choice(
+            descriptors.shape[0], sample_size, replace=False), :]
+
+    # Cluster the descriptors
     mbkmeans = MiniBatchKMeans(
         n_clusters=n_clusters, random_state=42).fit(descriptors)
 

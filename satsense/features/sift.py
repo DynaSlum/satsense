@@ -27,11 +27,13 @@ def sift_cluster(sat_images: Iterator[SatelliteImage],
         else:
             descriptors = np.append(descriptors, new_descriptors, axis=0)
 
-    # Sample {sample_size} descriptors from all descriptors
-    # (Takes random rows) and cluster these
-    descriptors = descriptors[np.random.choice(
-        descriptors.shape[0], sample_size, replace=False), :]
+    if descriptors.shape[0] > sample_size:
+        # Limit the number of descriptors to sample_size
+        # by randomly selecting some rows
+        descriptors = descriptors[np.random.choice(
+            descriptors.shape[0], sample_size, replace=False), :]
 
+    # Cluster the descriptors
     mbkmeans = MiniBatchKMeans(
         n_clusters=n_clusters, random_state=42).fit(descriptors)
 
