@@ -2,7 +2,7 @@
 import logging
 import math
 
-from ..image import Image, SatelliteImage, Window
+from ..image import Image, Window
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ class Cell(Window):
 
 class CellGenerator:
     def __init__(self,
-                 image: SatelliteImage,
+                 image: Image,
                  size: tuple,
                  offset=(None, None),
                  length=(None, None)):
