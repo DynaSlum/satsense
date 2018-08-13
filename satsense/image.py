@@ -207,19 +207,17 @@ class Window(Image):
 
 
 class SatelliteImage(Image):
-    def __init__(self, array, bands, name=''):
+    def __init__(self, array, bands, name='', transform=None):
         super(SatelliteImage, self).__init__(array, bands)
-        self._name = name
-
-    @property
-    def name(self):
-        return self._name
+        self.name = name
+        self.transform = transform
 
     @staticmethod
     def load_from_file(path, bands):
         """Load the specified path and bands from file into a numpy array."""
         with rasterio.open(path) as dataset:
             image = dataset.read().astype('float32')
+            transform = dataset.transform
 
         if len(image.shape) == 3:
             # The bands column is in the first position, but we want it last
@@ -229,7 +227,7 @@ class SatelliteImage(Image):
             # of use in the rest of the library
             image = image[:, :, np.newaxis]
 
-        return SatelliteImage(image, bands, path)
+        return SatelliteImage(image, bands, name=path, transform=transform)
 
 
 def get_normalized_image(image,
