@@ -49,4 +49,4 @@ def get_ndxi_mask(generator, feature=NirNDVI):
     values = extract_features_parallel(features, generator)
     values.shape = (values.shape[0], values.shape[1])
 
-    return values > threshold_otsu(values)
+    return values < threshold_otsu(values)
