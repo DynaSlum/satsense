@@ -216,7 +216,7 @@ class SatelliteImage(Image):
     def load_from_file(path, bands):
         """Load the specified path and bands from file into a numpy array."""
         with rasterio.open(path) as dataset:
-            image = dataset.read().astype('float32')
+            image = dataset.read(masked=True)
             transform = dataset.transform
 
         if len(image.shape) == 3:
@@ -239,20 +239,24 @@ def get_normalized_image(image,
     logger.debug("Computing normalized image")
     result = image.copy()
     for band in bands.values():
+        if np.ma.is_masked(image):
+            # select only non-masked values for computing scale
+            selection = image[:, :, band].compressed()
+        else:
+            selection = image[:, :, band]
         if technique == 'cumulative':
-            percents = np.percentile(image[:, :, band], percentiles)
+            percents = np.nanpercentile(selection, percentiles)
             new_min, new_max = percents
         elif technique == 'meanstd':
-            mean = result[:, :, band].mean()
-            std = result[:, :, band].std()
-
+            mean = selection.nanmean()
+            std = selection.nanstd()
             new_min = mean - (numstds * std)
             new_max = mean + (numstds * std)
         else:
-            new_min = result[:, :, band].min()
-            new_max = result[:, :, band].max()
+            new_min = selection.nanmin()
+            new_max = selection.nanmax()
 
-        result[:, :, band] = remap(result[:, :, band], new_min, new_max, 0, 1)
+        result[:, :, band] = remap(image[:, :, band], new_min, new_max, 0, 1)
 
         np.clip(result[:, :, band], a_min=0, a_max=1, out=result[:, :, band])
     logger.debug("Done computing normalized image")
