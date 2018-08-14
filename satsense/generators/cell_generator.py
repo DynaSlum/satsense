@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class Cell(Window):
     def __init__(self, image: Image, x, y, x_range, y_range, orig=None):
-        super(Cell, self).__init__(image, x, y, x_range, y_range, orig=orig)
+        super().__init__(image, x, y, x_range, y_range, orig=orig)
 
     def super_cell(self, size, padding=True):
         """

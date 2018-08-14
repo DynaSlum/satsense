@@ -21,7 +21,11 @@ logger = logging.getLogger(__name__)
 
 
 class Image:
-    def __init__(self, image, bands, itype='raw'):
+    def __init__(self, image, bands=None, itype='raw'):
+        if bands is None:
+            bands = self._guess_bands(image.shape)
+        if len(bands) == 1 and image is not None and len(image.shape) == 2:
+            image = np.reshape(image, image.shape + (1, ))
         self._bands = bands
         self._images = {itype: image}
         self._normalization_parameters = {
@@ -29,6 +33,23 @@ class Image:
             'percentiles': [2.0, 98.0],
             'numstds': 2,
         }
+
+    @staticmethod
+    def _guess_bands(shape):
+        """Try to guess the bands from the array shape."""
+        bands = None
+        if len(shape) == 2:
+            bands = MONOCHROME
+        elif len(shape) == 3:
+            if shape[2] == 1:
+                bands = MONOCHROME
+            elif shape[2] == 3:
+                bands = RGB
+
+        if bands is None:
+            raise ValueError("Unable to guess bands for array of shape {}"
+                             .format(shape))
+        return bands
 
     @property
     def raw(self):
@@ -191,7 +212,7 @@ class Window(Image):
                  x_range: slice,
                  y_range: slice,
                  orig: Image = None):
-        super(Window, self).__init__(None, image.bands)
+        super().__init__(image=None, bands=image.bands)
 
         self._images = image._images
 
@@ -208,12 +229,12 @@ class Window(Image):
 
 class SatelliteImage(Image):
     def __init__(self, array, bands, name='', transform=None):
-        super(SatelliteImage, self).__init__(array, bands)
+        super().__init__(array, bands)
         self.name = name
         self.transform = transform
 
-    @staticmethod
-    def load_from_file(path, bands):
+    @classmethod
+    def load_from_file(cls, path, bands):
         """Load the specified path and bands from file into a numpy array."""
         with rasterio.open(path) as dataset:
             image = dataset.read(masked=True)
@@ -227,7 +248,7 @@ class SatelliteImage(Image):
             # of use in the rest of the library
             image = image[:, :, np.newaxis]
 
-        return SatelliteImage(image, bands, name=path, transform=transform)
+        return cls(image, bands, name=path, transform=transform)
 
 
 def get_normalized_image(image,
