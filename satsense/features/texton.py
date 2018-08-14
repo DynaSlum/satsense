@@ -8,13 +8,15 @@ from .. import SatelliteImage
 from .feature import Feature
 
 
-def texton_cluster(sat_images: Iterator[SatelliteImage],
+def texton_cluster(images: Iterator[SatelliteImage],
                    n_clusters=32,
                    sample_size=100000) -> MiniBatchKMeans:
     """Compute texton clusters."""
-    descriptors = np.vstack(s.texton_descriptors for s in sat_images)
-    shape = descriptors.shape
-    descriptors = descriptors.reshape(shape[0] * shape[1], shape[2])
+    descriptors = []
+    for image in images:
+        data = image.texton_descriptors
+        descriptors.append(data.reshape(-1, data.shape[2]))
+    descriptors = np.vstack(descriptors)
 
     if descriptors.shape[0] > sample_size:
         # Limit the number of descriptors to sample_size
