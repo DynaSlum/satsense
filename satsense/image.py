@@ -1,12 +1,14 @@
 """Methods for loading images."""
 
 import logging
+import math
 import warnings
 
 import numpy as np
 import rasterio
 from osgeo import gdal
 from scipy import ndimage
+
 from skimage import color, img_as_ubyte
 from skimage.feature import canny
 from skimage.filters import gabor_kernel, gaussian
@@ -228,16 +230,18 @@ class Window(Image):
 
 
 class SatelliteImage(Image):
-    def __init__(self, array, bands, name='', transform=None):
+    def __init__(self, array, bands, name='', crs=None, transform=None):
         super().__init__(array, bands)
         self.name = name
         self.transform = transform
+        self.crs = crs
 
     @classmethod
     def load_from_file(cls, path, bands):
         """Load the specified path and bands from file into a numpy array."""
         with rasterio.open(path) as dataset:
             image = dataset.read(masked=True)
+            crs = dataset.crs
             transform = dataset.transform
 
         if len(image.shape) == 3:
@@ -248,7 +252,17 @@ class SatelliteImage(Image):
             # of use in the rest of the library
             image = image[:, :, np.newaxis]
 
-        return cls(image, bands, name=path, transform=transform)
+        return cls(image, bands, name=path, crs=crs, transform=transform)
+
+    def scaled_transform(self, cell_size):
+        """Compute a transform for a scaled down version of the image."""
+        x_length = math.ceil(self.shape[0] / cell_size[0])
+        y_length = math.ceil(self.shape[1] / cell_size[1])
+        (west, south, east, north) = rasterio.transform.array_bounds(
+            self.shape[0], self.shape[1], self.transform)
+        transform = rasterio.transform.from_bounds(west, south, east, north,
+                                                   x_length, y_length)
+        return transform
 
 
 def get_normalized_image(image,
