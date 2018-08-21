@@ -5,12 +5,9 @@ channels:
   - ioos
 
 dependencies:
-  - descartes=1.0.2
+  - descartes
   - fiona
   - gdal
-  - jupyter
-  - matplotlib
-  - nb_conda
   - netcdf4
   - numba
   - numpy
@@ -20,3 +17,7 @@ dependencies:
   - scikit-learn
   - scipy
   - shapely
+  # Notebooks
+  - jupyter
+  - matplotlib
+  - nb_conda
