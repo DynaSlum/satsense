@@ -1,25 +1,21 @@
-import sys
-import cv2
-import numpy as np
+import logging
 import math
 import pickle
-import logging
-
+import sys
 from enum import Enum
+
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+from scipy import ndimage as nd
+from scipy import signal as sg
 from scipy.ndimage import zoom
 from skimage.feature import peak_local_max
+
 from pysal.esda.getisord import G_Local
 from pysal.esda.moran import Moran_Local
 from pysal.weights.Distance import DistanceBand
-
-from scipy import signal as sg
-from scipy import ndimage as nd
-from matplotlib import pyplot as plt
-
-
 from satsense.image import SatelliteImage
-from satsense.bands import WORLDVIEW3
-
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -49,7 +45,10 @@ class Kernel:
                         listed in the ktype enum; integer
 
     """
-    def __init__(self, road_width=30, road_length=70,
+
+    def __init__(self,
+                 road_width=30,
+                 road_length=70,
                  kernel_type=ktype.GAUSSIAN):
         self._road_width = road_width
         self._road_length = road_length
@@ -68,7 +67,6 @@ class Kernel:
             self._kernel = self.__create()
         return self._kernel
 
-    
     def __create(self):
         """
         This function is the parent function in the creation of convolution
@@ -86,7 +84,6 @@ class Kernel:
             return self.__create_gaussian_kernel()
         raise ValueError("Invalid kernel specified")
 
-    
     def __create_original_kernel(self):
         """
         This function creates a type of kernel that was used as a proof of
@@ -110,7 +107,6 @@ class Kernel:
         r2 = np.concatenate((hr, cr, hr), axis=1)
         return np.concatenate((r1, r2, r1), axis=0)
 
-    
     def __create_increase_kernel(self):
         """
         Creates a kernel where the ends of the intersection count the most.
@@ -119,8 +115,8 @@ class Kernel:
             A kernel containing the shape of a cross; nxn numpy matrix
 
         """
-        hr1 = np.tile(np.arange(self._road_length, 0, -1),
-                      (self._road_width, 1))
+        hr1 = np.tile(
+            np.arange(self._road_length, 0, -1), (self._road_width, 1))
         hr2 = np.flip(hr1, axis=1)
         vr1 = np.transpose(hr1)
         vr2 = np.flip(vr1, axis=0)
@@ -135,7 +131,6 @@ class Kernel:
         kernel[kernel > max_val] = max_val
         return kernel
 
-    
     def __create_negative_kernel(self):
         """
         Creates a kernel where the area outside the cross is negative.
@@ -154,8 +149,10 @@ class Kernel:
         min_val = -1
         # Create a staircase down from the cross to negative numbers. min_val
         # is lower bound of the negative numbers
-        rs1 = np.stack([self.__calculate_row_negative_kernel(i, min_val)
-                        for i in range(1, self._road_length + 1)])
+        rs1 = np.stack([
+            self.__calculate_row_negative_kernel(i, min_val)
+            for i in range(1, self._road_length + 1)
+        ])
         rs2 = np.flip(rs1, axis=1)
         rs3 = np.flip(rs1, axis=0)
         rs4 = np.flip(rs2, axis=0)
@@ -168,15 +165,13 @@ class Kernel:
         kernel[kernel < min_val] = min_val
         return kernel
 
-    
     def __calculate_row_negative_kernel(self, i, min_val):
         """
         A helper function for the negative kernel.
         """
-        return np.concatenate((np.arange(-1,  i * -1, -1),
+        return np.concatenate((np.arange(-1, i * -1, -1),
                                np.full(self._road_length - i + 1, i * -1)))
 
-    
     def __create_gaussian_kernel(self):
         """
         Creates a kernel where the cross of the kernel is built using two
@@ -197,7 +192,6 @@ class Kernel:
         kernel = np.maximum(r1, r2)
         return kernel
 
-    
     def __rotate_kernel(self, kernel, degrees):
         return nd.rotate(kernel, degrees)
 
@@ -214,6 +208,7 @@ class RoadIntersections:
                             intersection detection; integer
 
     """
+
     def __init__(self, image, kernel, peak_min_distance=150):
         self._peak_min_distance = peak_min_distance
         self._image = image
@@ -243,8 +238,11 @@ class RoadIntersections:
             self._intersections = self.__calculate()
 
         plt.imshow(self._image.rgb)
-        plt.scatter(self._intersections[:, 1], self._intersections[:, 0],
-                    c='r', alpha=0.5)
+        plt.scatter(
+            self._intersections[:, 1],
+            self._intersections[:, 0],
+            c='r',
+            alpha=0.5)
         plt.axis('off')
         plt.show()
 
@@ -259,8 +257,8 @@ class RoadIntersections:
         # gray_image = cv2.threshold(gray_image, 0, 1, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
         kernel = self._kernel.get()
         convolution = sg.convolve(gray_image, kernel, "valid")
-        peaks = peak_local_max(convolution,
-                               min_distance=self._peak_min_distance)
+        peaks = peak_local_max(
+            convolution, min_distance=self._peak_min_distance)
 
         return self.__relocate_peaks(peaks)
 
@@ -280,6 +278,7 @@ class RoadIntersectionDensity:
     """
     This class represents the road intersection feature
     """
+
     def __init__(self, image, block_size=20, scale=150):
         self._image = image
         self._block_size = block_size
@@ -311,7 +310,9 @@ class RoadIntersectionDensity:
 
     def visualize(self):
         if self._feature is None:
-            raise Exception("Feature not yet calculated, please run create() or load a feature using load()")
+            raise Exception(
+                "Feature not yet calculated, please run create() or load a feature using load()"
+            )
 
         plt.imshow(self._feature)
         plt.show()
@@ -348,15 +349,14 @@ class RoadIntersectionDensity:
         width = self._image.shape[1]
         scaled_block_size = self._block_size * 4
 
-        density_map = np.zeros((int(math.floor(float(height) /
-                                    scaled_block_size)),
-                                int(math.floor(float(width) /
-                                    scaled_block_size))))
-        
+        density_map = np.zeros(
+            (int(math.floor(float(height) / scaled_block_size)),
+             int(math.floor(float(width) / scaled_block_size))))
+
         for point in points:
             h = int(point[0] / scaled_block_size)
             w = int(point[1] / scaled_block_size)
-            
+
             if h < density_map.shape[0] and w < density_map.shape[1]:
                 density_map[h, w] += 1
         return density_map
@@ -368,7 +368,7 @@ class RoadIntersectionDensity:
         """
         grid = np.indices((density_map.shape[0], density_map.shape[1]))
         grid = np.stack((grid[0], grid[1]), axis=-1)
-        grid = np.reshape(grid, (grid.shape[0]*grid.shape[1], 2))
+        grid = np.reshape(grid, (grid.shape[0] * grid.shape[1], 2))
 
         w = DistanceBand(grid, threshold=radius)
         y = np.ravel(density_map)
@@ -394,10 +394,11 @@ class RoadIntersectionDensity:
 
         """
         feature_shape = feature.shape
-        zoom_level = [float(self._image.shape[0]) /
-                      (self._block_size * feature_shape[0]),
-                      float(self._image.shape[1]) /
-                      (self._block_size * feature_shape[1])]
+        zoom_level = [
+            float(self._image.shape[0]) /
+            (self._block_size * feature_shape[0]),
+            float(self._image.shape[1]) / (self._block_size * feature_shape[1])
+        ]
 
         # For the scipy UserWarning:
         # To compensate for the round() used in the zoom() when we want to use
@@ -418,13 +419,11 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         raise Exception("Please supply an image")
 
-    image = SatelliteImage.load_from_file(sys.argv[1], WORLDVIEW3)
+    image = SatelliteImage.load_from_file(sys.argv[1], 'worldview3')
 
     kernel = Kernel(road_width=15, road_length=50, kernel_type=ktype.GAUSSIAN)
-    intersections = RoadIntersections(image, kernel,
-                                      peak_min_distance=100)
-    rid = RoadIntersectionDensity(image, scale=80,
-                                  block_size=30)
+    intersections = RoadIntersections(image, kernel, peak_min_distance=100)
+    rid = RoadIntersectionDensity(image, scale=80, block_size=30)
     rid.create(intersections)
     intersections.visualize()
     rid.visualize()

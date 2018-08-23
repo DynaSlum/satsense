@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 # Supported image formats include RGB, Quickbird and Worldview
-from satsense import QUICKBIRD, SatelliteImage
+from satsense import BANDS, SatelliteImage
 from satsense.extract import (extract_features, extract_features_parallel,
                               load_features, save_features)
 from satsense.features import FeatureSet, HistogramOfGradients, Pantex
@@ -16,8 +16,8 @@ from satsense.generators import CellGenerator
 @pytest.fixture
 def image():
     """Create a test SatelliteImage instance."""
-    bands = QUICKBIRD
-    shape = (95, 50, len(bands))
+    bands = 'quickbird'
+    shape = (95, 50, len(BANDS[bands]))
     data = np.array(range(np.prod(shape)), dtype=np.float32)
     data.shape = shape
     return SatelliteImage(data, bands)

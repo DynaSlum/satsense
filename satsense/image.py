@@ -8,14 +8,13 @@ import numpy as np
 import rasterio
 from osgeo import gdal
 from scipy import ndimage
-
 from skimage import color, img_as_ubyte
 from skimage.feature import canny
 from skimage.filters import gabor_kernel, gaussian
 from skimage.filters.rank import equalize
 from skimage.morphology import disk
 
-from .bands import MONOCHROME, RGB
+from .bands import BANDS
 
 gdal.AllRegister()
 
@@ -26,6 +25,8 @@ class Image:
     def __init__(self, image, bands=None, itype='raw'):
         if bands is None:
             bands = self._guess_bands(image.shape)
+        if not isinstance(bands, dict):
+            bands = BANDS[bands]
         if len(bands) == 1 and image is not None and len(image.shape) == 2:
             image = np.reshape(image, image.shape + (1, ))
         self._bands = bands
@@ -41,12 +42,12 @@ class Image:
         """Try to guess the bands from the array shape."""
         bands = None
         if len(shape) == 2:
-            bands = MONOCHROME
+            bands = 'monochrome'
         elif len(shape) == 3:
             if shape[2] == 1:
-                bands = MONOCHROME
+                bands = 'monochrome'
             elif shape[2] == 3:
-                bands = RGB
+                bands = 'rgb'
 
         if bands is None:
             raise ValueError("Unable to guess bands for array of shape {}"
@@ -77,7 +78,8 @@ class Image:
     @property
     def grayscale(self):
         if 'grayscale' not in self._images:
-            self._images['grayscale'] = get_grayscale_image(self.rgb, RGB)
+            self._images['grayscale'] = get_grayscale_image(
+                self.rgb, BANDS['rgb'])
         return self._images['grayscale']
 
     @property
@@ -230,14 +232,14 @@ class Window(Image):
 
 
 class SatelliteImage(Image):
-    def __init__(self, array, bands, name='', crs=None, transform=None):
-        super().__init__(array, bands)
+    def __init__(self, array, satellite, name='', crs=None, transform=None):
+        super().__init__(array, bands=satellite)
         self.name = name
         self.transform = transform
         self.crs = crs
 
     @classmethod
-    def load_from_file(cls, path, bands):
+    def load_from_file(cls, path, satellite):
         """Load the specified path and bands from file into a numpy array."""
         with rasterio.open(path) as dataset:
             image = dataset.read(masked=True)
@@ -252,7 +254,7 @@ class SatelliteImage(Image):
             # of use in the rest of the library
             image = image[:, :, np.newaxis]
 
-        return cls(image, bands, name=path, crs=crs, transform=transform)
+        return cls(image, satellite, name=path, crs=crs, transform=transform)
 
     def scaled_transform(self, cell_size):
         """Compute a transform for a scaled down version of the image."""
@@ -301,7 +303,7 @@ def get_normalized_image(image,
 def get_rgb_image(image, bands):
     """Convert the image to rgb format."""
     #     logger.debug("Computing rgb image")
-    if bands is not MONOCHROME:
+    if bands != BANDS['monochrome']:
         red = image[:, :, bands['red']]
         green = image[:, :, bands['green']]
         blue = image[:, :, bands['blue']]
@@ -355,9 +357,9 @@ def remap(image, o_min, o_max, n_min, n_max):
     return result
 
 
-def get_grayscale_image(image, bands=RGB):
+def get_grayscale_image(image, bands):
     #     logger.debug("Computing grayscale image")
-    if bands is not RGB:
+    if bands != BANDS['rgb']:
         rgb_image = get_rgb_image(image, bands)
     else:
         rgb_image = image

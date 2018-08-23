@@ -1,16 +1,11 @@
 """Satsense package."""
-from .bands import MONOCHROME, PLEIADES, QUICKBIRD, RGB, WORLDVIEW2, WORLDVIEW3
+from .bands import BANDS
 from .extract import (extract_features, extract_features_parallel,
                       load_features, save_features)
 from .image import SatelliteImage
 
 __all__ = [
-    'RGB',
-    'PLEIADES',
-    'WORLDVIEW2',
-    'WORLDVIEW3',
-    'QUICKBIRD',
-    'MONOCHROME',
+    'BANDS',
     'extract_features',
     'extract_features_parallel',
     'load_features',

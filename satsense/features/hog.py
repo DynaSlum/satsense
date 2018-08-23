@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import scipy.stats
 
-from ..bands import RGB
 from .feature import Feature
 
 
@@ -165,10 +164,7 @@ def orientation_histogram(angles, magnitudes, number_of_orientations):
     return histogram, bin_centers
 
 
-def hog_features(window,
-                 bands=RGB,
-                 bins=50,
-                 kernel=scipy.stats.norm().pdf,
+def hog_features(window, bins=50, kernel=scipy.stats.norm().pdf,
                  bandwidth=0.7):
     """
     Calculates the hog features on the window.
@@ -238,7 +234,6 @@ class HistogramOfGradients(Feature):
             result[i * self.feature_len:(i + 1) *
                    self.feature_len] = hog_features(
                        win.grayscale,
-                       bands=win.bands,
                        bins=50,
                        kernel=scipy.stats.norm().pdf,
                        bandwidth=0.7)
