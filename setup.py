@@ -19,7 +19,7 @@ setup(
         'netCDF4',
         'numba',
         'numpy',
-        'opencv-contrib-python-headless',
+        'opencv-contrib-python-headless<3.4.3',
         'rasterio',
         'scikit-image',
         'scikit-learn',
