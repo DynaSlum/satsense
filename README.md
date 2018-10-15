@@ -3,9 +3,7 @@
 [![Build Status](https://travis-ci.com/DynaSlum/satsense.svg?branch=master)](https://travis-ci.com/DynaSlum/satsense)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2a8eb394c4e64228b7f8501c2fadbc51)](https://app.codacy.com/app/DynaSlum/satsense?utm_source=github.com&utm_medium=referral&utm_content=DynaSlum/satsense&utm_campaign=badger)
 
-Satsense is a library for remote sensing using satellite imagery.
-
-It is based on gdal and numpy.
+Satsense is a library for land use classification using satellite imagery.
 
 * satsense - library for analysing satellite images, performance evaluation, etc.
 * notebooks - IPython notebooks for illustrating and testing the usage of Satsense
