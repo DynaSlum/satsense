@@ -1,6 +1,7 @@
 # YAML 1.2
 ---
-abstract: "Satsense is a library for land use classification using satellite imagery."
+abstract: |
+  Satsense is a library for land use classification using satellite imagery.
 authors:
   -
     affiliation: "Netherlands eScience Center"
@@ -19,4 +20,6 @@ license: "Apache-2.0"
 message: "If you use this software, please cite it using these metadata."
 repository-code: "https://github.com/DynaSlum/satsense"
 title: Satsense
+date-released: 2018-10-15
+version: "0.8"
 ...
