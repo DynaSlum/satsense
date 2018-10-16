@@ -25,6 +25,10 @@ To install satsense from the git repo in development mode use:
 ```bash
 pip install -e .
 ```
+
+## Citing Satsense
+If you use Satsense for scientific research, please cite it. You can download citation files from [research-software.nl](https://www.research-software.nl/software/satsense).
+
 ## References
 
 The collection of algorithms made available trough this package is inspired by
