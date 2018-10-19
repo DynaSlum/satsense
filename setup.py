@@ -1,14 +1,19 @@
 """Satsense package."""
 from setuptools import find_packages, setup
 
-from satsense._version import __version__
+with open('README.md') as file:
+    README = file.read()
 
-with open('README.md') as readme:
-    README = readme.read()
+with open('satsense/_version.py') as file:
+    for line in file:
+        line = line.strip()
+        if line.startswith('__version__'):
+            VERSION = line.split('=')[1].strip('"').strip("'")
+            break
 
 setup(
     name='satsense',
-    version=__version__,
+    version=VERSION,
     url='https://github.com/DynaSlum/SateliteImaging',
     license='Apache Software License',
     author='Berend Weel, Elena Ranguelova',
