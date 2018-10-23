@@ -1,1 +1,1 @@
-from .cell_generator import CellGenerator
+from .cell_generator import FullGenerator, BalancedGenerator

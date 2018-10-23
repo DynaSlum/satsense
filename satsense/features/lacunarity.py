@@ -1,8 +1,33 @@
 """Lacunarity feature implementation."""
+import logging
+
 import numpy as np
 from numba import jit, prange
+from skimage.feature import canny
+from skimage.filters.rank import equalize
+from skimage.morphology import disk
 
 from . import Feature
+from ..image import Image
+
+logger = logging.getLogger(__name__)
+
+
+def get_canny_edge_image(image: Image, radius=30, sigma=0.5):
+    """Compute Canny edge image."""
+    logger.debug("Computing Canny edge image")
+    # local histogram equalization
+    grayscale = equalize(image['grayscale'], selem=disk(radius))
+    try:
+        result = canny(grayscale, sigma=sigma)
+    except TypeError:
+        logger.warning("Canny type error")
+        result = np.zeros(image.shape)
+    logger.debug("Done computing Canny edge image")
+    return result
+
+
+Image.register('canny_edge', get_canny_edge_image)
 
 
 @jit("float64(boolean[:, :], int64)", nopython=True)
@@ -30,8 +55,18 @@ def lacunarity(edged_image, box_size):
     return np.var(accumulator) / mean_sqrd + 1
 
 
+@jit
+def lacunarities(canny_edge_image, box_sizes):
+    result = np.zeros(len(box_sizes))
+    for i, box_size in enumerate(box_sizes):
+        result[i] = lacunarity(canny_edge_image, box_size)
+    return result
+
+
 class Lacunarity(Feature):
     """Lacunarity feature."""
+    base_image = 'canny_edge'
+    compute = staticmethod(lacunarities)
 
     def __init__(self, windows=((25, 25), ), box_sizes=(10, 20, 30)):
         # Check input
@@ -41,26 +76,5 @@ class Lacunarity(Feature):
                     raise ValueError(
                         "box_size {} must be smaller than window {}".format(
                             box_size, window))
-
-        super(Lacunarity, self)
-        self.box_sizes = box_sizes
-        self.windows = windows
-        self.feature_size = len(self.windows) * len(box_sizes)
-        self.base_image = 'canny_edge'
-
-    @jit
-    def __call__(self, cell):
-        result = np.zeros(self.feature_size)
-        len_box_sizes = len(self.box_sizes)
-        for i, window in enumerate(self.windows):
-            win = cell.super_cell(window, padding=True)
-            # For every box size we have a feature for this window
-            for j in range(len_box_sizes):
-                box_size = self.box_sizes[j]
-                result[i + j] = lacunarity(win.canny_edge, box_size)
-
-        return result
-
-    def __str__(self):
-        return "Lacunarity-{}-{}".format(
-            str(self.windows), str(self.box_sizes))
+        super().__init__(windows, box_sizes=box_sizes)
+        self.size = len(box_sizes)

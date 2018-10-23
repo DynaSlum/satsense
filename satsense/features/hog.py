@@ -21,7 +21,7 @@ def heaved_central_shift_moment(histogram, order):
     histogram : numpy.ndarray
         The histogram to calculate the moments over
     order : int
-        The order of the moment to calculate, a number between [0, inf) 
+        The order of the moment to calculate, a number between [0, inf)
     """
     if len(histogram.shape) > 1:
         raise (
@@ -155,9 +155,8 @@ def orientation_histogram(angles, magnitudes, number_of_orientations):
         total = 0
         for x in range(x_size):
             for y in range(y_size):
-                if angles[x,
-                          y] >= orientation_start and angles[x,
-                                                             y] < orientation_end:
+                if angles[x, y] >= orientation_start and angles[
+                        x, y] < orientation_end:
                     total += magnitudes[x, y]
 
         histogram[i] = total
@@ -219,22 +218,6 @@ def hog_features(window, bins=50, kernel=scipy.stats.norm().pdf,
 
 
 class HistogramOfGradients(Feature):
-    def __init__(self, windows=((25, 25), )):
-        super(HistogramOfGradients, self)
-        self.windows = windows
-        self.feature_len = 5
-        self.base_image = 'grayscale'
-        self.feature_size = self.feature_len * len(self.windows)
-
-    def __call__(self, cell):
-        result = np.zeros(self.feature_size)
-        for i, window in enumerate(self.windows):
-            win = cell.super_cell(window, padding=True)
-
-            result[i * self.feature_len:(i + 1) *
-                   self.feature_len] = hog_features(
-                       win.grayscale,
-                       bins=50,
-                       kernel=scipy.stats.norm().pdf,
-                       bandwidth=0.7)
-        return result
+    base_image = 'grayscale'
+    size = 5
+    compute = staticmethod(hog_features)
