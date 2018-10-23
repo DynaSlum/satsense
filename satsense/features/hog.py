@@ -24,12 +24,11 @@ def heaved_central_shift_moment(histogram, order):
         The order of the moment to calculate, a number between [0, inf)
     """
     if len(histogram.shape) > 1:
-        raise (
-            "Can only calculate moments on a 1d array histogram, but shape is:"
-            + histogram.shape)
+        raise ValueError("Can only calculate moments on a 1d array histogram, "
+                         "but shape is: {}".format(histogram.shape))
 
     if order < 0:
-        raise ("Order cannot be below 0")
+        raise ValueError("Order cannot be below 0")
 
     bins = histogram.shape[0]
     v0 = np.mean(histogram)
@@ -91,7 +90,7 @@ def smoothe_histogram(histogram, kernel, bandwidth):
     The smoothed histogram
     """
     if len(histogram.shape) > 1:
-        raise ("Can only smooth a 1d array histogram")
+        raise ValueError("Can only smooth a 1d array histogram")
 
     bins = histogram.shape[0]
 
@@ -135,11 +134,12 @@ def orientation_histogram(angles, magnitudes, number_of_orientations):
         The centers of the created bins with angles in degrees
     """
     if len(angles.shape) > 2:
-        raise ("Only 2d windows are supported")
+        raise ValueError("Only 2d windows are supported")
 
     if angles.shape != magnitudes.shape:
-        raise ("Angle and magnitude arrays do not match shape: {0} vs. {1}".
-               format(angles.shape, magnitudes.shape))
+        raise ValueError(
+            "Angle and magnitude arrays do not match shape: {} vs. {}".format(
+                angles.shape, magnitudes.shape))
 
     number_of_orientations_per_360 = 360. / number_of_orientations
     x_size, y_size = angles.shape
@@ -155,8 +155,7 @@ def orientation_histogram(angles, magnitudes, number_of_orientations):
         total = 0
         for x in range(x_size):
             for y in range(y_size):
-                if angles[x, y] >= orientation_start and angles[
-                        x, y] < orientation_end:
+                if orientation_start <= angles[x, y] < orientation_end:
                     total += magnitudes[x, y]
 
         histogram[i] = total
