@@ -1,58 +1,80 @@
-from os import cpu_count
-
+import hypothesis.strategies as st
 import numpy as np
+import pytest
+from hypothesis import given
+from hypothesis.extra.numpy import arrays, scalar_dtypes
 
 from satsense.features import FeatureSet, HistogramOfGradients
-from satsense.generators import CellGenerator
+from satsense.generators import FullGenerator
 from satsense.image import Image
 
-from .test_extract import image
+
+@pytest.fixture
+def image(monkeypatch):
+    """Create a test Image instance."""
+    monkeypatch.setattr(Image, 'shape', (10, 10))
+
+    def _read_band(self, band, block=None):
+        image = np.ma.array(range(np.prod(self.shape)))
+        image.shape = self.shape
+        if block is None:
+            return image
+
+        shape = tuple(end - start for start, end in block)
+        padded_image = np.ma.empty(shape)
+        padded_image.mask = np.ones(shape, dtype=bool)
+        # TODO: fix inserting image in padded image
+
+        return padded_image
+
+    monkeypatch.setattr(Image, '_read_band', _read_band)
+
+    image = Image('filename', 'quickbird')
+    image.precompute_normalization()
+
+    return image
 
 
-def test_generator(image):
-
-    generator = CellGenerator(image, (25, 25))
-    assert len(generator) == len(tuple(generator))
-
-
-def test_padding(image):
-
-    generator = CellGenerator(image, (25, 25), length=(3, 2))
-    for cell in generator:
-        assert cell.shape == (25, 25)
-        assert cell.super_cell((100, 100)).shape == (100, 100)
+@pytest.fixture
+def generator(image):
+    """Create a test FullGenerator instance."""
+    step_size = (2, 3)
+    generator = FullGenerator(image, step_size)
+    return generator
 
 
-def assert_image_equivalent(img: Image, other: Image):
-    assert img.bands == other.bands
-    assert img._normalization_parameters == other._normalization_parameters
-    for itype in img._images:
-        np.testing.assert_array_almost_equal_nulp(img._images[itype],
-                                                  getattr(other, itype))
+window_shape = st.tuples(
+    st.integers(min_value=1, max_value=10),
+    st.integers(min_value=1, max_value=10))
+window_shapes = st.lists(window_shape, min_size=1, max_size=10)
 
 
-def test_generator_split():
+@given(window_shapes)
+def test_generator(generator, window_shapes):
 
-    cell_size = (10, 10)
-    windows = [(25, 25), (50, 50)]
+    itype = 'grayscale'
+    generator.load_image(itype, window_shapes)
 
-    features = FeatureSet()
-    features.add(HistogramOfGradients(windows=windows))
+    windows = []
+    for window in generator:
+        assert window.shape in window_shapes
+        windows.append(window)
+    assert np.prod(generator.shape) == len(windows) // len(window_shapes)
 
-    reference = tuple(CellGenerator(image(), cell_size))
-    generators = CellGenerator(image(), cell_size).split(
-        n_jobs=cpu_count(), features=features)
 
-    cells = []
-    i = 0
-    for generator in generators:
-        for cell in generator:
-            ref = reference[i]
-            print(cell.x, cell.y, ref.x, ref.y)
-            for window in windows:
-                assert_image_equivalent(
-                    cell.super_cell(window), ref.super_cell(window))
-            cells.append(cell)
-            i += 1
+@given(window_shapes, st.integers(min_value=1, max_value=10))
+def test_generator_split(generator, window_shapes, n_jobs):
 
-    assert len(reference) == len(cells)
+    itype = 'grayscale'
+    generator.load_image(itype, window_shapes)
+    reference = list(generator)
+
+    windows = []
+    for gen in generator.split(n_jobs):
+        gen.load_image(itype, window_shapes)
+        windows.extend(gen)
+
+    for i, window in enumerate(windows):
+        np.testing.assert_array_equal(reference[i], window)
+
+    assert len(reference) == len(windows)

@@ -35,6 +35,7 @@ setup(
     ],
     extras_require={
         'test': [
+            'hypothesis[numpy]',
             'pytest',
             'pytest-cov',
             'pytest-flake8',
