@@ -18,7 +18,10 @@ setup(
     license='Apache Software License',
     author='Berend Weel, Elena Ranguelova',
     setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
+    tests_require=[
+        'pytest',
+        'hypothesis[numpy]',
+    ],
     install_requires=[
         'descartes',
         'fiona',
