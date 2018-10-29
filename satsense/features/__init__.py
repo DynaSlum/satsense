@@ -1,11 +1,10 @@
 from .feature import Feature, FeatureSet
 from .hog import HistogramOfGradients
 from .lacunarity import Lacunarity
-from .ndxi import (NDSI, NDWI, NDXI, WVSI, NirNDVI, RbNDVI, RgNDVI,
-                   print_ndxi_statistics)
-from .pantex import Pantex, pantex
-from .sift import Sift, sift_cluster
-from .texton import Texton, texton_cluster
+from .ndxi import NDSI, NDWI, NDXI, WVSI, NirNDVI, RbNDVI, RgNDVI
+from .pantex import Pantex
+from .sift import Sift
+from .texton import Texton
 
 __all__ = [
     'NDXI',
@@ -15,14 +14,11 @@ __all__ = [
     'NDSI',
     'NDWI',
     'WVSI',
-    'print_ndxi_statistics',
     'HistogramOfGradients',
-    'pantex',
+    'Lacunarity',
     'Pantex',
     'Sift',
-    'sift_cluster',
     'Texton',
-    'texton_cluster',
     'Feature',
     'FeatureSet',
 ]

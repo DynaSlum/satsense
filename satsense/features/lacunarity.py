@@ -35,12 +35,17 @@ def lacunarity(edged_image, box_size):
     """
     Calculate the lacunarity value over an image, following these papers:
 
-    Kit, Oleksandr, and Matthias Luedeke. "Automated detection of slum area change in Hyderabad, India using multitemporal satellite imagery." ISPRS journal of photogrammetry and remote sensing 83 (2013): 130-137.
+    Kit, Oleksandr, and Matthias Luedeke. "Automated detection of slum area
+    change in Hyderabad, India using multitemporal satellite imagery."
+    ISPRS journal of photogrammetry and remote sensing 83 (2013): 130-137.
 
-    Kit, Oleksandr, Matthias Luedeke, and Diana Reckien. "Texture-based identification of urban slums in Hyderabad, India using remote sensing data." Applied Geography 32.2 (2012): 660-667.
+    Kit, Oleksandr, Matthias Luedeke, and Diana Reckien. "Texture-based
+    identification of urban slums in Hyderabad, India using remote sensing
+    data." Applied Geography 32.2 (2012): 660-667.
     """
 
-    # accumulator holds the amount of ones for each position in the image, defined by a sliding window
+    # accumulator holds the amount of ones for each position in the image,
+    # defined by a sliding window
     accumulator = np.zeros((edged_image.shape[0] - box_size,
                             edged_image.shape[1] - box_size))
     for i in prange(accumulator.shape[0]):

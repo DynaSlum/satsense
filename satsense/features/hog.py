@@ -30,14 +30,12 @@ def heaved_central_shift_moment(histogram, order):
     if order < 0:
         raise ValueError("Order cannot be below 0")
 
-    bins = histogram.shape[0]
     v0 = np.mean(histogram)
 
     # Moment 0 is just the mean
     if order == 0:
         return v0
 
-    total = 0
     # In the paper they say: sum over all bins
     # The difference of the bin with the mean of the histogram (v0)
     # and multiply with a step function which is 1 when the difference is > 0
@@ -60,7 +58,8 @@ def heaved_central_shift_moment(histogram, order):
 # @inproceedings('kumar2003man', {
 #     'title': 'Man-made structure detection in natural images using a causal multiscale random field',
 #     'author': 'Kumar, Sanjiv and Hebert, Martial',
-#     'booktitle': 'Computer vision and pattern recognition, 2003. proceedings. 2003 ieee computer society conference on',
+#     'booktitle': ('Computer vision and pattern recognition, 2003. proceedings. '
+#                   '2003 ieee computer society conference on'),
 #     'volume': '1',
 #     'pages': 'I--I',
 #     'year': '2003',
