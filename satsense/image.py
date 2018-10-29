@@ -8,7 +8,8 @@ from types import MappingProxyType
 import numpy as np
 import rasterio
 from netCDF4 import Dataset
-from skimage import color, img_as_ubyte
+from skimage import img_as_ubyte
+from skimage.color import gray2rgb, rgb2gray
 
 from .bands import BANDS
 
@@ -48,6 +49,8 @@ class Image:
         self._block = block
         self.cached = [] if cached is None else cached
         self.cache = {}
+
+        self._shape = None
 
     def copy_block(self, block):
         """Create a subset of Image."""
@@ -150,8 +153,10 @@ class Image:
 
     @property
     def shape(self):
-        with rasterio.open(self.filename) as dataset:
-            return dataset.shape
+        if self._shape is None:
+            with rasterio.open(self.filename) as dataset:
+                self._shape = dataset.shape
+        return self._shape
 
     @property
     def crs(self):
@@ -181,11 +186,13 @@ def get_rgb_image(image: Image):
         red = image['red']
         green = image['green']
         blue = image['blue']
-        result = np.rollaxis(np.array([red, green, blue]), 0, 3)
+        rgb = np.ma.dstack([red, green, blue])
     else:
-        result = color.gray2rgb(image[image.band])
+        gray = image[image.band]
+        rgb = np.ma.array(gray2rgb(gray))
+        rgb.mask = gray.mask
     #     logger.debug("Done computing rgb image")
-    return result
+    return rgb
 
 
 Image.register('rgb', get_rgb_image)
@@ -194,11 +201,13 @@ Image.register('rgb', get_rgb_image)
 def get_grayscale_image(image: Image):
     #     logger.debug("Computing grayscale image")
     if image.band == 'rgb':
-        result = color.rgb2gray(image['rgb'])
+        rgb = image['rgb']
+        mask = np.bitwise_or.reduce(rgb.mask, axis=2)
+        gray = np.ma.array(rgb2gray(rgb), mask=mask)
     else:
-        result = image[image.band]
+        gray = image[image.band]
     #     logger.debug("Done computing grayscale image")
-    return result
+    return gray
 
 
 Image.register('grayscale', get_grayscale_image)
@@ -213,10 +222,11 @@ def get_gray_ubyte_image(image: Image):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         # Ignore loss of precision warning
-        result = img_as_ubyte(image['grayscale'])
+        gray = image['grayscale']
+        ubyte = np.ma.array(img_as_ubyte(gray), mask=gray.mask)
 
     #     logger.debug("Done computing gray ubyte image")
-    return result
+    return ubyte
 
 
 Image.register('gray_ubyte', get_gray_ubyte_image)

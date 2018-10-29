@@ -43,11 +43,8 @@ class FullGenerator():
 
         if not shape:
             shape = tuple(
-                math.ceil(image.shape[i] / step_size[i]) - 1 for i in range(2))
+                math.ceil(image.shape[i] / step_size[i]) for i in range(2))
         self.shape = shape
-
-        self.step_offset = tuple(
-            math.floor((offset[i] + 0.5) * step_size[i]) for i in range(2))
 
         # set using load_image
         self.loaded_itype = None
@@ -58,13 +55,15 @@ class FullGenerator():
     def load_image(self, itype, windows):
         """Load image with sufficient additional data to cover windows."""
         self._windows = tuple(sorted(windows, reverse=True))
-        self._padding = (max(math.ceil(0.5 * w[0]) for w in self._windows),
-                         max(math.ceil(0.5 * w[1]) for w in self._windows))
+        self._padding = tuple(
+            max(math.ceil(0.5 * w[i]) for w in windows) for i in range(2))
+
         block = []
         for i in range(2):
-            start = self.step_offset[i] - self._padding[i]
-            end = (self.step_offset[i] + self._padding[i] +
-                   self.shape[i] * self.step_size[i])
+            offset = math.floor((self.offset[i] + 0.5) * self.step_size[i])
+            start = offset - self._padding[i]
+            end = (
+                offset + self._padding[i] + self.shape[i] * self.step_size[i])
             block.append((start, end))
         block = tuple(block)
         image = self.image.copy_block(block)
@@ -84,19 +83,10 @@ class FullGenerator():
         window = index[2]
 
         slices = []
-        # TODO: fix this in combination with load image
-        shape = self._image_cache.shape
         for i in range(2):
-            middle = self._padding[i] + math.floor(
+            start = self._padding[i] - window[i] // 2 + math.floor(
                 (index[i] + 0.5) * self.step_size[i])
-            start = math.floor(middle - 0.5 * window[i])
-            assert 0 <= start < shape[i], ('start out of bounds at', index,
-                                           start, shape[i])
-            end = math.floor(middle + 0.5 * window[i])
-            assert 0 <= end < shape[i], ('end out of bounds at', index, end,
-                                         shape[i])
-            assert start < end, ('start not smaller than end at', index, start,
-                                 end)
+            end = start + window[i]
             slices.append(slice(start, end))
 
         return self._image_cache[slices[0], slices[1]]
