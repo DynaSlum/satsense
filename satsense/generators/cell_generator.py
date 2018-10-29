@@ -84,8 +84,9 @@ class FullGenerator():
 
         slices = []
         for i in range(2):
-            start = self._padding[i] - window[i] // 2 + math.floor(
+            middle = self._padding[i] + math.floor(
                 (index[i] + 0.5) * self.step_size[i])
+            start = math.floor(middle - 0.5 * window[i])
             end = start + window[i]
             slices.append(slice(start, end))
 
