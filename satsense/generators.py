@@ -2,7 +2,7 @@
 import logging
 import math
 
-from ..image import Image
+from .image import Image
 
 logger = logging.getLogger(__name__)
 
