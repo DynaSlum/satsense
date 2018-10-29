@@ -19,8 +19,11 @@ setup(
     author='Berend Weel, Elena Ranguelova',
     setup_requires=['pytest-runner'],
     tests_require=[
-        'pytest',
         'hypothesis[numpy]',
+        'pytest',
+        'pytest-cov',
+        'pytest-html',
+        'pytest-flake8',
     ],
     install_requires=[
         'descartes',
@@ -41,6 +44,7 @@ setup(
             'hypothesis[numpy]',
             'pytest',
             'pytest-cov',
+            'pytest-html',
             'pytest-flake8',
         ],
         'dev': [

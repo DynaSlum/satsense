@@ -7,3 +7,5 @@ satsense.egg-info/
 .project
 .pydevproject
 .hypothesis
+.test-reports
+.coverage*
