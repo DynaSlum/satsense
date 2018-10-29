@@ -2,7 +2,8 @@ import hypothesis.strategies as st
 import numpy as np
 import pytest
 from hypothesis import given
-from hypothesis.extra.numpy import arrays, scalar_dtypes
+# TODO: use modules below to generate test images?
+# from hypothesis.extra.numpy import arrays, scalar_dtypes
 
 from satsense.generators import FullGenerator
 from satsense.image import Image
@@ -75,6 +76,8 @@ def test_padding(image):
     generator = FullGenerator(image, step_size)
     generator.load_image(itype, window_shapes)
 
+    print(generator._image_cache)
+
     assert generator.offset == (0, 0)
     assert generator.shape == (2, 2)
 
@@ -123,7 +126,10 @@ def test_generator(generator, window_shapes):
     assert np.prod(generator.shape) == len(windows) // len(window_shapes)
 
 
-@given(window_shapes, st.integers(min_value=1, max_value=10))
+n_jobs = st.integers(min_value=1, max_value=10)
+
+
+@given(window_shapes, n_jobs)
 def test_generator_split(generator, window_shapes, n_jobs):
 
     itype = 'grayscale'
