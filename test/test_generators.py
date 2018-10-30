@@ -1,79 +1,56 @@
 import hypothesis.strategies as st
 import numpy as np
-import pytest
+import rasterio
 from hypothesis import given
-# TODO: use modules below to generate test images?
-# from hypothesis.extra.numpy import arrays, scalar_dtypes
+from hypothesis.control import assume
+from hypothesis.extra.numpy import arrays
 
+from satsense.bands import BANDS
 from satsense.generators import FullGenerator
 from satsense.image import Image
 
+from .strategies import n_jobs, rasterio_dtypes
 
-@pytest.fixture
-def image(monkeypatch):
+
+def create_test_file(filename, array):
+    """Write an array of shape (bands, width, heigth) to file."""
+    array = np.ma.asanyarray(array)
+    with rasterio.open(
+            filename,
+            mode='w',
+            driver='GTiff',
+            width=array.shape[1],
+            height=array.shape[2],
+            count=array.shape[0],
+            dtype=array.dtype) as dataset:
+        for band, data in enumerate(array, start=1):
+            dataset.write(data, band)
+
+
+def create_test_image(dirname, array):
     """Create a test Image instance."""
-
-    def _read_band(self, band, block=None):
-        """Simulate the behaviour of rasterio padded reading."""
-        dtype = np.float32
-        image = np.ma.array(range(np.prod(self.shape)), dtype=dtype)
-        image.shape = self.shape
-        if block is None:
-            return image
-
-        # insert (part of) the image defined above in a padded image
-        shape = tuple(end - start for start, end in block)
-        padded_image = np.ma.empty(shape, dtype=dtype)
-        padded_image.mask = np.ones(shape, dtype=bool)
-
-        islice = []
-        pslice = []
-        for (start, end), ilen in zip(block, image.shape):
-            if start < 0:
-                # case: prepend -start pixels of padding
-                istart = 0
-                pstart = -start
-            else:
-                # case: skip first start pixels of image
-                istart = start
-                pstart = 0
-
-            length = min(ilen, end) - istart
-
-            islice.append(slice(istart, istart + length))
-            pslice.append(slice(pstart, pstart + length))
-
-        padded_image[pslice[0], pslice[1]] = image[islice[0], islice[1]]
-        padded_image.mask[pslice[0], pslice[1]] = False
-
-        return padded_image
-
-    monkeypatch.setattr(Image, '_read_band', _read_band)
-
-    monkeypatch.setattr(Image, 'shape', (5, 5))
-
-    image = Image('filename', 'quickbird')
-    image.precompute_normalization()
-
+    filename = str(dirname / 'tmp.tif')
+    create_test_file(filename, array)
+    satellite = 'quickbird'
+    image = Image(filename, satellite)
     return image
 
 
-@pytest.fixture
-def generator(image):
-    """Create a test FullGenerator instance."""
-    step_size = (2, 3)
-    generator = FullGenerator(image, step_size)
-    return generator
+def test_full_generator_windows(tmpdir):
 
-
-def test_generated_windows(image):
-
-    assert image.shape == (5, 5), "Wrong test input shape"
-
-    itype = 'gray_ubyte'
+    image_shape = (5, 5)
     window_shapes = ((5, 5), )
     step_size = (3, 3)
+    satellite = 'quickbird'
+    itype = 'gray_ubyte'
 
+    n_bands = len(BANDS[satellite])
+    shape = (n_bands, ) + image_shape
+    array = np.array(range(np.prod(shape)), dtype=float)
+    array.shape = shape
+
+    image = create_test_image(tmpdir, array)
+    image.precompute_normalization()
     generator = FullGenerator(image, step_size)
     generator.load_image(itype, window_shapes)
 
@@ -119,12 +96,33 @@ def test_generated_windows(image):
 window_shape = st.tuples(
     st.integers(min_value=1, max_value=10),
     st.integers(min_value=1, max_value=10))
+
 window_shapes = st.lists(window_shape, min_size=1, max_size=10)
 
+step_size = st.tuples(
+    st.integers(min_value=1, max_value=10),
+    st.integers(min_value=1, max_value=10),
+)
 
-@given(window_shapes)
-def test_generator(generator, window_shapes):
+image_array = arrays(
+    dtype=rasterio_dtypes,
+    shape=st.tuples(
+        st.just(len(BANDS['quickbird'])),
+        st.integers(min_value=2, max_value=10),
+        st.integers(min_value=2, max_value=10),
+    ),
+)
 
+
+@given(window_shapes, step_size, image_array)
+def test_full_generator(tmpdir, window_shapes, step_size, image_array):
+    # Assume that the image size is larger than the step size
+    assume(image_array.shape[1] >= step_size[0])
+    assume(image_array.shape[2] >= step_size[1])
+
+    image = create_test_image(tmpdir, image_array)
+    image.precompute_normalization()
+    generator = FullGenerator(image, step_size)
     itype = 'grayscale'
     generator.load_image(itype, window_shapes)
     assert generator.loaded_itype == itype
@@ -136,12 +134,16 @@ def test_generator(generator, window_shapes):
     assert np.prod(generator.shape) == len(windows) // len(window_shapes)
 
 
-n_jobs = st.integers(min_value=1, max_value=10)
+@given(window_shapes, step_size, image_array, n_jobs)
+def test_full_generator_split(tmpdir, window_shapes, step_size, image_array,
+                              n_jobs):
+    # Assume that the image size is larger than the step size
+    assume(image_array.shape[1] >= step_size[0])
+    assume(image_array.shape[2] >= step_size[1])
 
-
-@given(window_shapes, n_jobs)
-def test_generator_split(generator, window_shapes, n_jobs):
-
+    image = create_test_image(tmpdir, image_array)
+    image.precompute_normalization()
+    generator = FullGenerator(image, step_size)
     itype = 'grayscale'
     generator.load_image(itype, window_shapes)
     reference = list(generator)

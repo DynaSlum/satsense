@@ -17,14 +17,13 @@ def extract_features_parallel(features, generator, n_jobs=cpu_count()):
     logger.debug("Extracting features using at most %s processes", n_jobs)
     generator.image.precompute_normalization()
 
-    # Specify jobs
-    generators = generator.split(n_jobs=n_jobs)
+    # Split generator in chunks
+    generators = tuple(generator.split(n_chunks=n_jobs))
 
-    # Execute jobs
     with ProcessPoolExecutor() as executor:
         for feature in features:
             extract = partial(extract_feature, feature)
-            vector = np.vstack(executor.map(extract, generators))
+            vector = np.ma.vstack(tuple(executor.map(extract, generators)))
             yield FeatureVector(feature, vector)
 
 
@@ -54,7 +53,8 @@ def extract_feature(feature, generator):
         generator.load_image(feature.base_image, feature.windows)
 
     shape = generator.shape + (len(feature.windows), feature.size)
-    vector = np.zeros((np.prod(shape[:-1]), feature.size), dtype=np.float32)
+    vector = np.ma.zeros((np.prod(shape[:-1]), feature.size), dtype=np.float32)
+    vector.mask = np.zeros_like(vector, dtype=bool)
 
     size = vector.shape[0]
     for i, window in enumerate(generator):
@@ -62,6 +62,10 @@ def extract_feature(feature, generator):
             print('skipping', window.shape[:2], feature.windows)
         if i % (size // 10 or 1) == 0:
             logger.info("%s%% ready", 100 * i // size)
-        vector[i] = feature(window)
+        if window.mask.any():
+            vector.mask[i] = True
+        else:
+            vector[i] = feature(window)
+
     vector.shape = shape
     return vector

@@ -92,11 +92,11 @@ class FullGenerator():
 
         return self._image_cache[slices[0], slices[1]]
 
-    def split(self, n_jobs):
-        job_length = math.ceil(self.shape[0] / n_jobs)
-        for job in range(n_jobs):
-            row_offset = self.offset[0] + job * job_length
-            row_length = min(job_length, self.shape[0] - row_offset)
+    def split(self, n_chunks):
+        chunk_size = math.ceil(self.shape[0] / n_chunks)
+        for job in range(n_chunks):
+            row_offset = self.offset[0] + job * chunk_size
+            row_length = min(chunk_size, self.shape[0] - row_offset)
             if row_length <= 0:
                 break
             yield FullGenerator(

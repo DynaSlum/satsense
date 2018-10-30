@@ -31,7 +31,8 @@ class Image:
                  band='rgb',
                  normalization_parameters=None,
                  block=None,
-                 cached=None):
+                 cached=None,
+                 dtype=np.float32):
 
         self.filename = filename
         self.satellite = satellite
@@ -49,8 +50,9 @@ class Image:
         self._block = block
         self.cached = [] if cached is None else cached
         self.cache = {}
+        self.dtype = dtype
 
-        self._shape = None
+        self.attributes = {}
 
     def copy_block(self, block):
         """Create a subset of Image."""
@@ -99,7 +101,7 @@ class Image:
         with rasterio.open(self.filename) as dataset:
             image = dataset.read(
                 bandno, window=block, boundless=True,
-                masked=True).astype(np.float32)
+                masked=True).astype(self.dtype)
             return image
 
     def precompute_normalization(self, *bands):
@@ -118,9 +120,10 @@ class Image:
             if image is None:
                 image = self._read_band(band)
             data = image[~image.mask] if np.ma.is_masked(image) else image
-
             technique = self.normalization_parameters['technique']
-            if technique == 'cumulative':
+            if not data.any():
+                limits = 0, 0
+            elif technique == 'cumulative':
                 percentiles = self.normalization_parameters['percentiles']
                 limits = np.nanpercentile(data, percentiles)
             elif technique == 'meanstd':
@@ -132,7 +135,7 @@ class Image:
                 limits = data.nanmin(), data.nanmax()
 
             lower, upper = limits
-            if lower >= upper:
+            if not np.isclose(lower, upper) and lower > upper:
                 raise ValueError(
                     "Unable to normalize {} band of {} with normalization "
                     "parameters {} because lower limit is larger or equal to "
@@ -147,29 +150,37 @@ class Image:
     def _normalize(self, image, band):
         """Normalize image with limits for band."""
         lower, upper = self._get_normalization_limits(band, image)
-        image -= lower
-        image /= upper - lower
-        np.clip(image, a_min=0, a_max=1, out=image)
+        if np.isclose(lower, upper):
+            logger.warning(
+                "Lower and upper limit %s, %s are considered too close "
+                "to normalize band %s, setting it to 0.", lower, upper, band)
+            image[:] = 0
+        else:
+            image -= lower
+            image /= upper - lower
+            np.ma.clip(image, a_min=0, a_max=1, out=image)
+
+    def _get_attribute(self, key):
+        if key not in self.attributes:
+            with rasterio.open(self.filename) as dataset:
+                self.attributes[key] = getattr(dataset, key)
+        return self.attributes[key]
 
     @property
     def shape(self):
-        if self._shape is None:
-            with rasterio.open(self.filename) as dataset:
-                self._shape = dataset.shape
-        return self._shape
+        return self._get_attribute('shape')
 
     @property
     def crs(self):
-        with rasterio.open(self.filename) as dataset:
-            return dataset.crs
+        return self._get_attribute('crs')
 
     @property
     def transform(self):
-        with rasterio.open(self.filename) as dataset:
-            return dataset.transform
+        return self._get_attribute('transform')
 
     def scaled_transform(self, cell_size):
         """Compute a transform for a scaled down version of the image."""
+        # TODO: check this, it may be off by a fraction of the cell size
         x_length = math.ceil(self.shape[0] / cell_size[0])
         y_length = math.ceil(self.shape[1] / cell_size[1])
         (west, south, east, north) = rasterio.transform.array_bounds(
@@ -285,6 +296,7 @@ class FeatureVector():
         width, height, size = data.shape
         data = np.ma.filled(data)
         fill_value = data.fill_value if np.ma.is_masked(data) else None
+        # This is probably wrong
         data = np.moveaxis(data, source=2, destination=0)
         with rasterio.open(
                 filename,
