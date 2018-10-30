@@ -15,14 +15,15 @@ def image(monkeypatch):
 
     def _read_band(self, band, block=None):
         """Simulate the behaviour of rasterio padded reading."""
-        image = np.ma.array(range(np.prod(self.shape)))
+        dtype = np.float32
+        image = np.ma.array(range(np.prod(self.shape)), dtype=dtype)
         image.shape = self.shape
         if block is None:
             return image
 
         # insert (part of) the image defined above in a padded image
         shape = tuple(end - start for start, end in block)
-        padded_image = np.ma.empty(shape)
+        padded_image = np.ma.empty(shape, dtype=dtype)
         padded_image.mask = np.ones(shape, dtype=bool)
 
         islice = []
@@ -65,7 +66,7 @@ def generator(image):
     return generator
 
 
-def test_padding(image):
+def test_generated_windows(image):
 
     assert image.shape == (5, 5), "Wrong test input shape"
 
@@ -76,7 +77,7 @@ def test_padding(image):
     generator = FullGenerator(image, step_size)
     generator.load_image(itype, window_shapes)
 
-    print(generator._image_cache)
+    print('generator._image_cache:\n', generator._image_cache)
 
     assert generator.offset == (0, 0)
     assert generator.shape == (2, 2)
@@ -86,6 +87,15 @@ def test_padding(image):
 
     for i, window in enumerate(windows):
         print('window', i, '\n', window)
+
+    # window center pixels are correct
+    image._block = None
+    original_image = image[itype]
+    print('original image:\n', original_image)
+    assert windows[0][2][2] == original_image[1][1]
+    assert windows[1][2][2] == original_image[1][4]
+    assert windows[2][2][2] == original_image[4][1]
+    assert windows[3][2][2] == original_image[4][4]
 
     # horizontal edges are masked
     assert np.all(windows[0].mask[0])
