@@ -59,7 +59,7 @@ def extract_feature(feature, generator):
     size = vector.shape[0]
     for i, window in enumerate(generator):
         if window.shape[:2] not in feature.windows:
-            print('skipping', window.shape[:2], feature.windows)
+            continue
         if i % (size // 10 or 1) == 0:
             logger.info("%s%% ready", 100 * i // size)
         if window.mask.any():

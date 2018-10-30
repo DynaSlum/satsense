@@ -61,6 +61,7 @@ def test_extract_features(generator):
 
     assert result.feature == feature
     assert result.vector.any()
+    assert result.vector.shape == generator.shape + (len(window_shapes), feature.size)
 
 
 @given(n_jobs)
