@@ -393,9 +393,8 @@ class RoadIntersectionDensity:
         """
         feature_shape = feature.shape
         zoom_level = [
-            float(self._image.shape[0]) /
-            (self._block_size * feature_shape[0]),
-            float(self._image.shape[1]) / (self._block_size * feature_shape[1])
+            self._image.shape[0] / (self._block_size * feature_shape[0]),
+            self._image.shape[1] / (self._block_size * feature_shape[1]),
         ]
 
         # For the scipy UserWarning:
@@ -404,11 +403,11 @@ class RoadIntersectionDensity:
         # computed dimensions of the interpolated feature matrix has the first
         # decimal lower than 0.5.
         if (zoom_level[0] * feature_shape[0]) % 1 < 0.5:
-            zoom_level[0] = (math.ceil(zoom_level[0] * feature_shape[0]) /
-                             float(feature_shape[0]))
+            zoom_level[0] = (
+                math.ceil(zoom_level[0] * feature_shape[0]) / feature_shape[0])
         if (zoom_level[1] * feature_shape[1]) % 1 < 0.5:
-            zoom_level[1] = (math.ceil(zoom_level[1] * feature_shape[1]) /
-                             float(feature_shape[1]))
+            zoom_level[1] = (
+                math.ceil(zoom_level[1] * feature_shape[1]) / feature_shape[1])
 
         return zoom(feature, zoom_level, order=3)
 
