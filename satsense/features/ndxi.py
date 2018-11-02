@@ -7,10 +7,10 @@ from ..image import Image
 from .feature import Feature
 
 NDXI_TYPES = {
-    'nir_ndvi': ('red', 'nir-1'),
+    'nir_ndvi': ('nir-1', 'red'),
     'rg_ndvi': ('red', 'green'),
     'rb_ndvi': ('red', 'blue'),
-    'ndsi': ('green', 'nir-1'),
+    'ndsi': ('nir-1', 'green'),
     'ndwi': ('coastal', 'nir-2'),
     'wvsi': ('green', 'yellow'),
 }
