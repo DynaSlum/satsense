@@ -9,8 +9,9 @@ python:
   - "3.7"
 
 install:
-  - sudo apt-get update
-  - sudo apt-get install -y python3-gdal
+  - sudo apt-add-repository -y ppa:nextgis/dev
+  - sudo apt update
+  - sudo apt install -y libgdal-dev
   - python -m venv --system-site-packages ~/venv/satsense
   - source ~/venv/satsense/bin/activate
 
