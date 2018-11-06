@@ -13,7 +13,6 @@ cache:
   directories:
     - .hypothesis
     - .eggs
-    - /var/cache/apt/archives
 
 install:
   - sudo apt-add-repository -y ppa:nextgis/dev
