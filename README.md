@@ -9,11 +9,13 @@ Satsense is a library for land use classification using satellite imagery.
 * satsense - library for analysing satellite images, performance evaluation, etc.
 * notebooks - IPython notebooks for illustrating and testing the usage of Satsense
 
-## Installation
-We are using python 3.5/3.6 and jupyter notebook for our code.
+We are using python 3.6/3.7 and jupyter notebook for our code.
+
+## Installation from github
 
 Assuming you have [conda](https://conda.io) installed and are in the
-directory where you have checked out this repository:
+directory where you have checked out this repository, you can install
+the dependencies by running:
 
 ```bash
 conda create --name satsense python=3
@@ -21,7 +23,15 @@ source activate satsense
 conda env update
 ```
 
-To install satsense from the git repo in development mode use:
+If you prefer to use the package manager of your OS, use it to install
+the [GDAL](https://pypi.org/project/GDAL/) and
+[netCDF4](http://unidata.github.io/netcdf4-python/) dependencies. On Ubuntu
+Linux 18.04 and later, you can do so by running
+```bash
+sudo apt-get install libgdal-dev libnetcdf-dev
+```
+
+To install satsense in development mode use:
 ```bash
 pip install -e .
 ```
