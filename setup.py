@@ -29,7 +29,7 @@ setup(
         'descartes',
         'fiona',
         'gdal',
-        'netCDF4',
+        'netCDF4!=1.4.2',
         'numba',
         'numpy',
         'opencv-contrib-python-headless<3.4.3',
