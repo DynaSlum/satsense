@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 
 def extract_features_parallel(features, generator, n_jobs=cpu_count()):
     """Extract features in parallel."""
-    logger.debug("Extracting features using at most %s processes", n_jobs)
+    logger.info("Extracting features using at most %s processes", n_jobs)
     generator.image.precompute_normalization()
 
     # Split generator in chunks
     generators = tuple(generator.split(n_chunks=n_jobs))
 
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_workers=n_jobs) as executor:
         for feature in features:
             extract = partial(extract_feature, feature)
             vector = np.ma.vstack(tuple(executor.map(extract, generators)))
