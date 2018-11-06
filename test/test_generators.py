@@ -27,12 +27,12 @@ def create_test_file(filename, array):
             dataset.write(data, band)
 
 
-def create_test_image(dirname, array):
+def create_test_image(dirname, array, normalization=None):
     """Create a test Image instance."""
     filename = str(dirname / 'tmp.tif')
     create_test_file(filename, array)
     satellite = 'quickbird'
-    image = Image(filename, satellite)
+    image = Image(filename, satellite, normalization_parameters=normalization)
     return image
 
 
@@ -42,15 +42,14 @@ def test_full_generator_windows(tmpdir):
     window_shapes = ((5, 5), )
     step_size = (3, 3)
     satellite = 'quickbird'
-    itype = 'gray_ubyte'
+    itype = 'grayscale'
 
     n_bands = len(BANDS[satellite])
     shape = (n_bands, ) + image_shape
     array = np.array(range(np.prod(shape)), dtype=float)
     array.shape = shape
 
-    image = create_test_image(tmpdir, array)
-    image.precompute_normalization()
+    image = create_test_image(tmpdir, array, normalization=False)
     generator = FullGenerator(image, step_size)
     generator.load_image(itype, window_shapes)
 
@@ -120,8 +119,7 @@ def test_full_generator(tmpdir, window_shapes, step_size, image_array):
     assume(image_array.shape[1] >= step_size[0])
     assume(image_array.shape[2] >= step_size[1])
 
-    image = create_test_image(tmpdir, image_array)
-    image.precompute_normalization()
+    image = create_test_image(tmpdir, image_array, normalization=False)
     generator = FullGenerator(image, step_size)
     itype = 'grayscale'
     generator.load_image(itype, window_shapes)
@@ -141,8 +139,7 @@ def test_full_generator_split(tmpdir, window_shapes, step_size, image_array,
     assume(image_array.shape[1] >= step_size[0])
     assume(image_array.shape[2] >= step_size[1])
 
-    image = create_test_image(tmpdir, image_array)
-    image.precompute_normalization()
+    image = create_test_image(tmpdir, image_array, normalization=False)
     generator = FullGenerator(image, step_size)
     itype = 'grayscale'
     generator.load_image(itype, window_shapes)
@@ -154,6 +151,8 @@ def test_full_generator_split(tmpdir, window_shapes, step_size, image_array,
         windows.extend(gen)
 
     for i, window in enumerate(windows):
-        np.testing.assert_array_equal(reference[i], window)
+        np.testing.assert_array_equal(reference[i].mask, window.mask)
+        np.testing.assert_array_equal(reference[i][~reference[i].mask],
+                                      window[~window.mask])
 
     assert len(reference) == len(windows)
