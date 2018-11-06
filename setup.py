@@ -40,16 +40,16 @@ setup(
         'shapely',
     ],
     extras_require={
-        'test': [
+        'dev': [
             'hypothesis[numpy]',
+            'isort',
+            'pycodestyle',
+            'pyflakes',
+            'prospector[with_pyroma]',
             'pytest',
             'pytest-cov',
             'pytest-html',
             'pytest-flake8',
-        ],
-        'dev': [
-            'isort',
-            'prospector[with_pyroma]',
             'yamllint',
             'yapf',
         ],
