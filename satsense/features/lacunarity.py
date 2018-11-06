@@ -17,14 +17,17 @@ def get_canny_edge_image(image: Image, radius=30, sigma=0.5):
     """Compute Canny edge image."""
     logger.debug("Computing Canny edge image")
     # local histogram equalization
-    grayscale = equalize(image['grayscale'], selem=disk(radius))
+    gray_ubyte = image['gray_ubyte']
+    mask = gray_ubyte.mask
+    inverse_mask = ~mask
+    result = equalize(gray_ubyte.data, selem=disk(radius), mask=inverse_mask)
     try:
-        result = canny(grayscale, sigma=sigma)
+        result = canny(result, sigma=sigma, mask=inverse_mask)
     except TypeError:
         logger.warning("Canny type error")
-        result = np.zeros(image.shape)
+        result[:] = 0
     logger.debug("Done computing Canny edge image")
-    return result
+    return np.ma.array(result, mask=mask)
 
 
 Image.register('canny_edge', get_canny_edge_image)
