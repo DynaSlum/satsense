@@ -8,6 +8,12 @@ python:
   - "3.6"
   - "3.7"
 
+cache:
+  pip: true
+  directories:
+    - .hypothesis
+    - .pytest_cache
+
 install:
   - sudo apt-add-repository -y ppa:nextgis/dev
   - sudo apt update
