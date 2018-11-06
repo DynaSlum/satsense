@@ -11,7 +11,7 @@ from satsense.features import HistogramOfGradients, NirNDVI, Pantex
 from satsense.generators import FullGenerator
 from satsense.image import FeatureVector
 
-from .strategies import n_jobs
+from .strategies import st_n_jobs
 from .test_generators import create_test_image
 
 
@@ -61,10 +61,11 @@ def test_extract_features(generator):
 
     assert result.feature == feature
     assert result.vector.any()
-    assert result.vector.shape == generator.shape + (len(window_shapes), feature.size)
+    assert result.vector.shape == generator.shape + (len(window_shapes),
+                                                     feature.size)
 
 
-@given(n_jobs)
+@given(st_n_jobs)
 def test_extract_features_parallel(generator, n_jobs):
     """Test that parallel feature computation produces identical results."""
     window_shapes = (
