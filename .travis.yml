@@ -12,7 +12,7 @@ install:
   - sudo apt-add-repository -y ppa:nextgis/dev
   - sudo apt update
   - sudo apt install -y libgdal-dev libnetcdf-dev
-  - python -m venv --system-site-packages ~/venv/satsense
+  - python -m venv ~/venv/satsense
   - source ~/venv/satsense/bin/activate
 
 script: python setup.py test
