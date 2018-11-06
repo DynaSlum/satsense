@@ -2,14 +2,13 @@ import hypothesis.strategies as st
 import numpy as np
 import rasterio
 from hypothesis import given
-from hypothesis.control import assume
 from hypothesis.extra.numpy import arrays
 
 from satsense.bands import BANDS
 from satsense.generators import FullGenerator
 from satsense.image import Image
 
-from .strategies import n_jobs, rasterio_dtypes
+from .strategies import st_n_jobs, st_rasterio_dtypes
 
 
 def create_test_file(filename, array):
@@ -92,32 +91,41 @@ def test_full_generator_windows(tmpdir):
     assert not np.any(windows[3].mask[:3, :3])
 
 
-window_shape = st.tuples(
+st_window_shape = st.tuples(
     st.integers(min_value=1, max_value=10),
     st.integers(min_value=1, max_value=10))
 
-window_shapes = st.lists(window_shape, min_size=1, max_size=10)
+st_window_shapes = st.lists(st_window_shape, min_size=1, max_size=10)
 
-step_size = st.tuples(
+
+def create_step_and_image_strategy(limit):
+
+    step_size = st.tuples(
+        st.integers(min_value=1, max_value=limit[0]),
+        st.integers(min_value=1, max_value=limit[1]),
+    )
+
+    image_array = arrays(
+        dtype=st_rasterio_dtypes,
+        shape=st.tuples(
+            st.just(len(BANDS['quickbird'])),
+            st.integers(min_value=limit[0], max_value=10),
+            st.integers(min_value=limit[1], max_value=10),
+        ),
+    )
+
+    return st.tuples(step_size, image_array)
+
+
+st_step_and_image = st.tuples(
     st.integers(min_value=1, max_value=10),
     st.integers(min_value=1, max_value=10),
-)
-
-image_array = arrays(
-    dtype=rasterio_dtypes,
-    shape=st.tuples(
-        st.just(len(BANDS['quickbird'])),
-        st.integers(min_value=2, max_value=10),
-        st.integers(min_value=2, max_value=10),
-    ),
-)
+).flatmap(create_step_and_image_strategy)
 
 
-@given(window_shapes, step_size, image_array)
-def test_full_generator(tmpdir, window_shapes, step_size, image_array):
-    # Assume that the image size is larger than the step size
-    assume(image_array.shape[1] >= step_size[0])
-    assume(image_array.shape[2] >= step_size[1])
+@given(st_window_shapes, st_step_and_image)
+def test_full_generator(tmpdir, window_shapes, step_and_image):
+    step_size, image_array = step_and_image
 
     image = create_test_image(tmpdir, image_array, normalization=False)
     generator = FullGenerator(image, step_size)
@@ -132,12 +140,9 @@ def test_full_generator(tmpdir, window_shapes, step_size, image_array):
     assert np.prod(generator.shape) == len(windows) // len(window_shapes)
 
 
-@given(window_shapes, step_size, image_array, n_jobs)
-def test_full_generator_split(tmpdir, window_shapes, step_size, image_array,
-                              n_jobs):
-    # Assume that the image size is larger than the step size
-    assume(image_array.shape[1] >= step_size[0])
-    assume(image_array.shape[2] >= step_size[1])
+@given(st_window_shapes, st_step_and_image, st_n_jobs)
+def test_full_generator_split(tmpdir, window_shapes, step_and_image, n_jobs):
+    step_size, image_array = step_and_image
 
     image = create_test_image(tmpdir, image_array, normalization=False)
     generator = FullGenerator(image, step_size)
