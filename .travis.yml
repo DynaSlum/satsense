@@ -13,6 +13,7 @@ cache:
   directories:
     - .hypothesis
     - .pytest_cache
+    - .eggs
 
 install:
   - sudo apt-add-repository -y ppa:nextgis/dev
