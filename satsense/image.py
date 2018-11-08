@@ -31,8 +31,7 @@ class Image:
                  band='rgb',
                  normalization_parameters=None,
                  block=None,
-                 cached=None,
-                 dtype=np.float32):
+                 cached=None):
 
         self.filename = filename
         self.satellite = satellite
@@ -44,13 +43,13 @@ class Image:
             normalization_parameters = {
                 'technique': 'cumulative',
                 'percentiles': [2.0, 98.0],
+                'dtype': np.float32,
             }
         self.normalization_parameters = normalization_parameters
 
         self._block = block
         self.cached = [] if cached is None else cached
         self.cache = {}
-        self.dtype = dtype
 
         self.attributes = {}
 
@@ -91,7 +90,7 @@ class Image:
         """Read band from file and normalize if required."""
         image = self._read_band(band, block)
         if self.normalization_parameters:
-            self._normalize(image, band)
+            image = self._normalize(image, band)
         return image
 
     def _read_band(self, band, block=None):
@@ -100,8 +99,7 @@ class Image:
         bandno = self.bands[band] + 1
         with rasterio.open(self.filename) as dataset:
             image = dataset.read(
-                bandno, window=block, boundless=True,
-                masked=True).astype(self.dtype)
+                bandno, window=block, boundless=True, masked=True)
             return image
 
     def precompute_normalization(self, *bands):
@@ -139,6 +137,8 @@ class Image:
                 limits = data.nanmin(), data.nanmax()
 
             lower, upper = limits
+            logger.info("Normalizing [%s, %s] to [0, 1] for band %s", lower,
+                        upper, band)
             if not np.isclose(lower, upper) and lower > upper:
                 raise ValueError(
                     "Unable to normalize {} band of {} with normalization "
@@ -160,9 +160,13 @@ class Image:
                 "to normalize band %s, setting it to 0.", lower, upper, band)
             image[:] = 0
         else:
+            dtype = self.normalization_parameters['dtype']
+            image = image.astype(dtype, casting='same_kind', copy=False)
             image -= lower
             image /= upper - lower
             np.ma.clip(image, a_min=0, a_max=1, out=image)
+
+        return image
 
     def _get_attribute(self, key):
         if key not in self.attributes:
