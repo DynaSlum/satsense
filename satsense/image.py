@@ -90,7 +90,9 @@ class Image:
         """Read band from file and normalize if required."""
         image = self._read_band(band, block)
         if self.normalization_parameters:
-            image = self._normalize(image, band)
+            dtype = self.normalization_parameters['dtype']
+            image = image.astype(dtype, casting='same_kind', copy=False)
+            self._normalize(image, band)
         return image
 
     def _read_band(self, band, block=None):
@@ -160,13 +162,9 @@ class Image:
                 "to normalize band %s, setting it to 0.", lower, upper, band)
             image[:] = 0
         else:
-            dtype = self.normalization_parameters['dtype']
-            image = image.astype(dtype, casting='same_kind', copy=False)
             image -= lower
             image /= upper - lower
             np.ma.clip(image, a_min=0, a_max=1, out=image)
-
-        return image
 
     def _get_attribute(self, key):
         if key not in self.attributes:
