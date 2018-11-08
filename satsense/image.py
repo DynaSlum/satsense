@@ -118,14 +118,18 @@ class Image:
         if band not in self.normalization:
             # select only non-masked values for computing scale
             if image is None:
+                overwrite_input = True
                 image = self._read_band(band)
+            else:
+                overwrite_input = False
             data = image[~image.mask] if np.ma.is_masked(image) else image
             technique = self.normalization_parameters['technique']
             if not data.any():
                 limits = 0, 0
             elif technique == 'cumulative':
                 percentiles = self.normalization_parameters['percentiles']
-                limits = np.nanpercentile(data, percentiles)
+                limits = np.nanpercentile(
+                    data, percentiles, overwrite_input=overwrite_input)
             elif technique == 'meanstd':
                 numstds = self.normalization_parameters['numstds']
                 mean = data.nanmean()
