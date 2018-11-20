@@ -63,8 +63,10 @@ def texton_cluster(images: Iterator[Image], n_clusters=32,
     """Compute texton clusters."""
     descriptors = []
     for image in images:
-        data = image['texton_descriptors']
-        descriptors.append(data.reshape(-1, data.shape[2]))
+        array = image['texton_descriptors']
+        array = array.reshape(-1, array.shape[-1])
+        non_masked = ~array.mask.any(axis=-1)
+        descriptors.append(array.data[non_masked])
     descriptors = np.vstack(descriptors)
 
     if descriptors.shape[0] > sample_size:
