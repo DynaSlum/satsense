@@ -3,7 +3,7 @@ import logging
 from typing import Iterator
 
 import numpy as np
-from scipy import ndimage
+from scipy.signal import convolve
 from skimage.filters import gabor_kernel, gaussian
 from sklearn.cluster import MiniBatchKMeans
 
@@ -33,15 +33,24 @@ def get_texton_descriptors(image: Image):
     """Compute texton descriptors."""
     logger.debug("Computing texton descriptors")
     kernels = create_texton_kernels()
-    length = len(kernels) + 1
-    grayscale = image['grayscale']
-    result = np.zeros(grayscale.shape + (length, ), dtype=np.double)
-    for k, kernel in enumerate(kernels):
-        result[:, :, k] = ndimage.convolve(grayscale, kernel, mode='wrap')
 
-    # Calculate Difference-of-Gaussian
-    dog = gaussian(grayscale, sigma=1) - gaussian(grayscale, sigma=3)
-    result[:, :, length - 1] = dog
+    # Prepare input image
+    array = image['grayscale']
+    mask = array.mask
+    array = array.filled(fill_value=0)
+
+    # Create result image
+    shape = array.shape + (len(kernels) + 1, )
+    result = np.ma.empty(shape, dtype=array.dtype)
+    result.mask = np.zeros(result.shape, dtype=bool)
+
+    for k, kernel in enumerate(kernels):
+        result[:, :, k] = convolve(array, kernel, mode='same')
+        result.mask[:, :, k] = mask
+
+    result[:, :, -1] = gaussian(array, sigma=1) - gaussian(array, sigma=3)
+    result.mask[:, :, -1] = mask
+
     logger.debug("Done computing texton descriptors")
     return result
 
@@ -54,8 +63,10 @@ def texton_cluster(images: Iterator[Image], n_clusters=32,
     """Compute texton clusters."""
     descriptors = []
     for image in images:
-        data = image['texton_descriptors']
-        descriptors.append(data.reshape(-1, data.shape[2]))
+        array = image['texton_descriptors']
+        array = array.reshape(-1, array.shape[-1])
+        non_masked = ~array.mask.any(axis=-1)
+        descriptors.append(array.data[non_masked])
     descriptors = np.vstack(descriptors)
 
     if descriptors.shape[0] > sample_size:

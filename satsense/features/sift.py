@@ -16,7 +16,9 @@ def sift_cluster(images: Iterator[Image], n_clusters=32,
     """Create the clusters needed to compute the sift feature."""
     descriptors = None
     for image in images:
-        _, new_descriptors = SIFT.detectAndCompute(image['gray_ubyte'], None)
+        array = image['gray_ubyte']
+        inverse_mask = (~array.mask).astype(np.uint8)
+        _, new_descriptors = SIFT.detectAndCompute(array, inverse_mask)
         del _  # Free up memory
 
         # Add descriptors if we already had some

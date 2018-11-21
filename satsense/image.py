@@ -31,8 +31,7 @@ class Image:
                  band='rgb',
                  normalization_parameters=None,
                  block=None,
-                 cached=None,
-                 dtype=np.float32):
+                 cached=None):
 
         self.filename = filename
         self.satellite = satellite
@@ -44,13 +43,13 @@ class Image:
             normalization_parameters = {
                 'technique': 'cumulative',
                 'percentiles': [2.0, 98.0],
+                'dtype': np.float32,
             }
         self.normalization_parameters = normalization_parameters
 
         self._block = block
         self.cached = [] if cached is None else cached
         self.cache = {}
-        self.dtype = dtype
 
         self.attributes = {}
 
@@ -91,6 +90,8 @@ class Image:
         """Read band from file and normalize if required."""
         image = self._read_band(band, block)
         if self.normalization_parameters:
+            dtype = self.normalization_parameters['dtype']
+            image = image.astype(dtype, casting='same_kind', copy=False)
             self._normalize(image, band)
         return image
 
@@ -100,8 +101,7 @@ class Image:
         bandno = self.bands[band] + 1
         with rasterio.open(self.filename) as dataset:
             image = dataset.read(
-                bandno, window=block, boundless=True,
-                masked=True).astype(self.dtype)
+                bandno, window=block, boundless=True, masked=True)
             return image
 
     def precompute_normalization(self, *bands):
@@ -118,14 +118,18 @@ class Image:
         if band not in self.normalization:
             # select only non-masked values for computing scale
             if image is None:
+                overwrite_input = True
                 image = self._read_band(band)
+            else:
+                overwrite_input = False
             data = image[~image.mask] if np.ma.is_masked(image) else image
             technique = self.normalization_parameters['technique']
             if not data.any():
                 limits = 0, 0
             elif technique == 'cumulative':
                 percentiles = self.normalization_parameters['percentiles']
-                limits = np.nanpercentile(data, percentiles)
+                limits = np.nanpercentile(
+                    data, percentiles, overwrite_input=overwrite_input)
             elif technique == 'meanstd':
                 numstds = self.normalization_parameters['numstds']
                 mean = data.nanmean()
@@ -135,6 +139,8 @@ class Image:
                 limits = data.nanmin(), data.nanmax()
 
             lower, upper = limits
+            logger.info("Normalizing [%s, %s] to [0, 1] for band %s", lower,
+                        upper, band)
             if not np.isclose(lower, upper) and lower > upper:
                 raise ValueError(
                     "Unable to normalize {} band of {} with normalization "
