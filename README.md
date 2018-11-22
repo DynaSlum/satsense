@@ -38,10 +38,13 @@ python3 -m venv ~/venv/satsense
 source ~/venv/satsense/bin/activate
 ```
 
-Finally, to install satsense in development mode run
+Finally, to install satsense, run
 ```bash
-pip install -e .
+pip install .
 ```
+
+## Contributing
+Contributions are very welcome! Please see [CONTRIBUTING.md](https://github.com/DynaSlum/satsense/blob/master/CONTRIBUTING.md) for our contribution guidelines.
 
 ## Citing Satsense
 If you use Satsense for scientific research, please cite it. You can download citation files from [research-software.nl](https://www.research-software.nl/software/satsense).
