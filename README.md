@@ -53,3 +53,7 @@ The collection of algorithms made available trough this package is inspired by
 doi: 10.1109/JSTARS.2012.2190383
 
 Jordan Graesser himself also maintains [a library](https://github.com/jgrss/spfeas) with many of these algorithms.
+
+
+### Test Data
+The test data has been extracted from the Copernicus Sentinel data 2018

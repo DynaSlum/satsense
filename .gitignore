@@ -11,3 +11,4 @@ __pycache__
 .vscode
 satsense.egg-info/
 test-reports/
+.DS_Store
