@@ -1,8 +1,13 @@
 *.asv
-.ipynb_checkpoints/
-.vscode
-__pycache__
-satsense.egg-info/
 *.pyc
+__pycache__
+.coverage*
+.eggs/
+.hypothesis
+.ipynb_checkpoints/
 .project
 .pydevproject
+.pytest_cache/
+.vscode
+satsense.egg-info/
+test-reports/

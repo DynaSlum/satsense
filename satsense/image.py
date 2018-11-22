@@ -3,261 +3,190 @@
 import logging
 import math
 import warnings
+from types import MappingProxyType
 
 import numpy as np
 import rasterio
-from osgeo import gdal
-from scipy import ndimage
-from skimage import color, img_as_ubyte
-from skimage.feature import canny
-from skimage.filters import gabor_kernel, gaussian
-from skimage.filters.rank import equalize
-from skimage.morphology import disk
+from netCDF4 import Dataset
+from skimage import img_as_ubyte
+from skimage.color import gray2rgb, rgb2gray
 
 from .bands import BANDS
-
-gdal.AllRegister()
 
 logger = logging.getLogger(__name__)
 
 
 class Image:
-    def __init__(self, image, bands=None, itype='raw'):
-        if bands is None:
-            bands = self._guess_bands(image.shape)
-        if not isinstance(bands, dict):
-            bands = BANDS[bands]
-        if len(bands) == 1 and image is not None and len(image.shape) == 2:
-            image = np.reshape(image, image.shape + (1, ))
-        self._bands = bands
-        self._images = {itype: image}
-        self._normalization_parameters = {
-            'technique': 'cumulative',
-            'percentiles': [2.0, 98.0],
-            'numstds': 2,
-        }
 
-    @staticmethod
-    def _guess_bands(shape):
-        """Try to guess the bands from the array shape."""
-        bands = None
-        if len(shape) == 2:
-            bands = 'monochrome'
-        elif len(shape) == 3:
-            if shape[2] == 1:
-                bands = 'monochrome'
-            elif shape[2] == 3:
-                bands = 'rgb'
+    itypes = {}
 
-        if bands is None:
-            raise ValueError("Unable to guess bands for array of shape {}"
-                             .format(shape))
-        return bands
+    @classmethod
+    def register(cls, itype, function):
+        """Register a new image type."""
+        cls.itypes[itype] = function
 
-    @property
-    def raw(self):
-        return self._images['raw']
+    def __init__(self,
+                 filename,
+                 satellite,
+                 band='rgb',
+                 normalization_parameters=None,
+                 block=None,
+                 cached=None):
 
-    @property
-    def bands(self):
-        return self._bands
+        self.filename = filename
+        self.satellite = satellite
+        self.bands = BANDS[satellite.lower()]
+        self.band = band
 
-    @property
-    def normalized(self):
-        if 'normalized' not in self._images:
-            self._images['normalized'] = get_normalized_image(
-                self.raw, self.bands, **self._normalization_parameters)
-        return self._images['normalized']
+        self.normalization = {}
+        if normalization_parameters is None:
+            normalization_parameters = {
+                'technique': 'cumulative',
+                'percentiles': [2.0, 98.0],
+                'dtype': np.float32,
+            }
+        self.normalization_parameters = normalization_parameters
 
-    @property
-    def rgb(self):
-        if 'rgb' not in self._images:
-            self._images['rgb'] = get_rgb_image(self.normalized, self.bands)
-        return self._images['rgb']
+        self._block = block
+        self.cached = [] if cached is None else cached
+        self.cache = {}
 
-    @property
-    def grayscale(self):
-        if 'grayscale' not in self._images:
-            self._images['grayscale'] = get_grayscale_image(
-                self.rgb, BANDS['rgb'])
-        return self._images['grayscale']
+        self.attributes = {}
 
-    @property
-    def gray_ubyte(self):
-        if 'gray_ubyte' not in self._images:
-            self._images['gray_ubyte'] = get_gray_ubyte_image(self.grayscale)
-        return self._images['gray_ubyte']
+    def copy_block(self, block):
+        """Create a subset of Image."""
+        logger.info("Selecting block %s from image with shape %s", block,
+                    self.shape)
+        image = Image(
+            self.filename,
+            self.satellite,
+            band=self.band,
+            normalization_parameters=self.normalization_parameters,
+            block=block,
+            cached=self.cached)
+        image.normalization = MappingProxyType(self.normalization)
+        return image
 
-    @property
-    def canny_edge(self):
-        if 'canny_edge' not in self._images:
-            if isinstance(self, Window):
-                raise ValueError("Unable to compute canny_edged on Window, "
-                                 "compute this on the full image.")
-            # TODO: check if we should use gray_ubyte instead
-            self._images['canny_edge'] = get_canny_edge_image(
-                self.grayscale, radius=30, sigma=0.5)
+    def __getitem__(self, itype):
+        """Get image of type."""
+        if itype in self.cache:
+            return self.cache[itype]
 
-        return self._images['canny_edge']
+        if itype in self.bands:
+            image = self._load_band(itype, self._block)
+        elif itype in self.itypes:
+            image = self.itypes[itype](self)
+        else:
+            raise IndexError(
+                "Unknown itype {}, choose from {} or register a new itype "
+                "using the register method.".format(itype, self.itypes))
 
-    @property
-    def texton_descriptors(self):
-        if 'texton_descriptors' not in self._images:
-            if isinstance(self, Window):
-                raise ValueError("Unable to compute texton descriptors on "
-                                 "Window, compute this on the full image.")
-            self._images['texton_descriptors'] = get_texton_descriptors(
-                self.grayscale)
+        if self.cached is True or itype in self.cached:
+            self.cache[itype] = image
 
-        return self._images['texton_descriptors']
+        return image
+
+    def _load_band(self, band, block=None):
+        """Read band from file and normalize if required."""
+        image = self._read_band(band, block)
+        if self.normalization_parameters:
+            dtype = self.normalization_parameters['dtype']
+            image = image.astype(dtype, casting='same_kind', copy=False)
+            self._normalize(image, band)
+        return image
+
+    def _read_band(self, band, block=None):
+        """Read band from file."""
+        logger.info("Loading band %s from file %s", band, self.filename)
+        bandno = self.bands[band] + 1
+        with rasterio.open(self.filename) as dataset:
+            image = dataset.read(
+                bandno, window=block, boundless=True, masked=True)
+            return image
+
+    def precompute_normalization(self, *bands):
+
+        if not self.normalization_parameters:
+            return
+
+        for band in bands or self.bands:
+            if band not in self.normalization:
+                self._get_normalization_limits(band)
+
+    def _get_normalization_limits(self, band, image=None):
+        """Return normalization limits for band."""
+        if band not in self.normalization:
+            # select only non-masked values for computing scale
+            if image is None:
+                overwrite_input = True
+                image = self._read_band(band)
+            else:
+                overwrite_input = False
+            data = image[~image.mask] if np.ma.is_masked(image) else image
+            technique = self.normalization_parameters['technique']
+            if not data.any():
+                limits = 0, 0
+            elif technique == 'cumulative':
+                percentiles = self.normalization_parameters['percentiles']
+                limits = np.nanpercentile(
+                    data, percentiles, overwrite_input=overwrite_input)
+            elif technique == 'meanstd':
+                numstds = self.normalization_parameters['numstds']
+                mean = data.nanmean()
+                std = data.nanstd()
+                limits = mean - (numstds * std), mean + (numstds * std)
+            else:
+                limits = data.nanmin(), data.nanmax()
+
+            lower, upper = limits
+            logger.info("Normalizing [%s, %s] to [0, 1] for band %s", lower,
+                        upper, band)
+            if not np.isclose(lower, upper) and lower > upper:
+                raise ValueError(
+                    "Unable to normalize {} band of {} with normalization "
+                    "parameters {} because lower limit is larger or equal to "
+                    "upper limit for limits={}.".format(
+                        band, self.filename, self.normalization_parameters,
+                        limits))
+
+            self.normalization[band] = limits
+
+        return self.normalization[band]
+
+    def _normalize(self, image, band):
+        """Normalize image with limits for band."""
+        lower, upper = self._get_normalization_limits(band, image)
+        if np.isclose(lower, upper):
+            logger.warning(
+                "Lower and upper limit %s, %s are considered too close "
+                "to normalize band %s, setting it to 0.", lower, upper, band)
+            image[:] = 0
+        else:
+            image -= lower
+            image /= upper - lower
+            np.ma.clip(image, a_min=0, a_max=1, out=image)
+
+    def _get_attribute(self, key):
+        if key not in self.attributes:
+            with rasterio.open(self.filename) as dataset:
+                self.attributes[key] = getattr(dataset, key)
+        return self.attributes[key]
 
     @property
     def shape(self):
-        """Two dimensional shape of the image."""
-        return self._images[next(iter(self._images))].shape[:2]
+        return self._get_attribute('shape')
 
-    def shallow_copy_range(self, x_range, y_range, pad=True):
-        """Create a shallow copy."""
-        # We need a normalized image, because normalization breaks
-        # if you do it on a smaller range
-        if 'raw' in self._images or 'normalized' in self._images:
-            itype = 'normalized'
-            image = self.normalized
-        else:
-            # Pick something random if the preferred images are not available
-            itype = next(iter(self._images))
-            image = self._images[itype]
-        img = Image(image[x_range, y_range], self._bands, itype=itype)
+    @property
+    def crs(self):
+        return self._get_attribute('crs')
 
-        for itype in self._images:
-            if itype not in img._images:
-                img._images[itype] = self._images[itype][x_range, y_range]
-
-        if not pad:
-            return img
-
-        # Check whether we need padding. This should only be needed at the
-        # right and bottom edges of the image
-        x_pad_before = 0
-        y_pad_before = 0
-
-        x_pad_after = 0
-        y_pad_after = 0
-        pad_needed = False
-        if x_range.stop is not None and x_range.stop > self.shape[0]:
-            pad_needed = True
-            x_pad_after = x_range.stop - self.shape[0]
-        if y_range.stop is not None and y_range.stop > self.shape[1]:
-            pad_needed = True
-            y_pad_after = y_range.stop - self.shape[1]
-
-        if pad_needed:
-            img.pad(x_pad_before, x_pad_after, y_pad_before, y_pad_after)
-
-        return img
-
-    def pad(self, x_pad_before: int, x_pad_after: int, y_pad_before: int,
-            y_pad_after: int):
-        """Pad the image."""
-        for img_type in self._images:
-            pad_width = (
-                (x_pad_before, x_pad_after),
-                (y_pad_before, y_pad_after),
-            )
-            if len(self._images[img_type].shape) == 3:
-                pad_width += ((0, 0), )
-
-            self._images[img_type] = np.pad(
-                self._images[img_type],
-                pad_width,
-                'constant',
-                constant_values=0)
-
-    @staticmethod
-    def minimal_image_types(itypes):
-        """Get the minimal set of images from which itypes can be derived."""
-        required_images = set()
-
-        # Images are derived in the following order, select only one
-        order = ('raw', 'normalized', 'rgb', 'grayscale', 'gray_ubyte')
-        for itype in order:
-            if itype in itypes:
-                required_images.add(itype)
-                break
-
-        # Add additional images types that must be computed on the entire image
-        for itype in ('canny_edge', 'texton_descriptors'):
-            if itype in itypes:
-                required_images.add(itype)
-
-        return required_images
-
-    def precompute(self, itypes):
-        """Precompute images."""
-        for itype in itypes:
-            getattr(self, itype)
-
-    def collapse(self, itypes):
-        """Precompute images and remove no longer needed image types."""
-        required_images = self.minimal_image_types(itypes)
-        self._images = {i: getattr(self, i) for i in required_images}
-
-
-class Window(Image):
-    """Part of an image.
-
-    At a certain x, y location, with an x_range, y_range extent (slice).
-    """
-
-    def __init__(self,
-                 image: Image,
-                 x: int,
-                 y: int,
-                 x_range: slice,
-                 y_range: slice,
-                 orig: Image = None):
-        super().__init__(image=None, bands=image.bands)
-
-        self._images = image._images
-
-        self.x = x
-        self.y = y
-        self.x_range = x_range
-        self.y_range = y_range
-
-        if orig:
-            self.image = orig
-        else:
-            self.image = image
-
-
-class SatelliteImage(Image):
-    def __init__(self, array, satellite, name='', crs=None, transform=None):
-        super().__init__(array, bands=satellite)
-        self.name = name
-        self.transform = transform
-        self.crs = crs
-
-    @classmethod
-    def load_from_file(cls, path, satellite):
-        """Load the specified path and bands from file into a numpy array."""
-        with rasterio.open(path) as dataset:
-            image = dataset.read(masked=True)
-            crs = dataset.crs
-            transform = dataset.transform
-
-        if len(image.shape) == 3:
-            # The bands column is in the first position, but we want it last
-            image = np.rollaxis(image, 0, 3)
-        elif len(image.shape) == 2:
-            # This image seems to have one band, so we add an axis for ease
-            # of use in the rest of the library
-            image = image[:, :, np.newaxis]
-
-        return cls(image, satellite, name=path, crs=crs, transform=transform)
+    @property
+    def transform(self):
+        return self._get_attribute('transform')
 
     def scaled_transform(self, cell_size):
         """Compute a transform for a scaled down version of the image."""
+        # TODO: check this, it may be off by a fraction of the cell size
         x_length = math.ceil(self.shape[0] / cell_size[0])
         y_length = math.ceil(self.shape[1] / cell_size[1])
         (west, south, east, north) = rasterio.transform.array_bounds(
@@ -267,109 +196,41 @@ class SatelliteImage(Image):
         return transform
 
 
-def get_normalized_image(image,
-                         bands,
-                         technique='cumulative',
-                         percentiles=(2.0, 98.0),
-                         numstds=2):
-    """Normalize the image based on the band maximum."""
-    logger.debug("Computing normalized image")
-    result = image.copy()
-    for band in bands.values():
-        if np.ma.is_masked(image):
-            # select only non-masked values for computing scale
-            selection = image[:, :, band].compressed()
-        else:
-            selection = image[:, :, band]
-        if technique == 'cumulative':
-            percents = np.nanpercentile(selection, percentiles)
-            new_min, new_max = percents
-        elif technique == 'meanstd':
-            mean = selection.nanmean()
-            std = selection.nanstd()
-            new_min = mean - (numstds * std)
-            new_max = mean + (numstds * std)
-        else:
-            new_min = selection.nanmin()
-            new_max = selection.nanmax()
-
-        result[:, :, band] = remap(image[:, :, band], new_min, new_max, 0, 1)
-
-        np.clip(result[:, :, band], a_min=0, a_max=1, out=result[:, :, band])
-    logger.debug("Done computing normalized image")
-    return result
-
-
-def get_rgb_image(image, bands):
+def get_rgb_image(image: Image):
     """Convert the image to rgb format."""
     #     logger.debug("Computing rgb image")
-    if bands != BANDS['monochrome']:
-        red = image[:, :, bands['red']]
-        green = image[:, :, bands['green']]
-        blue = image[:, :, bands['blue']]
-
-        result = np.rollaxis(np.array([red, green, blue]), 0, 3)
+    if image.band == 'rgb':
+        red = image['red']
+        green = image['green']
+        blue = image['blue']
+        rgb = np.ma.dstack([red, green, blue])
     else:
-        result = color.grey2rgb(image)
-
+        gray = image[image.band]
+        rgb = np.ma.array(gray2rgb(gray))
+        rgb.mask = gray.mask
     #     logger.debug("Done computing rgb image")
-    return result
+    return rgb
 
 
-def remap(image, o_min, o_max, n_min, n_max):
-    # range check
-    if o_min == o_max:
-        # print("Warning: Zero input range")
-        return 0
-
-    if n_min == n_max:
-        # print("Warning: Zero output range")
-        return 0
-
-    # check reversed input range
-    reverse_input = False
-    old_min = min(o_min, o_max)
-    old_max = max(o_min, o_max)
-    if not old_min == o_min:
-        reverse_input = True
-
-    # check reversed output range
-    reverse_output = False
-    new_min = min(n_min, n_max)
-    new_max = max(n_min, n_max)
-    if not new_min == n_min:
-        reverse_output = True
+Image.register('rgb', get_rgb_image)
 
 
-#     print("Remapping from range [{0}-{1}] to [{2}-{3}]"
-#           .format(old_min, old_max, new_min, new_max))
-    scale = (new_max - new_min) / (old_max - old_min)
-    if reverse_input:
-        portion = (old_max - image) * scale
-    else:
-        portion = (image - old_min) * scale
-
-    if reverse_output:
-        result = new_max - portion
-    else:
-        result = portion + new_min
-
-    return result
-
-
-def get_grayscale_image(image, bands):
+def get_grayscale_image(image: Image):
     #     logger.debug("Computing grayscale image")
-    if bands != BANDS['rgb']:
-        rgb_image = get_rgb_image(image, bands)
+    if image.band == 'rgb':
+        rgb = image['rgb']
+        mask = np.bitwise_or.reduce(rgb.mask, axis=2)
+        gray = np.ma.array(rgb2gray(rgb), mask=mask)
     else:
-        rgb_image = image
-
-    result = color.rgb2gray(rgb_image)
+        gray = image[image.band]
     #     logger.debug("Done computing grayscale image")
-    return result
+    return gray
 
 
-def get_gray_ubyte_image(image):
+Image.register('grayscale', get_grayscale_image)
+
+
+def get_gray_ubyte_image(image: Image):
     """Convert image in 0 - 1 scale format to ubyte 0 - 255 format.
 
     Uses img_as_ubyte from skimage.
@@ -378,53 +239,105 @@ def get_gray_ubyte_image(image):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         # Ignore loss of precision warning
-        result = img_as_ubyte(image)
+        gray = image['grayscale']
+        ubyte = np.ma.array(img_as_ubyte(gray), mask=gray.mask)
 
     #     logger.debug("Done computing gray ubyte image")
-    return result
+    return ubyte
 
 
-def get_canny_edge_image(image, radius, sigma):
-    """Compute Canny edge image."""
-    logger.debug("Computing Canny edge image")
-    # local histogram equalization
-    grayscale = equalize(image, selem=disk(radius))
-    try:
-        result = canny(grayscale, sigma=sigma)
-    except TypeError:
-        print("Canny type error")
-        result = np.zeros(image.shape)
-    logger.debug("Done computing Canny edge image")
-    return result
+Image.register('gray_ubyte', get_gray_ubyte_image)
 
 
-def create_texton_kernels():
-    """Create filter bank kernels."""
-    kernels = []
-    angles = 8
-    thetas = np.linspace(0, np.pi, angles)
-    for theta in thetas:
-        for sigma in (1, ):
-            for frequency in (0.05, ):
-                kernel = np.real(
-                    gabor_kernel(
-                        frequency, theta=theta, sigma_x=sigma, sigma_y=sigma))
-                kernels.append(kernel)
+class FeatureVector():
+    """Class to store a feature vector in."""
 
-    return kernels
+    def __init__(self, feature, vector):
+        self.vector = vector
 
+        self.feature = feature
 
-def get_texton_descriptors(image):
-    """Compute texton descriptors."""
-    logger.debug("Computing texton descriptors")
-    kernels = create_texton_kernels()
-    length = len(kernels) + 1
-    result = np.zeros(image.shape + (length, ), dtype=np.double)
-    for k, kernel in enumerate(kernels):
-        result[:, :, k] = ndimage.convolve(image, kernel, mode='wrap')
+        self.crs = None
+        self.transform = None
 
-    # Calculate Difference-of-Gaussian
-    dog = gaussian(image, sigma=1) - gaussian(image, sigma=3)
-    result[:, :, length - 1] = dog
-    logger.debug("Done computing texton descriptors")
-    return result
+    def get_filename(self, window, prefix='', extension='nc'):
+        return '{}{}_{}_{}.{}'.format(prefix, self.feature.name, window[0],
+                                      window[1], extension)
+
+    def save(self, filename_prefix='', extension='nc'):
+        """Save feature vector to file."""
+        for i, window in enumerate(self.feature.windows):
+            filename = self.get_filename(window, filename_prefix, extension)
+            logger.info("Saving feature %s window %s to file %s",
+                        self.feature.name, window, filename)
+
+            data = self.vector[..., i, :]
+            if extension.lower() == 'nc':
+                self._save_as_netcdf(data, filename, window)
+            elif extension.lower() == 'tif':
+                self._save_as_tif(data, filename, window)
+
+    def _save_as_netcdf(self, data, filename, window):
+        """Save feature vector as NetCDF file."""
+        with Dataset(filename, 'w') as dataset:
+            dataset.window = window
+            dataset.arguments = repr(self.feature.kwargs)
+            dataset.createDimension('size', data.shape[-1])
+            if len(data.shape) == 2:
+                dataset.createDimension('length', data.shape[0])
+                variable = dataset.createVariable(
+                    self.feature.name, 'f4', dimensions=('length', 'size'))
+            elif len(data.shape) == 3:
+                width, height = data.shape[:2]
+                dataset.createDimension('width', width)
+                dataset.createDimension('height', height)
+                variable = dataset.createVariable(
+                    self.feature.name,
+                    'f4',
+                    dimensions=('width', 'height', 'size'))
+            variable[:] = data
+
+    def _save_as_tif(self, data, filename, window):
+        """Save feature array as GeoTIFF file."""
+        width, height, size = data.shape
+        data = np.ma.filled(data)
+        fill_value = data.fill_value if np.ma.is_masked(data) else None
+        # This is probably wrong
+        data = np.moveaxis(data, source=2, destination=0)
+        with rasterio.open(
+                filename,
+                mode='w',
+                driver='GTiff',
+                width=width,
+                height=height,
+                count=size,
+                dtype=rasterio.float32,
+                crs=self.crs,
+                transform=self.transform,
+                nodata=fill_value) as dataset:
+            dataset.write(data)
+            dataset.update_tags(
+                window=window, arguments=repr(self.feature.kwargs))
+
+    @classmethod
+    def from_file(cls, feature, filename_prefix, extension='nc'):
+        """Restore saved features."""
+        new = cls(feature, None)
+        for window in feature.windows:
+            filename = new.get_filename(window, filename_prefix, extension)
+            logger.debug("Loading feature %s from file %s", feature.name,
+                         filename)
+            with Dataset(filename, 'r') as dataset:
+                var = dataset.variables[feature.name]
+                if new.vector is None:
+                    shape = var.shape[:2] + (len(feature.windows),
+                                             feature.size)
+                    new.vector = np.zeros(shape, dtype=np.float32)
+                window = tuple(dataset.window)
+                idx = feature.windows.index(window)
+                if repr(feature.kwargs) != dataset.arguments:
+                    logger.warning(
+                        "Stored arguments do not match feature, %r != %s",
+                        feature.kwargs, dataset.arguments)
+                new.vector[:, :, idx, :] = var[:]
+        return new

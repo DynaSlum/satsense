@@ -2,115 +2,70 @@
 import logging
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
+from itertools import groupby
 from os import cpu_count
 
 import numpy as np
-import rasterio
 
-from netCDF4 import Dataset
+from .image import FeatureVector
 
 logger = logging.getLogger(__name__)
 
 
 def extract_features_parallel(features, generator, n_jobs=cpu_count()):
     """Extract features in parallel."""
-    logger.debug("Extracting features using at most %s processes", n_jobs)
+    logger.info("Extracting features using at most %s processes", n_jobs)
+    generator.image.precompute_normalization()
 
-    # Specify jobs
-    generators = generator.split(n_jobs=n_jobs, features=features)
+    # Split generator in chunks
+    generators = tuple(generator.split(n_chunks=n_jobs))
 
-    # Execute jobs
-    with ProcessPoolExecutor() as executor:
-        extract = partial(extract_features, features)
-        feature_vector = np.vstack(executor.map(extract, generators))
-
-    logger.debug("Done extracting features. Feature vector shape %s",
-                 feature_vector.shape)
-    return feature_vector
+    with ProcessPoolExecutor(max_workers=n_jobs) as executor:
+        for feature in features:
+            extract = partial(extract_feature, feature)
+            vector = np.ma.vstack(tuple(executor.map(extract, generators)))
+            yield FeatureVector(feature, vector)
 
 
 def extract_features(features, generator):
     """Compute features."""
-    shape = (generator.shape[0], generator.shape[1], features.index_size)
-    feature_vector = np.zeros(
-        (shape[0] * shape[1], shape[2]), dtype=np.float32)
-    logger.debug("Feature vector shape %s", shape)
+    generator.image.precompute_normalization()
 
-    # Pre compute images
-    logger.debug("Using base images: %s", ', '.join(features.base_images))
-    generator.image.precompute(features.base_images)
+    for itype, group in groupby(features, lambda f: f.base_image):
+        group = list(group)
+        logger.info("Loading base image %s", itype)
+        window_shapes = {
+            shape
+            for feature in group for shape in feature.windows
+        }
+        generator.load_image(itype, window_shapes)
+        for feature in group:
+            vector = extract_feature(feature, generator)
+            yield FeatureVector(feature, vector)
 
-    size = len(generator)
-    for i, cell in enumerate(generator):
+
+def extract_feature(feature, generator):
+    """Compute a feature vector."""
+    logger.info("Computing feature %s with windows %s and arguments %s",
+                feature.__class__.__name__, feature.windows, feature.kwargs)
+    if not generator.loaded_itype == feature.base_image:
+        logger.info("Loading base image %s", feature.base_image)
+        generator.load_image(feature.base_image, feature.windows)
+
+    shape = generator.shape + (len(feature.windows), feature.size)
+    vector = np.ma.zeros((np.prod(shape[:-1]), feature.size), dtype=np.float32)
+    vector.mask = np.zeros_like(vector, dtype=bool)
+
+    size = vector.shape[0]
+    for i, window in enumerate(generator):
+        if window.shape[:2] not in feature.windows:
+            continue
         if i % (size // 10 or 1) == 0:
-            logger.debug("%s%% ready", 100 * i // size)
-        for feature in features.items.values():
-            feature_vector[i, feature.indices] = feature(cell)
-    feature_vector.shape = shape
+            logger.info("%s%% ready", 100 * i // size)
+        if window.mask.any():
+            vector.mask[i] = True
+        else:
+            vector[i] = feature(window)
 
-    return feature_vector
-
-
-def save_features(features,
-                  feature_vector,
-                  filename_prefix='',
-                  extension='.nc',
-                  crs=None,
-                  transform=None):
-    """Save computed features."""
-    for name, feature in features.items.items():
-        filename = filename_prefix + name + extension
-        logger.debug("Saving feature %s to file %s", name, filename)
-        data = feature_vector[:, :, feature.indices]
-        if extension.lower() == '.nc':
-            _save_array_as_netcdf(data, filename, name)
-        elif extension.lower() == '.tif':
-            _save_array_as_tif(data, filename, crs=crs, transform=transform)
-
-
-def _save_array_as_netcdf(data, filename, feature_name):
-    """Save feature array as NetCDF file."""
-    width, height, length = data.shape
-    with Dataset(filename, 'w') as dataset:
-        dataset.createDimension('width', width)
-        dataset.createDimension('height', height)
-        dataset.createDimension('length', length)
-        variable = dataset.createVariable(
-            feature_name, 'f4', dimensions=('width', 'height', 'length'))
-        variable[:] = data
-
-
-def _save_array_as_tif(data, filename, crs, transform):
-    """Save feature array as GeoTIFF file."""
-    width, height, length = data.shape
-    data = np.ma.filled(data)
-    fill_value = data.fill_value if np.ma.is_masked(data) else None
-    data = np.moveaxis(data, source=2, destination=0)
-    with rasterio.open(
-            filename,
-            mode='w',
-            driver='GTiff',
-            width=width,
-            height=height,
-            count=length,
-            dtype=rasterio.float32,
-            crs=crs,
-            transform=transform,
-            nodata=fill_value) as dataset:
-        dataset.write(data)
-
-
-def load_features(features, filename_prefix):
-    """Restore saved features."""
-    feature_vector = None
-    for name, feature in features.items.items():
-        filename = filename_prefix + name + '.nc'
-        logger.debug("Loading feature %s from file %s", name, filename)
-        with Dataset(filename, 'r') as dataset:
-            if feature_vector is None:
-                shape = dataset.variables[name].shape[:2] + (
-                    features.index_size, )
-                feature_vector = np.empty(shape, dtype='f4')
-            feature_vector[:, :, feature.indices] = dataset.variables[name][:]
-
-    return feature_vector
+    vector.shape = shape
+    return vector

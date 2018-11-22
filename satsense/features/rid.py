@@ -13,7 +13,6 @@ from scipy.ndimage import zoom
 from skimage.feature import peak_local_max
 
 from pysal.esda.getisord import G_Local
-from pysal.esda.moran import Moran_Local
 from pysal.weights.Distance import DistanceBand
 from satsense.image import SatelliteImage
 
@@ -21,7 +20,7 @@ LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-class ktype(Enum):
+class Ktype(Enum):
     """
     This enum contains the different versions of the convolution kernels.
 
@@ -42,14 +41,14 @@ class Kernel:
         road_length:    The length of the road in the kernel in pixels;
                         integer
         kernel_type:    The type of kernel to be used. Available types are
-                        listed in the ktype enum; integer
+                        listed in the Ktype enum; integer
 
     """
 
     def __init__(self,
                  road_width=30,
                  road_length=70,
-                 kernel_type=ktype.GAUSSIAN):
+                 kernel_type=Ktype.GAUSSIAN):
         self._road_width = road_width
         self._road_length = road_length
         self._kernel_type = kernel_type
@@ -74,13 +73,13 @@ class Kernel:
         of an road intersection as seen from satellite images.
 
         """
-        if self._kernel_type == ktype.ORIGINAL:
+        if self._kernel_type == Ktype.ORIGINAL:
             return self.__create_original_kernel()
-        if self._kernel_type == ktype.INCREASE:
+        if self._kernel_type == Ktype.INCREASE:
             return self.__create_increase_kernel()
-        if self._kernel_type == ktype.NEGATIVE:
+        if self._kernel_type == Ktype.NEGATIVE:
             return self.__create_negative_kernel()
-        if self._kernel_type == ktype.GAUSSIAN:
+        if self._kernel_type == Ktype.GAUSSIAN:
             return self.__create_gaussian_kernel()
         raise ValueError("Invalid kernel specified")
 
@@ -184,7 +183,6 @@ class Kernel:
         """
         kernel_width = self._road_length * 2 + self._road_width
         g1 = sg.gaussian(kernel_width, std=self._road_width / 2)
-        g2 = sg.gaussian(kernel_width, std=self._road_length)
 
         r1 = np.tile(g1, (kernel_width, 1))
         r2 = np.transpose(r1)
@@ -395,9 +393,8 @@ class RoadIntersectionDensity:
         """
         feature_shape = feature.shape
         zoom_level = [
-            float(self._image.shape[0]) /
-            (self._block_size * feature_shape[0]),
-            float(self._image.shape[1]) / (self._block_size * feature_shape[1])
+            self._image.shape[0] / (self._block_size * feature_shape[0]),
+            self._image.shape[1] / (self._block_size * feature_shape[1]),
         ]
 
         # For the scipy UserWarning:
@@ -406,11 +403,11 @@ class RoadIntersectionDensity:
         # computed dimensions of the interpolated feature matrix has the first
         # decimal lower than 0.5.
         if (zoom_level[0] * feature_shape[0]) % 1 < 0.5:
-            zoom_level[0] = math.ceil(zoom_level[0] * feature_shape[0]) /\
-                            float(feature_shape[0])
+            zoom_level[0] = (
+                math.ceil(zoom_level[0] * feature_shape[0]) / feature_shape[0])
         if (zoom_level[1] * feature_shape[1]) % 1 < 0.5:
-            zoom_level[1] = math.ceil(zoom_level[1] * feature_shape[1]) /\
-                            float(feature_shape[1])
+            zoom_level[1] = (
+                math.ceil(zoom_level[1] * feature_shape[1]) / feature_shape[1])
 
         return zoom(feature, zoom_level, order=3)
 
@@ -421,7 +418,7 @@ if __name__ == '__main__':
 
     image = SatelliteImage.load_from_file(sys.argv[1], 'worldview3')
 
-    kernel = Kernel(road_width=15, road_length=50, kernel_type=ktype.GAUSSIAN)
+    kernel = Kernel(road_width=15, road_length=50, kernel_type=Ktype.GAUSSIAN)
     intersections = RoadIntersections(image, kernel, peak_min_distance=100)
     rid = RoadIntersectionDensity(image, scale=80, block_size=30)
     rid.create(intersections)

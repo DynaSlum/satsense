@@ -97,16 +97,6 @@ def pantex(window, maximum=255):
 
 
 class Pantex(Feature):
-    def __init__(self, windows=((25, 25), )):
-        super(Pantex, self)
-        self.windows = windows
-        self.feature_size = len(self.windows)
-        self.base_image = 'gray_ubyte'
-
-    def __call__(self, cell):
-        result = np.zeros(self.feature_size)
-        for i, window in enumerate(self.windows):
-            win = cell.super_cell(window, padding=True)
-
-            result[i] = pantex(win.gray_ubyte, maximum=255)
-        return result
+    base_image = 'gray_ubyte'
+    size = 1
+    compute = staticmethod(pantex)

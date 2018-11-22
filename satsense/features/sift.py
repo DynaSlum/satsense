@@ -5,20 +5,20 @@ import cv2
 import numpy as np
 from sklearn.cluster import MiniBatchKMeans
 
-from .. import SatelliteImage
+from ..image import Image
 from .feature import Feature
 
 SIFT = cv2.xfeatures2d.SIFT_create()
 
 
-def sift_cluster(sat_images: Iterator[SatelliteImage],
-                 n_clusters=32,
+def sift_cluster(images: Iterator[Image], n_clusters=32,
                  sample_size=100000) -> MiniBatchKMeans:
     """Create the clusters needed to compute the sift feature."""
-    sift = cv2.xfeatures2d.SIFT_create()
     descriptors = None
-    for sat_image in sat_images:
-        _, new_descriptors = sift.detectAndCompute(sat_image.gray_ubyte, None)
+    for image in images:
+        array = image['gray_ubyte']
+        inverse_mask = (~array.mask).astype(np.uint8)
+        _, new_descriptors = SIFT.detectAndCompute(array, inverse_mask)
         del _  # Free up memory
 
         # Add descriptors if we already had some
@@ -40,51 +40,43 @@ def sift_cluster(sat_images: Iterator[SatelliteImage],
     return mbkmeans
 
 
+def sift(window_gray_ubyte, kmeans: MiniBatchKMeans, normalized=True):
+    """Calculate the sift feature on the given window."""
+    _, descriptors = SIFT.detectAndCompute(window_gray_ubyte, None)
+    del _  # Free up memory
+
+    # Is none if no descriptors are found, i.e. on 0 input range
+    n_clusters = kmeans.n_clusters
+    if descriptors is None:
+        return np.zeros(n_clusters)
+
+    codewords = kmeans.predict(descriptors)
+    counts = np.bincount(codewords, minlength=n_clusters)
+
+    # Perform normalization
+    if normalized:
+        counts = counts / n_clusters
+
+    return counts
+
+
 class Sift(Feature):
     """Sift feature."""
 
-    def __init__(self,
-                 kmeans: MiniBatchKMeans,
-                 windows=((25, 25), ),
-                 normalized=True):
+    base_image = 'gray_ubyte'
+    compute = staticmethod(sift)
+
+    def __init__(self, windows, kmeans: MiniBatchKMeans, normalized=True):
         """Create sift feature."""
-        super(Sift, self)
-        self.windows = windows
-        self.kmeans = kmeans
-        self.feature_size = len(self.windows) * kmeans.n_clusters
-        self.normalized = normalized
-        self.base_image = 'gray_ubyte'
+        super().__init__(windows, kmeans=kmeans, normalized=normalized)
+        self.size = kmeans.n_clusters
 
-    def __call__(self, cell):
-        result = np.zeros(self.feature_size)
-        n_clusters = self.kmeans.n_clusters
-        for i, window in enumerate(self.windows):
-            win = cell.super_cell(window, padding=True)
-            start_index = i * n_clusters
-            end_index = (i + 1) * n_clusters
-            result[start_index:end_index] = self.sift(win.gray_ubyte,
-                                                      self.kmeans)
-        return result
-
-    def __str__(self):
-        normalized = "normalized" if self.normalized else "not-normalized"
-        return "Sift-{}-{}".format(str(self.windows), normalized)
-
-    def sift(self, window_gray_ubyte, kmeans: MiniBatchKMeans):
-        """Calculate the sift feature on the given window."""
-        _, descriptors = SIFT.detectAndCompute(window_gray_ubyte, None)
-        del _  # Free up memory
-
-        # Is none if no descriptors are found, i.e. on 0 input range
-        cluster_count = kmeans.n_clusters
-        if descriptors is None:
-            return np.zeros((cluster_count))
-
-        codewords = kmeans.predict(descriptors)
-        counts = np.bincount(codewords, minlength=cluster_count)
-
-        # Perform normalization
-        if self.normalized:
-            counts = counts / cluster_count
-
-        return counts
+    @classmethod
+    def from_images(cls,
+                    windows,
+                    images: Iterator[Image],
+                    n_clusters=32,
+                    sample_size=100000,
+                    normalized=True):
+        kmeans = sift_cluster(images, n_clusters, sample_size)
+        return cls(windows, kmeans, normalized)

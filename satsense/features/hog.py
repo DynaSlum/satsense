@@ -21,24 +21,21 @@ def heaved_central_shift_moment(histogram, order):
     histogram : numpy.ndarray
         The histogram to calculate the moments over
     order : int
-        The order of the moment to calculate, a number between [0, inf) 
+        The order of the moment to calculate, a number between [0, inf)
     """
     if len(histogram.shape) > 1:
-        raise (
-            "Can only calculate moments on a 1d array histogram, but shape is:"
-            + histogram.shape)
+        raise ValueError("Can only calculate moments on a 1d array histogram, "
+                         "but shape is: {}".format(histogram.shape))
 
     if order < 0:
-        raise ("Order cannot be below 0")
+        raise ValueError("Order cannot be below 0")
 
-    bins = histogram.shape[0]
     v0 = np.mean(histogram)
 
     # Moment 0 is just the mean
     if order == 0:
         return v0
 
-    total = 0
     # In the paper they say: sum over all bins
     # The difference of the bin with the mean of the histogram (v0)
     # and multiply with a step function which is 1 when the difference is > 0
@@ -61,7 +58,8 @@ def heaved_central_shift_moment(histogram, order):
 # @inproceedings('kumar2003man', {
 #     'title': 'Man-made structure detection in natural images using a causal multiscale random field',
 #     'author': 'Kumar, Sanjiv and Hebert, Martial',
-#     'booktitle': 'Computer vision and pattern recognition, 2003. proceedings. 2003 ieee computer society conference on',
+#     'booktitle': ('Computer vision and pattern recognition, 2003. proceedings. '
+#                   '2003 ieee computer society conference on'),
 #     'volume': '1',
 #     'pages': 'I--I',
 #     'year': '2003',
@@ -91,7 +89,7 @@ def smoothe_histogram(histogram, kernel, bandwidth):
     The smoothed histogram
     """
     if len(histogram.shape) > 1:
-        raise ("Can only smooth a 1d array histogram")
+        raise ValueError("Can only smooth a 1d array histogram")
 
     bins = histogram.shape[0]
 
@@ -135,11 +133,12 @@ def orientation_histogram(angles, magnitudes, number_of_orientations):
         The centers of the created bins with angles in degrees
     """
     if len(angles.shape) > 2:
-        raise ("Only 2d windows are supported")
+        raise ValueError("Only 2d windows are supported")
 
     if angles.shape != magnitudes.shape:
-        raise ("Angle and magnitude arrays do not match shape: {0} vs. {1}".
-               format(angles.shape, magnitudes.shape))
+        raise ValueError(
+            "Angle and magnitude arrays do not match shape: {} vs. {}".format(
+                angles.shape, magnitudes.shape))
 
     number_of_orientations_per_360 = 360. / number_of_orientations
     x_size, y_size = angles.shape
@@ -155,9 +154,7 @@ def orientation_histogram(angles, magnitudes, number_of_orientations):
         total = 0
         for x in range(x_size):
             for y in range(y_size):
-                if angles[x,
-                          y] >= orientation_start and angles[x,
-                                                             y] < orientation_end:
+                if orientation_start <= angles[x, y] < orientation_end:
                     total += magnitudes[x, y]
 
         histogram[i] = total
@@ -219,22 +216,6 @@ def hog_features(window, bins=50, kernel=scipy.stats.norm().pdf,
 
 
 class HistogramOfGradients(Feature):
-    def __init__(self, windows=((25, 25), )):
-        super(HistogramOfGradients, self)
-        self.windows = windows
-        self.feature_len = 5
-        self.base_image = 'grayscale'
-        self.feature_size = self.feature_len * len(self.windows)
-
-    def __call__(self, cell):
-        result = np.zeros(self.feature_size)
-        for i, window in enumerate(self.windows):
-            win = cell.super_cell(window, padding=True)
-
-            result[i * self.feature_len:(i + 1) *
-                   self.feature_len] = hog_features(
-                       win.grayscale,
-                       bins=50,
-                       kernel=scipy.stats.norm().pdf,
-                       bandwidth=0.7)
-        return result
+    base_image = 'grayscale'
+    size = 5
+    compute = staticmethod(hog_features)

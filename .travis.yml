@@ -1,23 +1,22 @@
 language: python
 
+sudo: required
+
+dist: xenial
+
 python:
-  - "3.5"
   - "3.6"
+  - "3.7"
+
+cache:
+  pip: true
+  directories:
+    - .hypothesis
+    - .eggs
 
 install:
-  # Install conda
-  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  - conda info -a
-
-  # Create conda environment
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
-  - conda env update -q -n test-environment
-  - source activate test-environment
-  - conda env export
+  - sudo apt-add-repository -y ppa:nextgis/dev
+  - sudo apt update
+  - sudo apt install -y libgdal-dev libnetcdf-dev
 
 script: python setup.py test

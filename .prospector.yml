@@ -6,7 +6,7 @@ output-format: grouped
 
 strictness: veryhigh
 doc-warnings: true
-test-warnings: true
+test-warnings: false
 member-warnings: false
 
 pyroma:

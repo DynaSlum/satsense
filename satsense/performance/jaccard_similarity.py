@@ -7,8 +7,6 @@ functions to calculate the Jaccard similarity index between 2 binary masks or mu
 
 from sklearn.metrics import jaccard_similarity_score as jss
 
-#from shapely.geometry import MultiPolygon as multipol
-
 
 # JI between 2 binary masks
 def jaccard_index_binary_masks(truth_mask, predicted_mask):

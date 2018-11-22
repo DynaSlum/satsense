@@ -18,12 +18,18 @@ setup(
     license='Apache Software License',
     author='Berend Weel, Elena Ranguelova',
     setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
+    tests_require=[
+        'hypothesis[numpy]',
+        'pytest',
+        'pytest-cov',
+        'pytest-html',
+        'pytest-flake8',
+    ],
     install_requires=[
         'descartes',
         'fiona',
         'gdal',
-        'netCDF4',
+        'netCDF4!=1.4.2',
         'numba',
         'numpy',
         'opencv-contrib-python-headless<3.4.3',
@@ -34,14 +40,16 @@ setup(
         'shapely',
     ],
     extras_require={
-        'test': [
+        'dev': [
+            'hypothesis[numpy]',
+            'isort',
+            'pycodestyle',
+            'pyflakes',
+            'prospector[with_pyroma]',
             'pytest',
             'pytest-cov',
+            'pytest-html',
             'pytest-flake8',
-        ],
-        'dev': [
-            'isort',
-            'prospector[with_pyroma]',
             'yamllint',
             'yapf',
         ],
