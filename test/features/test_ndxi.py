@@ -1,8 +1,9 @@
 """
 Testing features
 """
-import rasterio
 import pytest
+import rasterio
+
 from satsense.features.ndxi import ndxi_image
 from satsense.image import Image
 
