@@ -11,10 +11,10 @@ def heaved_central_shift_moment(histogram, order):
     of the given order.
 
     Implementation is based on:
-    Kumar, S., & Hebert, M. (2003, June). Man-made structure detection in natural
-    images using a causal multiscale random field. In Computer vision and pattern
-    recognition, 2003. proceedings. 2003 ieee computer society conference on
-    (Vol. 1, pp. I-I). IEEE.
+    Kumar, S., & Hebert, M. (2003, June). Man-made structure detection in
+    natural images using a causal multiscale random field. In Computer vision
+    and pattern recognition, 2003. proceedings. 2003 ieee computer society
+    conference on (Vol. 1, pp. I-I). IEEE.
 
     Parameters
     ----------
@@ -40,7 +40,8 @@ def heaved_central_shift_moment(histogram, order):
     # The difference of the bin with the mean of the histogram (v0)
     # and multiply with a step function which is 1 when the difference is > 0
     diff = histogram - v0
-    # The step function is thus a selection method, which is more easily written like this
+    # The step function is thus a selection method, which is more easily
+    # written like this.
     positive_diff = diff[diff > 0]
 
     power = order + 1
@@ -56,10 +57,11 @@ def heaved_central_shift_moment(histogram, order):
 
 
 # @inproceedings('kumar2003man', {
-#     'title': 'Man-made structure detection in natural images using a causal multiscale random field',
+#     'title': ('Man-made structure detection in natural images using a '
+#               'causal multiscale random field'),
 #     'author': 'Kumar, Sanjiv and Hebert, Martial',
-#     'booktitle': ('Computer vision and pattern recognition, 2003. proceedings. '
-#                   '2003 ieee computer society conference on'),
+#     'booktitle': ('Computer vision and pattern recognition, 2003. '
+#                   'proceedings. 2003 ieee computer society conference on'),
 #     'volume': '1',
 #     'pages': 'I--I',
 #     'year': '2003',
@@ -70,17 +72,17 @@ def smoothe_histogram(histogram, kernel, bandwidth):
     Vectorized histogram smoothing implementation
 
     Implementation is based on:
-    Kumar, S., & Hebert, M. (2003, June). Man-made structure detection in natural
-    images using a causal multiscale random field. In Computer vision and pattern
-    recognition, 2003. proceedings. 2003 ieee computer society conference on
-    (Vol. 1, pp. I-I). IEEE.
+    Kumar, S., & Hebert, M. (2003, June). Man-made structure detection in
+    natural images using a causal multiscale random field. In Computer vision
+    and pattern recognition, 2003. proceedings. 2003 ieee computer society
+    conference on (Vol. 1, pp. I-I). IEEE.
 
     Parameters
     ----------
     histogram : numpy.ndarray
-        The histogram to smoothe
+        The histogram to smoothe.
     kernel : function or callable object
-        The kernel to use for the smoothing. For instance scipy.stats.norm().pdf
+        The kernel to use for the smoothing, e.g. `scipy.stats.norm().pdf`.
     bandwidth : int
         The bandwidth of the smoothing.
 
@@ -110,11 +112,14 @@ def smoothe_histogram(histogram, kernel, bandwidth):
     return smoothed_histogram
 
 
-# My own binning algorithm. It does not do edge case detection because we're using the full 360 degrees the
-# edge between 360 and 0 is there. I'm assuming no values over 360 exist.
+# My own binning algorithm. It does not do edge case detection because we're
+# using the full 360 degrees the edge between 360 and 0 is there. I'm assuming
+# no values over 360 exist.
 def orientation_histogram(angles, magnitudes, number_of_orientations):
     """
-    Creates a histogram of orientations. Bins are created in the full 360 degrees.abs
+    Creates a histogram of orientations.
+
+    Bins are created in the full 360 degrees.abs
 
     Parameters
     ----------
@@ -200,9 +205,10 @@ def hog_features(window, bins=50, kernel=scipy.stats.norm().pdf,
     peaks = np.argsort(smoothed_histogram)[::-1][0:2]
 
     # Feature 3 and 4: The absolute 'location' of the highest peak.
-    # We can only interpret this as either the bin number, or the orientation at the center of the bin
-    # That still doesn't give us 2 values, so we decided to take the center orientations of the bins of the
-    # two highest peaks in degrees
+    # We can only interpret this as either the bin number, or the orientation
+    # at the center of the bin.
+    # That still doesn't give us 2 values, so we decided to take the center
+    # orientations of the bins of the two highest peaks in degrees.
 
     delta1 = bin_centers[peaks[0]]
     delta2 = bin_centers[peaks[1]]

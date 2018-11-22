@@ -252,7 +252,12 @@ class RoadIntersections:
         """
         gray_image = cv2.cvtColor(self._image.rgb, cv2.COLOR_BGR2GRAY)
         # Gives an error somehow
-        # gray_image = cv2.threshold(gray_image, 0, 1, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+        # gray_image = cv2.threshold(
+        #     gray_image,
+        #     0,
+        #     1,
+        #     cv2.THRESH_BINARY | cv2.THRESH_OTSU,
+        # )[1]
         kernel = self._kernel.get()
         convolution = sg.convolve(gray_image, kernel, "valid")
         peaks = peak_local_max(
@@ -309,8 +314,8 @@ class RoadIntersectionDensity:
     def visualize(self):
         if self._feature is None:
             raise Exception(
-                "Feature not yet calculated, please run create() or load a feature using load()"
-            )
+                "Feature not yet calculated, please run create() or load a "
+                "feature using load()")
 
         plt.imshow(self._feature)
         plt.show()

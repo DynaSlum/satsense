@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 """
-jaccrad_similarity
+Jaccard similarity module.
 
-functions to calculate the Jaccard similarity index between 2 binary masks or multipolygonal shapes.
+Contains functions to calculate the Jaccard similarity index between 2 binary
+masks or multipolygonal shapes.
 """
 
 from sklearn.metrics import jaccard_similarity_score as jss

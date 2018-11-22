@@ -55,30 +55,30 @@ class NDXI(Feature):
 
 
 class NirNDVI(NDXI):
-    """The infrared-green normalized difference vegetation index of the image."""
+    """The infrared-green normalized difference vegetation index."""
     base_image = 'nir_ndvi'
 
 
 class RgNDVI(NDXI):
-    """The red-green normalized difference vegetation index of the image."""
+    """The red-green normalized difference vegetation index."""
     base_image = 'rg_ndvi'
 
 
 class RbNDVI(NDXI):
-    """The red-blue normalized difference vegetation index of the image."""
+    """The red-blue normalized difference vegetation index."""
     base_image = 'rb_ndvi'
 
 
 class NDSI(NDXI):
-    """The snow cover index of the image."""
+    """The snow cover index."""
     base_image = 'ndsi'
 
 
 class NDWI(NDXI):
-    """The water cover index of the image."""
+    """The water cover index."""
     base_image = 'ndwi'
 
 
 class WVSI(NDXI):
-    """The soil cover index of the image."""
+    """The soil cover index."""
     base_image = 'wvsi'
