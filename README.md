@@ -4,7 +4,7 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/2a8eb394c4e64228b7f8501c2fadbc51)](https://app.codacy.com/app/DynaSlum/satsense?utm_source=github.com&utm_medium=referral&utm_content=DynaSlum/satsense&utm_campaign=badger)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1463015.svg)](https://doi.org/10.5281/zenodo.1463015)
 
-Satsense is a library for land use classification using satellite imagery.
+Satsense is a library for land use/cover classification using satellite imagery.
 
 * satsense - library for analysing satellite images, performance evaluation, etc.
 * notebooks - IPython notebooks for illustrating and testing the usage of Satsense
