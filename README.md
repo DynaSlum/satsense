@@ -28,7 +28,7 @@ the [GDAL](https://pypi.org/project/GDAL/) and
 [netCDF4](http://unidata.github.io/netcdf4-python/) dependencies. On Ubuntu
 Linux 18.04 and later, you can do so by running
 ```bash
-sudo apt-get install libgdal-dev libnetcdf-dev
+sudo apt install libgdal-dev libnetcdf-dev
 ```
 When using your OS's package manager, you may still want to create and
 activate a virtual environment for satsense, e.g. using 
