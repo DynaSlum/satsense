@@ -23,6 +23,6 @@ script: python setup.py test
 
 after_success:
   if [[ $(python --version) =~ "Python 3.7" ]]; then
-    pip install --user codacy-coverage
-    python-codacy-coverage -r test-reports/coverage.xml
+    pip install --user codacy-coverage;
+    python-codacy-coverage -r test-reports/coverage.xml;
   fi
