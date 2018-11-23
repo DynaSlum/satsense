@@ -1,7 +1,7 @@
 ## Satsense
 
 [![Build Status](https://travis-ci.com/DynaSlum/satsense.svg?branch=master)](https://travis-ci.com/DynaSlum/satsense)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2a8eb394c4e64228b7f8501c2fadbc51)](https://app.codacy.com/app/DynaSlum/satsense?utm_source=github.com&utm_medium=referral&utm_content=DynaSlum/satsense&utm_campaign=badger)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/458c8543cd304b8387b7b114218dc57c)](https://www.codacy.com/app/DynaSlum/satsense?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DynaSlum/satsense&amp;utm_campaign=Badge_Grade)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1463015.svg)](https://doi.org/10.5281/zenodo.1463015)
 
 Satsense is a library for land use/cover classification using satellite imagery.
