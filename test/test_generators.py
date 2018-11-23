@@ -21,7 +21,8 @@ def create_test_file(filename, array):
             width=array.shape[1],
             height=array.shape[2],
             count=array.shape[0],
-            dtype=array.dtype) as dataset:
+            dtype=array.dtype,
+    ) as dataset:
         for band, data in enumerate(array, start=1):
             dataset.write(data, band)
 

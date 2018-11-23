@@ -1,12 +1,13 @@
+from pathlib import Path
+
 import numpy as np
 import rasterio
 
 
 def normalized_image():
-    """
-    Get the test image and normalize it
-    """
-    with rasterio.open('../data/section_2_sentinel.tif') as dataset:
+    """Get the test image and normalize it."""
+    filename = Path(__file__).parent / 'data' / 'section_2_sentinel.tif'
+    with rasterio.open(filename) as dataset:
         image_in = dataset.read(masked=True).astype('float32')
         image = np.empty_like(image_in)
 
