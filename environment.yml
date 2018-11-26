@@ -7,7 +7,6 @@ channels:
 dependencies:
   - descartes
   - fiona
-  - gdal
   - netcdf4
   - numba
   - numpy
