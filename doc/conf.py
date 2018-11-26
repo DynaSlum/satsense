@@ -199,3 +199,5 @@ autodoc_mock_imports = [
     'scipy',
     'shapely',
 ]
+
+nitpicky = True
