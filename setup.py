@@ -50,6 +50,8 @@ setup(
             'pytest-cov',
             'pytest-html',
             'pytest-flake8',
+            'sphinx',
+            'sphinx_rtd_theme',
             'yamllint',
             'yapf',
         ],
