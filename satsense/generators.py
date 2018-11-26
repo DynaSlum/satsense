@@ -46,6 +46,9 @@ class FullGenerator():
                 math.ceil(image.shape[i] / step_size[i]) for i in range(2))
         self.shape = shape
 
+        self.crs = image.crs
+        self.transform = image.scaled_transform(step_size)
+
         # set using load_image
         self.loaded_itype = None
         self._image_cache = None

@@ -24,7 +24,8 @@ def extract_features_parallel(features, generator, n_jobs=cpu_count()):
         for feature in features:
             extract = partial(extract_feature, feature)
             vector = np.ma.vstack(tuple(executor.map(extract, generators)))
-            yield FeatureVector(feature, vector)
+            yield FeatureVector(feature, vector, generator.crs,
+                                generator.transform)
 
 
 def extract_features(features, generator):
@@ -41,7 +42,8 @@ def extract_features(features, generator):
         generator.load_image(itype, window_shapes)
         for feature in group:
             vector = extract_feature(feature, generator)
-            yield FeatureVector(feature, vector)
+            yield FeatureVector(feature, vector, generator.crs,
+                                generator.transform)
 
 
 def extract_feature(feature, generator):

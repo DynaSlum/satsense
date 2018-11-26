@@ -252,13 +252,13 @@ Image.register('gray_ubyte', get_gray_ubyte_image)
 class FeatureVector():
     """Class to store a feature vector in."""
 
-    def __init__(self, feature, vector):
+    def __init__(self, feature, vector, crs=None, transform=None):
         self.vector = vector
 
         self.feature = feature
 
-        self.crs = None
-        self.transform = None
+        self.crs = crs
+        self.transform = transform
 
     def get_filename(self, window, prefix='', extension='nc'):
         return '{}{}_{}_{}.{}'.format(prefix, self.feature.name, window[0],
