@@ -1,6 +1,7 @@
 import hypothesis.strategies as st
 import numpy as np
 import rasterio
+from rasterio.transform import from_origin
 from hypothesis import given
 from hypothesis.extra.numpy import arrays
 
@@ -14,6 +15,8 @@ from .strategies import st_n_jobs, st_rasterio_dtypes
 def create_test_file(filename, array):
     """Write an array of shape (bands, width, heigth) to file."""
     array = np.ma.asanyarray(array)
+    crs = rasterio.crs.CRS(init='epsg:4326')
+    transform = from_origin(472137, 5015782, 0.5, 0.5)
     with rasterio.open(
             filename,
             mode='w',
@@ -21,7 +24,9 @@ def create_test_file(filename, array):
             width=array.shape[1],
             height=array.shape[2],
             count=array.shape[0],
-            dtype=array.dtype) as dataset:
+            dtype=array.dtype,
+            crs=crs,
+            transform=transform) as dataset:
         for band, data in enumerate(array, start=1):
             dataset.write(data, band)
 
