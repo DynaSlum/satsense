@@ -11,10 +11,10 @@ def heaved_central_shift_moment(histogram, order):
     of the given order.
 
     Implementation is based on:
-    Kumar, S., & Hebert, M. (2003, June). Man-made structure detection in natural
-    images using a causal multiscale random field. In Computer vision and pattern
-    recognition, 2003. proceedings. 2003 ieee computer society conference on
-    (Vol. 1, pp. I-I). IEEE.
+    Kumar, S., & Hebert, M. (2003, June). Man-made structure detection in
+    natural images using a causal multiscale random field. In Computer vision
+    and pattern recognition, 2003. proceedings. 2003 ieee computer society
+    conference on (Vol. 1, pp. I-I). IEEE.
 
     Parameters
     ----------
@@ -70,17 +70,18 @@ def smoothe_histogram(histogram, kernel, bandwidth):
     Vectorized histogram smoothing implementation
 
     Implementation is based on:
-    Kumar, S., & Hebert, M. (2003, June). Man-made structure detection in natural
-    images using a causal multiscale random field. In Computer vision and pattern
-    recognition, 2003. proceedings. 2003 ieee computer society conference on
-    (Vol. 1, pp. I-I). IEEE.
+    Kumar, S., & Hebert, M. (2003, June). Man-made structure detection in
+    natural images using a causal multiscale random field. In Computer vision
+    and pattern recognition, 2003. proceedings. 2003 ieee computer society 
+    conference on (Vol. 1, pp. I-I). IEEE.
 
     Parameters
     ----------
     histogram : numpy.ndarray
         The histogram to smoothe
     kernel : function or callable object
-        The kernel to use for the smoothing. For instance scipy.stats.norm().pdf
+        The kernel to use for the smoothing.
+        For instance scipy.stats.norm().pdf
     bandwidth : int
         The bandwidth of the smoothing.
 

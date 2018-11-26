@@ -99,7 +99,7 @@ evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / stateme
 [FORMAT]
 
 # Maximum number of characters on a single line.
-max-line-length=120
+max-line-length=79
 
 # Regexp for a line that is allowed to be longer than the limit.
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$

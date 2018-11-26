@@ -1,9 +1,7 @@
 import rasterio
-import pytest
 import numpy as np
 
 
-@pytest.mark.skip(reason="Not a  test")
 def normalized_image():
     """
     Get the test image and normalize it
@@ -28,17 +26,17 @@ def normalized_image():
         return image, dataset.crs, dataset.transform
 
 
-@pytest.mark.skip(reason="Not a  test")
 def write_target(target_image, image_name, crs, transform):
     with rasterio.open(image_name, 'w', driver='GTiff',
-                       height=target_image.shape[0], width=target_image.shape[1],
-                       count=1, dtype=str(target_image.dtype), crs=crs, transform=transform,
+                       height=target_image.shape[0],
+                       width=target_image.shape[1],
+                       count=1, dtype=str(target_image.dtype),
+                       crs=crs, transform=transform,
                        nodata=target_image.fill_value) as target:
         target.write(target_image, 1)
         target.write_mask(~target_image.mask)
 
 
-@pytest.mark.skip(reason="Not a  test")
 def ndxi_target(b1, b2, name):
     image, crs, transform = normalized_image()
 
@@ -50,27 +48,24 @@ def ndxi_target(b1, b2, name):
     write_target(target, 'target_' + name + '.tif', crs, transform)
 
 
-@pytest.mark.skip(reason="Not a  test")
 def ndvi_target():
     ndxi_target(3, 2, 'ndvi')
 
 
-@pytest.mark.skip(reason="Not a  test")
 def rg_ndvi_target():
     ndxi_target(2, 1, 'rg_ndvi')
 
 
-@pytest.mark.skip(reason="Not a  test")
 def rb_ndvi_target():
     ndxi_target(2, 0, 'rb_ndvi')
 
 
-@pytest.mark.skip(reason="Not a  test")
 def ndsi_target():
     ndxi_target(3, 1, 'ndsi')
 
 
-ndvi_target()
-rg_ndvi_target()
-rb_ndvi_target()
-ndsi_target()
+if __name__ == "__main__":
+    ndvi_target()
+    rg_ndvi_target()
+    rb_ndvi_target()
+    ndsi_target()
