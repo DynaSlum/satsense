@@ -166,13 +166,12 @@ def orientation_histogram(angles, magnitudes, number_of_orientations):
     return histogram, bin_centers
 
 
-def hog_features(window, bins=50, kernel=scipy.stats.norm().pdf,
-                 bandwidth=0.7):
-    """
-    Calculates the hog features on the window.
-    Features are the 1st and 2nd order heaved central shift moments
-    The angle of the two highest peaks in the histogram
-    The absolute sine difference between the two highest peaks
+def hog_features(window, bins=50, kernel=None, bandwidth=0.7):
+    """Calculate the hog features on the window.
+
+    Features are the 1st and 2nd order heaved central shift moments,
+    the angle of the two highest peaks in the histogram,
+    the absolute sine difference between the two highest peaks.
 
     Parameters
     ----------
@@ -186,7 +185,11 @@ def hog_features(window, bins=50, kernel=scipy.stats.norm().pdf,
         The function to use for smoothing
     bandwidth:
         The bandwidth for the smoothing
+
     """
+    if kernel is None:
+        kernel = scipy.stats.norm().pdf
+
     gx = cv2.Sobel(window, cv2.CV_64F, 1, 0, ksize=3)
     gy = cv2.Sobel(window, cv2.CV_64F, 0, 1, ksize=3)
 
