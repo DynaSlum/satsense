@@ -28,7 +28,6 @@ setup(
     install_requires=[
         'descartes',
         'fiona',
-        'gdal',
         'netCDF4!=1.4.2',
         'numba',
         'numpy',
@@ -50,6 +49,8 @@ setup(
             'pytest-cov',
             'pytest-html',
             'pytest-flake8',
+            'sphinx',
+            'sphinx_rtd_theme',
             'yamllint',
             'yapf',
         ],

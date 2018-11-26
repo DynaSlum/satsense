@@ -9,9 +9,10 @@ def get_rii_dist_angles():
     """
     Get the angles and distances of the pixels used in the paper:
 
-    Graesser, Jordan, et al. "Image based characterization of formal and informal
-    neighborhoods in an urban landscape." IEEE Journal of Selected Topics in
-    Applied Earth Observations and Remote Sensing 5.4 (2012): 1164-1176.
+    Graesser, Jordan, et al. "Image based characterization of formal and
+    informal neighborhoods in an urban landscape." IEEE Journal of Selected
+    Topics in Applied Earth Observations and Remote Sensing 5.4 (2012):
+    1164-1176.
     """
     # Result caching
     if not hasattr(get_rii_dist_angles, "offsets"):

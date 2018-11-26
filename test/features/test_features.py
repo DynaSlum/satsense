@@ -76,7 +76,8 @@ def test_hog():
     slices = dataset.variables['window'][:]
     window = slice(*slices[0:3]), slice(*slices[3:6])
 
-    with rasterio.open('test/data/baseimage/section_2_sentinel_grayscale.tif') as file:
+    with rasterio.open(
+            'test/data/baseimage/section_2_sentinel_grayscale.tif') as file:
         source = file.read(1, masked=True)
         features = hog_features(source[window])
 
@@ -93,7 +94,8 @@ def test_lacunarity():
     slices = dataset.variables['window'][:]
     window = slice(*slices[0:3]), slice(*slices[3:6])
 
-    with rasterio.open('test/data/baseimage/section_2_sentinel_canny_edge.tif') as file:
+    with rasterio.open(
+            'test/data/baseimage/section_2_sentinel_canny_edge.tif') as file:
         box_sizes = (10, 20)
 
         source = file.read(1, masked=True).astype('bool')

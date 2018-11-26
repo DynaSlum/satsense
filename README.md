@@ -1,10 +1,11 @@
 ## Satsense
 
 [![Build Status](https://travis-ci.com/DynaSlum/satsense.svg?branch=master)](https://travis-ci.com/DynaSlum/satsense)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/2a8eb394c4e64228b7f8501c2fadbc51)](https://app.codacy.com/app/DynaSlum/satsense?utm_source=github.com&utm_medium=referral&utm_content=DynaSlum/satsense&utm_campaign=badger)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/458c8543cd304b8387b7b114218dc57c)](https://www.codacy.com/app/DynaSlum/satsense?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DynaSlum/satsense&amp;utm_campaign=Badge_Grade)
+[![Documentation Status](https://readthedocs.org/projects/satsense/badge/?version=latest)](https://satsense.readthedocs.io/en/latest/?badge=latest)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1463015.svg)](https://doi.org/10.5281/zenodo.1463015)
 
-Satsense is a library for land use classification using satellite imagery.
+Satsense is a library for land use/cover classification using satellite imagery.
 
 * satsense - library for analysing satellite images, performance evaluation, etc.
 * notebooks - IPython notebooks for illustrating and testing the usage of Satsense
@@ -19,7 +20,7 @@ the dependencies by running:
 
 ```bash
 conda create --name satsense python=3
-source activate satsense
+conda activate satsense
 conda env update
 ```
 
@@ -28,7 +29,7 @@ the [GDAL](https://pypi.org/project/GDAL/) and
 [netCDF4](http://unidata.github.io/netcdf4-python/) dependencies. On Ubuntu
 Linux 18.04 and later, you can do so by running
 ```bash
-sudo apt-get install libgdal-dev libnetcdf-dev
+sudo apt install libgdal-dev libnetcdf-dev
 ```
 When using your OS's package manager, you may still want to create and
 activate a virtual environment for satsense, e.g. using 
@@ -38,10 +39,13 @@ python3 -m venv ~/venv/satsense
 source ~/venv/satsense/bin/activate
 ```
 
-Finally, to install satsense in development mode run
+Finally, to install satsense, run
 ```bash
-pip install -e .
+pip install .
 ```
+
+## Contributing
+Contributions are very welcome! Please see [CONTRIBUTING.md](https://github.com/DynaSlum/satsense/blob/master/CONTRIBUTING.md) for our contribution guidelines.
 
 ## Citing Satsense
 If you use Satsense for scientific research, please cite it. You can download citation files from [research-software.nl](https://www.research-software.nl/software/satsense).

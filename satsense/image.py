@@ -314,7 +314,8 @@ class FeatureVector():
                 dtype=rasterio.float32,
                 crs=self.crs,
                 transform=self.transform,
-                nodata=fill_value) as dataset:
+                nodata=fill_value,
+        ) as dataset:
             dataset.write(data)
             dataset.update_tags(
                 window=window, arguments=repr(self.feature.kwargs))

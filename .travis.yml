@@ -20,3 +20,9 @@ install:
   - sudo apt install -y libgdal-dev libnetcdf-dev
 
 script: python setup.py test
+
+after_success:
+  if [[ $(python --version) =~ "Python 3.7" ]]; then
+    pip install codacy-coverage;
+    python-codacy-coverage -r test-reports/coverage.xml;
+  fi

@@ -1,12 +1,12 @@
 import rasterio
+from pathlib import Path
 import numpy as np
 
 
 def normalized_image():
-    """
-    Get the test image and normalize it
-    """
-    with rasterio.open('../data/section_2_sentinel.tif') as dataset:
+    """Get the test image and normalize it."""
+    filename = Path(__file__).parent / 'data' / 'section_2_sentinel.tif'
+    with rasterio.open(filename) as dataset:
         image_in = dataset.read(masked=True).astype('float32')
         image = np.empty_like(image_in)
 
@@ -27,12 +27,18 @@ def normalized_image():
 
 
 def write_target(target_image, image_name, crs, transform):
-    with rasterio.open(image_name, 'w', driver='GTiff',
-                       height=target_image.shape[0],
-                       width=target_image.shape[1],
-                       count=1, dtype=str(target_image.dtype),
-                       crs=crs, transform=transform,
-                       nodata=target_image.fill_value) as target:
+    with rasterio.open(
+            image_name,
+            'w',
+            driver='GTiff',
+            height=target_image.shape[0],
+            width=target_image.shape[1],
+            count=1,
+            dtype=str(target_image.dtype),
+            crs=crs,
+            transform=transform,
+            nodata=target_image.fill_value,
+    ) as target:
         target.write(target_image, 1)
         target.write_mask(~target_image.mask)
 
@@ -64,7 +70,7 @@ def ndsi_target():
     ndxi_target(3, 1, 'ndsi')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     ndvi_target()
     rg_ndvi_target()
     rb_ndvi_target()

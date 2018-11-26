@@ -20,7 +20,8 @@ def save_mask2file(mask, filename):
             dtype=rasterio.uint8,
             count=1,
             width=width,
-            height=height) as dst:
+            height=height,
+    ) as dst:
         dst.write(mask, indexes=1)
 
 

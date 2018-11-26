@@ -1,14 +1,22 @@
 import rasterio
 from satsense.image import Image
-from satsense.features import Lacunarity
 import numpy as np
+# import below has side effects
+from satsense.features import Lacunarity  # noqa: F401
 
 
 def write_target(target_image, image_name, crs, transform):
-    with rasterio.open(image_name, 'w', driver='GTiff',
-                       height=target_image.shape[1], width=target_image.shape[2],
-                       count=target_image.shape[0], dtype=str(target_image.dtype), crs=crs, transform=transform,
-                       nodata=target_image.fill_value) as target:
+    with rasterio.open(image_name,
+                       'w',
+                       driver='GTiff',
+                       height=target_image.shape[1],
+                       width=target_image.shape[2],
+                       count=target_image.shape[0],
+                       dtype=str(target_image.dtype),
+                       crs=crs,
+                       transform=transform,
+                       nodata=target_image.fill_value
+                       ) as target:
         target.write(target_image.filled())
 
 
@@ -26,7 +34,7 @@ def generate_canny_edge(img, prefix):
 
 def generate_gray_ubyte(img, prefix):
     gray_ubyte = img['gray_ubyte'][np.newaxis, :, :]
-    gray_ubyte[gray_ubyte==255] = 254
+    gray_ubyte[gray_ubyte == 255] = 254
 
     gray_ubyte.set_fill_value(255)
 
