@@ -12,7 +12,7 @@ all dependencies by running:
 .. code-block:: bash
 
    conda create --name satsense python=3
-   source activate satsense
+   conda activate satsense
    conda env update --file environment.yml
 
 If you prefer to use the package manager of your OS, use it to install
