@@ -74,7 +74,7 @@ def smoothe_histogram(histogram, kernel, bandwidth):
     Implementation is based on:
     Kumar, S., & Hebert, M. (2003, June). Man-made structure detection in
     natural images using a causal multiscale random field. In Computer vision
-    and pattern recognition, 2003. proceedings. 2003 ieee computer society 
+    and pattern recognition, 2003. proceedings. 2003 ieee computer society
     conference on (Vol. 1, pp. I-I). IEEE.
 
     Parameters
