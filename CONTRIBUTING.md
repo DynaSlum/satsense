@@ -4,36 +4,9 @@ way to propose new features.
 
 # Installation for development
 
-Assuming you have [conda](https://conda.io) installed and are in the
-directory where you have checked out this repository, you can install
-the dependencies by running:
-
-```bash
-conda create --name satsense python=3
-source activate satsense
-conda env update
-```
-
-If you prefer to use the package manager of your OS, use it to install
-the [GDAL](https://pypi.org/project/GDAL/) and
-[netCDF4](http://unidata.github.io/netcdf4-python/) dependencies. On Ubuntu
-Linux 18.04 and later, you can do so by running
-```bash
-sudo apt install libgdal-dev libnetcdf-dev
-```
-When using your OS's package manager, you may still want to create and
-activate a virtual environment for satsense, e.g. using 
-[venv](https://docs.python.org/3/library/venv.html)
-```bash
-python3 -m venv ~/venv/satsense
-source ~/venv/satsense/bin/activate
-```
-
-Finally, to install satsense in development mode and with development
-dependencies, run
-```bash
-pip install -e .[dev]
-```
+Please follow the installation instructions on
+[readthedocs](https://satsense.readthedocs.io/en/latest/installation.html)
+to get started.
 
 # Testing
 

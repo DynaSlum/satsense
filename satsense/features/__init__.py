@@ -6,6 +6,10 @@ from .pantex import Pantex
 from .sift import Sift
 from .texton import Texton
 
+# Change the module for base classes so sphinx can find them.
+Feature.__module__ = __name__
+NDXI.__module__ = __name__
+
 __all__ = [
     'NDXI',
     'NirNDVI',

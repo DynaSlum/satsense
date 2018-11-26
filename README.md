@@ -20,7 +20,7 @@ the dependencies by running:
 
 ```bash
 conda create --name satsense python=3
-source activate satsense
+conda activate satsense
 conda env update
 ```
 
