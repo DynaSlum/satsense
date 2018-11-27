@@ -1,9 +1,9 @@
 import hypothesis.strategies as st
 import numpy as np
 import rasterio
-from rasterio.transform import from_origin
 from hypothesis import given
 from hypothesis.extra.numpy import arrays
+from rasterio.transform import from_origin
 
 from satsense.bands import BANDS
 from satsense.generators import FullGenerator
@@ -26,8 +26,7 @@ def create_test_file(filename, array):
             count=array.shape[0],
             dtype=array.dtype,
             crs=crs,
-            transform=transform
-    ) as dataset:
+            transform=transform) as dataset:
         for band, data in enumerate(array, start=1):
             dataset.write(data, band)
 
@@ -42,7 +41,6 @@ def create_test_image(dirname, array, normalization=None):
 
 
 def test_full_generator_windows(tmpdir):
-
     image_shape = (5, 5)
     window_shapes = ((5, 5), )
     step_size = (3, 3)
