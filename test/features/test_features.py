@@ -1,13 +1,13 @@
 """
 Testing features
 """
+import numpy as np
 import rasterio
 from netCDF4 import Dataset
-import numpy as np
 
-from satsense.features.ndxi import ndxi_image
 from satsense.features.hog import hog_features
 from satsense.features.lacunarity import lacunarities
+from satsense.features.ndxi import ndxi_image
 
 
 def test_ndvi(image):

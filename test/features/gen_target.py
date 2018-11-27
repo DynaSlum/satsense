@@ -1,6 +1,7 @@
-import rasterio
 from pathlib import Path
+
 import numpy as np
+import rasterio
 
 
 def normalized_image():
