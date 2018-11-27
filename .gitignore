@@ -1,4 +1,4 @@
-*.  asv
+*.asv
 .coverage*
 doc/_build/
 .DS_Store
