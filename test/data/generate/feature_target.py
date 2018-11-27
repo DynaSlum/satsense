@@ -1,19 +1,21 @@
-import rasterio
 import numpy as np
+import rasterio
+from netCDF4 import Dataset
 
 from satsense.features.hog import hog_features
 from satsense.features.lacunarity import lacunarity
-from netCDF4 import Dataset
+from satsense.features.pantex import pantex
 
 
 def write_target(array, name, fname, w):
     dataset = Dataset(name, 'w', format="NETCDF4")
 
     dataset.createDimension('window_len', 6)
-    variable = dataset.createVariable('window', 'i4',
-                                      dimensions=('window_len'))
-    variable[:] = [w[0].start, w[0].stop, w[0].step,
-                   w[1].start, w[1].stop, w[1].step]
+    variable = dataset.createVariable(
+        'window', 'i4', dimensions=('window_len'))
+    variable[:] = [
+        w[0].start, w[0].stop, w[0].step, w[1].start, w[1].stop, w[1].step
+    ]
 
     dataset.createDimension('length', len(array))
     variable = dataset.createVariable(fname, 'f8', dimensions=('length'))
@@ -49,6 +51,19 @@ def lacunarity_target():
         write_target(result, '../target/lacunarity.nc', 'lacunarity', window)
 
 
+def pantex_target():
+    with rasterio.open(
+            '../baseimage/section_2_sentinel_gray_ubyte.tif') as gray:
+        source = gray.read(1, masked=True)
+
+        window = (slice(100, 125, 1), slice(100, 125, 1))
+
+        result = [pantex(source[window])]
+
+        write_target(result, '../target/pantex.nc', 'pantex', window)
+
+
 if __name__ == '__main__':
     hog_target()
     lacunarity_target()
+    pantex_target()

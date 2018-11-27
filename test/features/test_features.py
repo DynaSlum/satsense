@@ -8,6 +8,7 @@ from netCDF4 import Dataset
 from satsense.features.hog import hog_features
 from satsense.features.lacunarity import lacunarities
 from satsense.features.ndxi import ndxi_image
+from satsense.features.pantex import pantex
 
 
 def test_ndvi(image):
@@ -102,6 +103,27 @@ def test_lacunarity():
         win = source[window]
         features = lacunarities(win, box_sizes)
 
-    same = target == features
+        same = target == features
 
-    assert same.all()
+        assert same.all()
+
+
+def test_pantex():
+    """
+    Test Pantex Feature
+    """
+    dataset = Dataset("test/data/target/pantex.nc", "r", format="NETCDF4")
+    target = dataset.variables['pantex'][:]
+
+    slices = dataset.variables['window'][:]
+    window = slice(*slices[0:3]), slice(*slices[3:6])
+
+    with rasterio.open(
+            'test/data/baseimage/section_2_sentinel_gray_ubyte.tif') as file:
+
+        source = file.read(1, masked=True)
+        features = [pantex(source[window])]
+
+        same = target == features
+
+        assert same.all()
