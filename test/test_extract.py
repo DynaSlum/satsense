@@ -6,7 +6,7 @@ import pytest
 from hypothesis import given
 
 from satsense.bands import BANDS
-from satsense.extract import extract_features, extract_features_parallel
+from satsense.extract import extract_features
 from satsense.features import HistogramOfGradients, NirNDVI, Pantex
 from satsense.generators import FullGenerator
 from satsense.image import FeatureVector
@@ -57,7 +57,7 @@ def test_extract_features(generator):
     )
     feature = Pantex(window_shapes)
 
-    result = list(extract_features([feature], generator))[0]
+    result = list(extract_features([feature], generator, n_jobs=1))[0]
 
     assert result.feature == feature
     assert result.vector.any()
@@ -76,9 +76,9 @@ def test_extract_features_parallel(generator, n_jobs):
     ndvi = NirNDVI(window_shapes)
     features = [hog, ndvi]
     print("Computing reference features")
-    references = list(extract_features(features, generator))
+    references = list(extract_features(features, generator, n_jobs=1))
     print("Computing features in parallel")
-    results = list(extract_features_parallel(features, generator, n_jobs))
+    results = list(extract_features(features, generator, n_jobs=n_jobs))
 
     for reference, result in zip(references, results):
         np.testing.assert_array_equal(result.vector.mask,

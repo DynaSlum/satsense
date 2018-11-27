@@ -4,7 +4,7 @@ import rasterio
 from scipy.misc import imread
 from skimage.filters import threshold_otsu
 
-from ..extract import extract_features_parallel
+from ..extract import extract_features
 from ..features import FeatureSet, NirNDVI
 from .conversions import multipolygon2mask
 from .shapefile import load_shapefile2multipolygon
@@ -59,7 +59,7 @@ def get_ndxi_mask(generator, feature=NirNDVI):
     windows = ((generator.x_size, generator.y_size), )
     features.add(feature(windows=windows))
 
-    values = extract_features_parallel(features, generator)
+    values = extract_features(features, generator)
     values.shape = (values.shape[0], values.shape[1])
 
     return values < threshold_otsu(values)
