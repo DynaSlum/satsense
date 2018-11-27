@@ -3,6 +3,7 @@ import rasterio
 
 # import below has side effects
 from satsense.features import Lacunarity  # noqa: F401
+from satsense.features import Texton  # noqa: F401
 from satsense.image import Image
 
 
@@ -43,7 +44,7 @@ def generate_gray_ubyte(img, prefix):
 
 
 if __name__ == "__main__":
-    image = Image('../section_2_sentinel.tif', 'quickbird')
+    image = Image('../source/section_2_sentinel.tif', 'quickbird')
     image.precompute_normalization()
 
     generate_grayscale(image, '../baseimage/section_2_sentinel_')

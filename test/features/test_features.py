@@ -9,6 +9,9 @@ from satsense.features.hog import hog_features
 from satsense.features.lacunarity import lacunarities
 from satsense.features.ndxi import ndxi_image
 from satsense.features.pantex import pantex
+from satsense.features.sift import sift, sift_cluster
+from satsense.features.texton import (get_texton_descriptors, texton,
+                                      texton_cluster)
 
 
 def test_ndvi(image):
@@ -127,3 +130,38 @@ def test_pantex():
         same = target == features
 
         assert same.all()
+
+
+def test_sift(image):
+    dataset = Dataset("test/data/target/sift.nc", "r", format="NETCDF4")
+    target = dataset.variables['sift'][:]
+
+    slices = dataset.variables['window'][:]
+    window = slice(*slices[0:3]), slice(*slices[3:6])
+
+    clusters = sift_cluster([image])
+
+    win = image['gray_ubyte'][window]
+    features = sift(win, clusters)
+
+    same = target == features
+
+    assert same.all()
+
+
+def test_texton(image):
+    dataset = Dataset("test/data/target/texton.nc", "r", format="NETCDF4")
+    target = dataset.variables['texton'][:]
+
+    slices = dataset.variables['window'][:]
+    window = slice(*slices[0:3]), slice(*slices[3:6])
+
+    clusters = texton_cluster([image])
+    descriptors = get_texton_descriptors(image)
+
+    win = descriptors[window]
+    features = texton(win, clusters)
+
+    same = target == features
+
+    assert same.all()
