@@ -33,8 +33,13 @@ yapf -i satsense/my_file.py
 
 # Documentation
 
+All public functions should have [numpy style docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_numpy.html).
 You can build the documentation locally by running
 ```bash
 python setup.py build_sphinx
 ```
-Please check that there are no warnings.
+Use
+```bash
+python setup.py build_sphinx -Ea
+```
+to build everying from scratch. Please check that there are no warnings.
