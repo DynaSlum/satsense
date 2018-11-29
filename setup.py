@@ -24,6 +24,7 @@ setup(
         'pytest-cov',
         'pytest-html',
         'pytest-flake8',
+        'pytest-env'
     ],
     install_requires=[
         'descartes',

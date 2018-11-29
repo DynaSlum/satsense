@@ -82,7 +82,8 @@ def smoothe_histogram(histogram, kernel, bandwidth):
     histogram : numpy.ndarray
         The histogram to smoothe.
     kernel : function or callable object
-        The kernel to use for the smoothing, e.g. `scipy.stats.norm().pdf`.
+        The kernel to use for the smoothing.
+        For instance scipy.stats.norm().pdf
     bandwidth : int
         The bandwidth of the smoothing.
 
