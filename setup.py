@@ -38,6 +38,7 @@ setup(
         'scikit-learn',
         'scipy',
         'shapely',
+        'pyproj'
     ],
     extras_require={
         'dev': [
