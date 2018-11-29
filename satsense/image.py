@@ -2,15 +2,19 @@
 
 import logging
 import math
+import time
 import warnings
 from types import MappingProxyType
 
 import numpy as np
 import rasterio
+from affine import Affine
 from netCDF4 import Dataset
+from pyproj import Proj, transform
 from skimage import img_as_ubyte
 from skimage.color import gray2rgb, rgb2gray
 
+from . import __version__
 from .bands import BANDS
 
 logger = logging.getLogger(__name__)
@@ -252,9 +256,9 @@ Image.register('gray_ubyte', get_gray_ubyte_image)
 class FeatureVector():
     """Class to store a feature vector in."""
 
-    def __init__(self, feature, vector):
+    def __init__(self, feature, vector, step_size=None):
         self.vector = vector
-
+        self.step_size = step_size
         self.feature = feature
 
         self.crs = None
@@ -279,22 +283,69 @@ class FeatureVector():
 
     def _save_as_netcdf(self, data, filename, window):
         """Save feature vector as NetCDF file."""
+        if len(data.shape) == 2:
+            width, height = data.shape
+            value_length = 1
+            data = data[:, :, np.newaxis]
+        elif len(data.shape) == 3:
+            width, height, value_length = data.shape
+
         with Dataset(filename, 'w') as dataset:
+            # Metadata
+            dataset.history = 'Created ' + time.ctime(time.time())
+            dataset.source = 'Satsense version ' + __version__
+            dataset.description = ('Satsense extracted values for feature: '
+                                   + self.feature.name)
+            dataset.title = self.feature.name
+            dataset.step_size = self.step_size
             dataset.window = window
             dataset.arguments = repr(self.feature.kwargs)
-            dataset.createDimension('size', data.shape[-1])
-            if len(data.shape) == 2:
-                dataset.createDimension('length', data.shape[0])
-                variable = dataset.createVariable(
-                    self.feature.name, 'f4', dimensions=('length', 'size'))
-            elif len(data.shape) == 3:
-                width, height = data.shape[:2]
-                dataset.createDimension('width', width)
-                dataset.createDimension('height', height)
-                variable = dataset.createVariable(
-                    self.feature.name,
-                    'f4',
-                    dimensions=('width', 'height', 'size'))
+
+            # Latitude and Longitude variables
+            dataset.createDimension('lon', height)
+            dataset.createDimension('lat', width)
+
+            lats = dataset.createVariable('lat', 'f8', dimensions=('lat'))
+            lats.standard_name = 'latitude'
+            lats.long_name = 'latitude'
+            lats.units = 'degree_north'
+            lats._CoordinateAxisType = "Lat"  # noqa W0212
+            lons = dataset.createVariable('lon', 'f8', dimensions=('lon'))
+            lons.standard_name = 'longitude'
+            lons.long_name = "longitude"
+            lons.units = 'degrees_east'
+            lons._CoordinateAxisType = "Lon"  # noqa W0212
+
+            # Transform the cell indices to lat/lon based on the image crs
+            # and transform Based on
+            # https://gis.stackexchange.com/questions/129847/obtain-coordinates-and-corresponding-pixel-values-from-geotiff-using-python-gdal
+            t1 = self.transform * Affine.scale(*self.step_size) * Affine.translation(0.5, 0.5)
+            cols, rows = np.arange(height), np.arange(width)
+
+            rc2en = lambda r, c: (c, r) * t1
+            eastings, northings = np.vectorize(rc2en, otypes=[np.float, np.float])(rows, cols)
+
+            p1 = Proj(self.crs)
+            p2 = Proj(proj='latlong', datum='WGS84')
+            long_values, lat_values = transform(p1, p2, eastings, northings)
+
+            lons[:] = long_values
+            if t1.e < 0:
+                # Make sure the lats are rising
+                lats[:] = lat_values[::-1]
+            else:
+                lats[:] = lat_values
+
+            # Actually add the values
+            dataset.createDimension('length', value_length)
+            variable = dataset.createVariable(
+                self.feature.name, 'f4', dimensions=('length', 'lon', 'lat'))
+            variable.grid_mapping = 'spatial_ref'
+            variable.long_name = self.feature.name
+
+            transposed = np.transpose(data, (2, 0, 1))
+            if t1.e < 0:
+                transposed = transposed[:, ::-1, :]
             variable[:] = data
 
     def _save_as_tif(self, data, filename, window):
