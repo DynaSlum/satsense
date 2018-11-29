@@ -1,7 +1,6 @@
 """Methods for loading images."""
 
 import logging
-import math
 import time
 import warnings
 from types import MappingProxyType
@@ -335,7 +334,7 @@ class FeatureVector():
             t1 = self.transform
             cols, rows = np.arange(height), np.arange(width)
 
-            rc2en = lambda r, c: (c, r) * t1
+            def rc2en(r, c): return (c, r) * t1
             eastings, northings = np.vectorize(
                 rc2en, otypes=[np.float, np.float])(rows, cols)
 
