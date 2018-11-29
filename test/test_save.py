@@ -1,3 +1,5 @@
+import os
+
 import py.path
 import rasterio
 
@@ -11,14 +13,15 @@ def test_netcdf_save(image, tmpdir):
     netcdf_save(image, tmpdir)
 
 
-def netcdf_save(image, tmpdir):
+def netcdf_save(image, tmpdir, extension='nc'):
     feature = HistogramOfGradients([(25, 25), (50, 50)])
     generator = FullGenerator(image, (25, 25))
     vector = extract_feature(feature, generator)
     fv = FeatureVector(
         feature, vector, crs=generator.crs, transform=generator.transform)
 
-    paths = fv.save(str(tmpdir) + '/')
+    prefix = str(tmpdir) + os.sep
+    paths = fv.save(prefix, extension=extension)
 
     with rasterio.open(paths[0]) as dataset:
         assert dataset.shape == vector.shape[0:2]
@@ -29,3 +32,5 @@ if __name__ == "__main__":
     image.precompute_normalization()
 
     netcdf_save(image, py.path.local('.'))
+
+    netcdf_save(image, py.path.local('.'), extension='tif')

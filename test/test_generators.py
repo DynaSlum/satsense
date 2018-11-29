@@ -16,7 +16,7 @@ def create_test_file(filename, array):
     """Write an array of shape (bands, width, heigth) to file."""
     array = np.ma.asanyarray(array)
     crs = rasterio.crs.CRS(init='epsg:4326')
-    transform = from_origin(472137, 5015782, 0.5, 0.5)
+    transform = from_origin(52, 4, 10, 10)
     with rasterio.open(
             filename,
             mode='w',

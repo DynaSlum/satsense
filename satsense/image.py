@@ -188,8 +188,7 @@ class Image:
         return self._get_attribute('transform')
 
     def scaled_transform(self, step_size):
-        return self.transform * Affine.scale(*step_size) * Affine.translation(
-            0.5, 0.5)
+        return self.transform * Affine.scale(*step_size)
 
 
 def get_rgb_image(image: Image):
@@ -293,6 +292,7 @@ class FeatureVector():
             dataset.title = self.feature.name
             dataset.window = window
             dataset.arguments = repr(self.feature.kwargs)
+            dataset.Conventions = 'CF-1.5'
 
             # Latitude and Longitude variables
             dataset.createDimension('lon', height)
@@ -309,41 +309,16 @@ class FeatureVector():
             lons.units = 'degrees_east'
             lons._CoordinateAxisType = "Lon"  # noqa W0212
 
-            crs = dataset.createVariable('spatial_ref', 'i4')
-            crs.spatial_ref = """GEOGCS["WGS 84",
-                                        DATUM["WGS_1984",
-                                              SPHEROID["WGS 84",
-                                              6378137,
-                                              298.257223563,
-                                              AUTHORITY["EPSG","7030"]
-                                        ],
-                                        AUTHORITY["EPSG","6326"]
-                                    ],
-                                    PRIMEM["Greenwich", 0,
-                                            AUTHORITY["EPSG","8901"]
-                                    ],
-                                    UNIT["degree",0.0174532925199433,
-                                            AUTHORITY["EPSG","9122"]
-                                    ],
-                                    AUTHORITY["EPSG","4326"]
-                              ]"""
+            crs = dataset.createVariable('spatial_ref', 'c')
+            crs.spatial_ref = self.crs.wkt
 
             # Transform the cell indices to lat/lon based on the image crs
-            # and transform Based on
-            # https://gis.stackexchange.com/questions/129847/obtain-coordinates-and-corresponding-pixel-values-from-geotiff-using-python-gdal
-            t1 = self.transform
-            cols, rows = np.arange(height), np.arange(width)
+            # and transform
+            coords = rasterio.transform.xy(self.transform, np.arange(width),
+                                           np.arange(height))
 
-            def rc2en(r, c): return (c, r) * t1
-            eastings, northings = np.vectorize(
-                rc2en, otypes=[np.float, np.float])(rows, cols)
-
-            p1 = Proj(self.crs)
-            p2 = Proj(proj='latlong', datum='WGS84')
-            long_values, lat_values = transform(p1, p2, eastings, northings)
-
-            lons[:] = long_values
-            lats[:] = lat_values
+            lons[:] = coords[0]
+            lats[:] = coords[1]
 
             # Actually add the values
             dataset.createDimension('length', value_length)
