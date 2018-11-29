@@ -4,16 +4,49 @@ from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from itertools import groupby
 from os import cpu_count
+from typing import Iterator
 
 import numpy as np
 
+from satsense.generators import FullGenerator
+
+from .features import Feature
 from .image import FeatureVector
 
 logger = logging.getLogger(__name__)
 
 
-def extract_features_parallel(features, generator, n_jobs=cpu_count()):
+def extract_features(features: Iterator[Feature],
+                     generator: FullGenerator,
+                     n_jobs: int = -1):
+    """Compute features.
+
+    Parameters
+    ----------
+    features:
+        Iterable of features.
+    generator:
+        Generator providing the required windows on the image.
+    n_jobs:
+        The maximum number of processes to use. The default is to use the
+        value returned by :func:`os.cpu_count`.
+
+    Yields
+    ------
+    :obj:`satsense.FeatureVector`
+        The requested feature vectors.
+
+    """
+    if n_jobs == 1:
+        yield from _extract_features(features, generator)
+    else:
+        yield from _extract_features_parallel(features, generator, n_jobs)
+
+
+def _extract_features_parallel(features, generator, n_jobs=-1):
     """Extract features in parallel."""
+    if n_jobs < 1:
+        n_jobs = cpu_count()
     logger.info("Extracting features using at most %s processes", n_jobs)
     generator.image.precompute_normalization()
 
@@ -24,10 +57,11 @@ def extract_features_parallel(features, generator, n_jobs=cpu_count()):
         for feature in features:
             extract = partial(extract_feature, feature)
             vector = np.ma.vstack(tuple(executor.map(extract, generators)))
-            yield FeatureVector(feature, vector, generator.step_size)
+            yield FeatureVector(feature, vector, generator.crs,
+                                generator.transform)
 
 
-def extract_features(features, generator):
+def _extract_features(features, generator):
     """Compute features."""
     generator.image.precompute_normalization()
 
@@ -41,7 +75,8 @@ def extract_features(features, generator):
         generator.load_image(itype, window_shapes)
         for feature in group:
             vector = extract_feature(feature, generator)
-            yield FeatureVector(feature, vector, generator.step_size)
+            yield FeatureVector(feature, vector, generator.crs,
+                                generator.transform)
 
 
 def extract_feature(feature, generator):

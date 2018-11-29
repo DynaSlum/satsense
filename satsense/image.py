@@ -188,16 +188,9 @@ class Image:
     def transform(self):
         return self._get_attribute('transform')
 
-    def scaled_transform(self, cell_size):
-        """Compute a transform for a scaled down version of the image."""
-        # TODO: check this, it may be off by a fraction of the cell size
-        x_length = math.ceil(self.shape[0] / cell_size[0])
-        y_length = math.ceil(self.shape[1] / cell_size[1])
-        (west, south, east, north) = rasterio.transform.array_bounds(
-            self.shape[0], self.shape[1], self.transform)
-        transform = rasterio.transform.from_bounds(west, south, east, north,
-                                                   x_length, y_length)
-        return transform
+    def scaled_transform(self, step_size):
+        return self.transform * Affine.scale(*step_size) * Affine.translation(
+            0.5, 0.5)
 
 
 def get_rgb_image(image: Image):
@@ -256,13 +249,12 @@ Image.register('gray_ubyte', get_gray_ubyte_image)
 class FeatureVector():
     """Class to store a feature vector in."""
 
-    def __init__(self, feature, vector, step_size=None):
+    def __init__(self, feature, vector, crs=None, transform=None):
         self.vector = vector
-        self.step_size = step_size
         self.feature = feature
 
-        self.crs = None
-        self.transform = None
+        self.crs = crs
+        self.transform = transform
 
     def get_filename(self, window, prefix='', extension='nc'):
         return '{}{}_{}_{}.{}'.format(prefix, self.feature.name, window[0],
@@ -270,8 +262,10 @@ class FeatureVector():
 
     def save(self, filename_prefix='', extension='nc'):
         """Save feature vector to file."""
+        filenames = []
         for i, window in enumerate(self.feature.windows):
             filename = self.get_filename(window, filename_prefix, extension)
+            filenames.append(filename)
             logger.info("Saving feature %s window %s to file %s",
                         self.feature.name, window, filename)
 
@@ -280,6 +274,7 @@ class FeatureVector():
                 self._save_as_netcdf(data, filename, window)
             elif extension.lower() == 'tif':
                 self._save_as_tif(data, filename, window)
+        return filenames
 
     def _save_as_netcdf(self, data, filename, window):
         """Save feature vector as NetCDF file."""
@@ -294,10 +289,9 @@ class FeatureVector():
             # Metadata
             dataset.history = 'Created ' + time.ctime(time.time())
             dataset.source = 'Satsense version ' + __version__
-            dataset.description = ('Satsense extracted values for feature: '
-                                   + self.feature.name)
+            dataset.description = (
+                'Satsense extracted values for feature: ' + self.feature.name)
             dataset.title = self.feature.name
-            dataset.step_size = self.step_size
             dataset.window = window
             dataset.arguments = repr(self.feature.kwargs)
 
@@ -316,37 +310,51 @@ class FeatureVector():
             lons.units = 'degrees_east'
             lons._CoordinateAxisType = "Lon"  # noqa W0212
 
+            crs = dataset.createVariable('spatial_ref', 'i4')
+            crs.spatial_ref = """GEOGCS["WGS 84",
+                                        DATUM["WGS_1984",
+                                              SPHEROID["WGS 84",
+                                              6378137,
+                                              298.257223563,
+                                              AUTHORITY["EPSG","7030"]
+                                        ],
+                                        AUTHORITY["EPSG","6326"]
+                                    ],
+                                    PRIMEM["Greenwich", 0,
+                                            AUTHORITY["EPSG","8901"]
+                                    ],
+                                    UNIT["degree",0.0174532925199433,
+                                            AUTHORITY["EPSG","9122"]
+                                    ],
+                                    AUTHORITY["EPSG","4326"]
+                              ]"""
+
             # Transform the cell indices to lat/lon based on the image crs
             # and transform Based on
             # https://gis.stackexchange.com/questions/129847/obtain-coordinates-and-corresponding-pixel-values-from-geotiff-using-python-gdal
-            t1 = self.transform * Affine.scale(*self.step_size) * Affine.translation(0.5, 0.5)
+            t1 = self.transform
             cols, rows = np.arange(height), np.arange(width)
 
             rc2en = lambda r, c: (c, r) * t1
-            eastings, northings = np.vectorize(rc2en, otypes=[np.float, np.float])(rows, cols)
+            eastings, northings = np.vectorize(
+                rc2en, otypes=[np.float, np.float])(rows, cols)
 
             p1 = Proj(self.crs)
             p2 = Proj(proj='latlong', datum='WGS84')
             long_values, lat_values = transform(p1, p2, eastings, northings)
 
             lons[:] = long_values
-            if t1.e < 0:
-                # Make sure the lats are rising
-                lats[:] = lat_values[::-1]
-            else:
-                lats[:] = lat_values
+            lats[:] = lat_values
 
             # Actually add the values
             dataset.createDimension('length', value_length)
             variable = dataset.createVariable(
-                self.feature.name, 'f4', dimensions=('length', 'lon', 'lat'))
+                self.feature.name, 'f4', dimensions=('length', 'lat', 'lon'))
             variable.grid_mapping = 'spatial_ref'
             variable.long_name = self.feature.name
 
             transposed = np.transpose(data, (2, 0, 1))
-            if t1.e < 0:
-                transposed = transposed[:, ::-1, :]
-            variable[:] = data
+            variable[:] = transposed
 
     def _save_as_tif(self, data, filename, window):
         """Save feature array as GeoTIFF file."""

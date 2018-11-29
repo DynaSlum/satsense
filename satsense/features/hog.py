@@ -180,12 +180,17 @@ def hog_features(window, bins=50, kernel=None, bandwidth=0.7):
         The window to calculate the features on (grayscale)
     bands : dict
         A discription of the bands used in the window
-    bins : number
+    bins : int
         The number of bins to use
-    kernel : function or callable object
+    kernel : :obj:`typing.Callable`
         The function to use for smoothing
-    bandwidth:
+    bandwidth: float
         The bandwidth for the smoothing
+
+    Returns
+    -------
+    :obj:`numpy.ndarray`
+        The 5 HoG feature values.
 
     """
     if kernel is None:

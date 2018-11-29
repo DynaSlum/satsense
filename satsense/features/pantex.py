@@ -76,12 +76,20 @@ def get_rii_dist_angles():
 
 
 def pantex(window, maximum=255):
-    """
-    Calculate the pantex feature on the given grayscale window
+    """Calculate the pantex feature on the given grayscale window.
 
-    Args:
-        window (nparray): A window of an image
-        maximum (int): The maximum value in the image
+    Parameters
+    ----------
+    window: numpy.ndarray
+        A window on an image.
+    maximum: int
+        The maximum value in the image.
+
+    Returns
+    -------
+    float
+        Pantex feature value.
+
     """
     offsets = get_rii_dist_angles()
 

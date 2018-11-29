@@ -42,6 +42,12 @@ Next, install satsense by running
 
    pip install satsense
 
+If you are planning on using the :ref:`notebooks`, you can
+install the required extra dependencies with
+
+.. code-block:: bash
+
+   pip install satsense[notebooks]
 
 Installing for development
 --------------------------
