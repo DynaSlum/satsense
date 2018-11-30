@@ -1,3 +1,4 @@
+"""Histogram of Gradients feature."""
 import cv2
 import numpy as np
 import scipy.stats
@@ -6,9 +7,7 @@ from .feature import Feature
 
 
 def heaved_central_shift_moment(histogram, order):
-    """
-    Calculate the heaved central shift moment of a histogram
-    of the given order.
+    """Calculate the heaved central shift moment.
 
     Implementation is based on:
     Kumar, S., & Hebert, M. (2003, June). Man-made structure detection in
@@ -19,9 +18,15 @@ def heaved_central_shift_moment(histogram, order):
     Parameters
     ----------
     histogram : numpy.ndarray
-        The histogram to calculate the moments over
+        The histogram to calculate the moments over.
     order : int
-        The order of the moment to calculate, a number between [0, inf)
+        The order of the moment to calculate, a number between [0, inf).
+
+    Returns
+    -------
+    float
+        The heaved central shift moment.
+
     """
     if len(histogram.shape) > 1:
         raise ValueError("Can only calculate moments on a 1d array histogram, "
@@ -30,16 +35,16 @@ def heaved_central_shift_moment(histogram, order):
     if order < 0:
         raise ValueError("Order cannot be below 0")
 
-    v0 = np.mean(histogram)
+    mean = np.mean(histogram)
 
     # Moment 0 is just the mean
     if order == 0:
-        return v0
+        return mean
 
     # In the paper they say: sum over all bins
     # The difference of the bin with the mean of the histogram (v0)
     # and multiply with a step function which is 1 when the difference is > 0
-    diff = histogram - v0
+    diff = histogram - mean
     # The step function is thus a selection method, which is more easily
     # written like this.
     positive_diff = diff[diff > 0]
@@ -49,11 +54,11 @@ def heaved_central_shift_moment(histogram, order):
     denominator = np.sum(positive_diff)
 
     if denominator == 0:
-        v = 0
+        moment = 0
     else:
-        v = numerator / denominator
+        moment = numerator / denominator
 
-    return v
+    return moment
 
 
 # @inproceedings('kumar2003man', {
@@ -68,8 +73,7 @@ def heaved_central_shift_moment(histogram, order):
 #     'organization': 'IEEE'
 # })
 def smoothe_histogram(histogram, kernel, bandwidth):
-    """
-    Vectorized histogram smoothing implementation
+    """Vectorized histogram smoothing implementation.
 
     Implementation is based on:
     Kumar, S., & Hebert, M. (2003, June). Man-made structure detection in
@@ -83,13 +87,15 @@ def smoothe_histogram(histogram, kernel, bandwidth):
         The histogram to smoothe.
     kernel : function or callable object
         The kernel to use for the smoothing.
-        For instance scipy.stats.norm().pdf
+        For instance :obj:`scipy.stats.norm().pdf`.
     bandwidth : int
         The bandwidth of the smoothing.
 
     Returns
     -------
-    The smoothed histogram
+    numpy.ndarray
+        The smoothed histogram.
+
     """
     if len(histogram.shape) > 1:
         raise ValueError("Can only smooth a 1d array histogram")
@@ -117,26 +123,26 @@ def smoothe_histogram(histogram, kernel, bandwidth):
 # using the full 360 degrees the edge between 360 and 0 is there. I'm assuming
 # no values over 360 exist.
 def orientation_histogram(angles, magnitudes, number_of_orientations):
-    """
-    Creates a histogram of orientations.
+    """Create a histogram of orientations.
 
     Bins are created in the full 360 degrees.abs
 
     Parameters
     ----------
     angles : numpy.ndarray
-        Angles of the orientations in degrees
+        Angles of the orientations in degrees.
     magnitudes : numpy.ndarray
-        Magnitude of the orientations
+        Magnitude of the orientations.
     number_of_orientations: int
-        The number of bins to use
+        The number of bins to use.
 
     Returns
     -------
     histogram: numpy.ndarray
-        The histogram of orientations of shape number_of_orientations
+        The histogram of orientations of shape number_of_orientations.
     bin_centers: numpy.ndarray
-        The centers of the created bins with angles in degrees
+        The centers of the created bins with angles in degrees.
+
     """
     if len(angles.shape) > 2:
         raise ValueError("Only 2d windows are supported")
@@ -147,7 +153,6 @@ def orientation_histogram(angles, magnitudes, number_of_orientations):
                 angles.shape, magnitudes.shape))
 
     number_of_orientations_per_360 = 360. / number_of_orientations
-    x_size, y_size = angles.shape
 
     histogram = np.zeros(number_of_orientations)
     bin_centers = np.zeros(number_of_orientations)
@@ -156,14 +161,9 @@ def orientation_histogram(angles, magnitudes, number_of_orientations):
         orientation_end = number_of_orientations_per_360 * (i + 1)
         orientation_start = number_of_orientations_per_360 * i
         bin_centers[i] = (orientation_end + orientation_start) / 2.
+        select = (orientation_start <= angles) & (angles < orientation_end)
+        histogram[i] = np.sum(magnitudes[select])
 
-        total = 0
-        for x in range(x_size):
-            for y in range(y_size):
-                if orientation_start <= angles[x, y] < orientation_end:
-                    total += magnitudes[x, y]
-
-        histogram[i] = total
     return histogram, bin_centers
 
 
@@ -177,15 +177,16 @@ def hog_features(window, bins=50, kernel=None, bandwidth=0.7):
     Parameters
     ----------
     window : numpy.ndarray
-        The window to calculate the features on (grayscale)
+        The window to calculate the features on (grayscale).
     bands : dict
-        A discription of the bands used in the window
+        A discription of the bands used in the window.
     bins : int
-        The number of bins to use
+        The number of bins to use.
     kernel : :obj:`typing.Callable`
-        The function to use for smoothing
+        The function to use for smoothing. The default is
+        :obj:`scipy.stats.norm().pdf`.
     bandwidth: float
-        The bandwidth for the smoothing
+        The bandwidth for the smoothing.
 
     Returns
     -------
@@ -196,22 +197,23 @@ def hog_features(window, bins=50, kernel=None, bandwidth=0.7):
     if kernel is None:
         kernel = scipy.stats.norm().pdf
 
-    gx = cv2.Sobel(window, cv2.CV_64F, 1, 0, ksize=3)
-    gy = cv2.Sobel(window, cv2.CV_64F, 0, 1, ksize=3)
-
-    mag, angle = cv2.cartToPolar(gx, gy, angleInDegrees=True)
+    mag, angle = cv2.cartToPolar(
+        cv2.Sobel(window, cv2.CV_64F, 1, 0, ksize=3),
+        cv2.Sobel(window, cv2.CV_64F, 0, 1, ksize=3),
+        angleInDegrees=True,
+    )
 
     histogram, bin_centers = orientation_histogram(angle, mag, bins)
 
-    smoothed_histogram = smoothe_histogram(histogram, kernel, bandwidth)
+    histogram = smoothe_histogram(histogram, kernel, bandwidth)
 
     # Calculate the Heaved Central-shift Moments
     # The first and second order are used as features
-    v1 = heaved_central_shift_moment(smoothed_histogram, 1)
-    v2 = heaved_central_shift_moment(smoothed_histogram, 2)
+    moment1 = heaved_central_shift_moment(histogram, 1)
+    moment2 = heaved_central_shift_moment(histogram, 2)
 
     # Find the two highest peaks. This is used for the following three features
-    peaks = np.argsort(smoothed_histogram)[::-1][0:2]
+    peaks = np.argsort(histogram)[::-1][0:2]
 
     # Feature 3 and 4: The absolute 'location' of the highest peak.
     # We can only interpret this as either the bin number, or the orientation
@@ -227,7 +229,7 @@ def hog_features(window, bins=50, kernel=None, bandwidth=0.7):
     centers = np.deg2rad(bin_centers)
     beta = np.abs(np.sin(centers[0] - centers[1]))
 
-    return np.array([v1, v2, delta1, delta2, beta])
+    return np.array([moment1, moment2, delta1, delta2, beta])
 
 
 class HistogramOfGradients(Feature):

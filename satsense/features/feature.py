@@ -76,8 +76,7 @@ class FeatureSet():
         self._cur_index = 0
         for feature in self._features.values():
             size = feature.size * len(feature.windows)
-            feature.indices = slice(self._cur_index,
-                                    self._cur_index + size)
+            feature.indices = slice(self._cur_index, self._cur_index + size)
             self._cur_index += size
 
     @property
