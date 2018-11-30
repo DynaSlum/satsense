@@ -9,7 +9,7 @@ from satsense.bands import BANDS
 from satsense.generators import FullGenerator
 from satsense.image import Image
 
-from .strategies import st_n_jobs, st_rasterio_dtypes
+from .strategies import st_rasterio_dtypes
 
 
 def create_test_file(filename, array):
@@ -144,8 +144,9 @@ def test_full_generator(tmpdir, window_shapes, step_and_image):
     assert np.prod(generator.shape) == len(windows) // len(window_shapes)
 
 
-@given(st_window_shapes, st_step_and_image, st_n_jobs)
-def test_full_generator_split(tmpdir, window_shapes, step_and_image, n_jobs):
+@given(st_window_shapes, st_step_and_image,
+       st.integers(min_value=1, max_value=5))
+def test_full_generator_split(tmpdir, window_shapes, step_and_image, n_chunks):
     step_size, image_array = step_and_image
 
     image = create_test_image(tmpdir, image_array, normalization=False)
@@ -155,7 +156,7 @@ def test_full_generator_split(tmpdir, window_shapes, step_and_image, n_jobs):
     reference = list(generator)
 
     windows = []
-    for gen in generator.split(n_jobs):
+    for gen in generator.split(n_chunks):
         gen.load_image(itype, window_shapes)
         windows.extend(gen)
 

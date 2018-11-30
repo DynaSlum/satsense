@@ -1,6 +1,7 @@
 """Test feature extraction related functions."""
 import os
 
+import hypothesis.strategies as st
 import numpy as np
 import pytest
 from hypothesis import given
@@ -11,7 +12,6 @@ from satsense.features import Feature
 from satsense.generators import FullGenerator
 from satsense.image import FeatureVector
 
-from .strategies import st_n_jobs
 from .test_generators import create_test_image
 
 
@@ -91,7 +91,7 @@ def test_extract_features(generator):
         assert result.vector.shape == shape
 
 
-@given(st_n_jobs)
+@given(st.integers(min_value=-1, max_value=10))
 def test_extract_features_parallel(generator, n_jobs):
     """Test that parallel feature computation produces identical results."""
     window_shapes = (
