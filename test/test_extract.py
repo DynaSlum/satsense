@@ -71,7 +71,7 @@ def test_extract_features(generator):
     """Test that features can be computed."""
     features = [
         RGBFeature(window_shapes=((3, 2), )),
-        GrayscaleFeature(window_shapes=(
+        GrayUbyteFeature(window_shapes=(
             (3, 2),
             (4, 4),
         )),
