@@ -7,7 +7,7 @@ from hypothesis import given
 
 from satsense.bands import BANDS
 from satsense.extract import extract_features
-from satsense.features import HistogramOfGradients, NirNDVI, Pantex
+from satsense.features import Feature
 from satsense.generators import FullGenerator
 from satsense.image import FeatureVector
 
@@ -15,11 +15,29 @@ from .strategies import st_n_jobs
 from .test_generators import create_test_image
 
 
+class BaseTestFeature(Feature):
+    size = 1
+    compute = staticmethod(lambda a: np.mean(a, axis=(0, 1)))
+
+
+class GrayscaleFeature(BaseTestFeature):
+    base_image = 'grayscale'
+
+
+class GrayUbyteFeature(BaseTestFeature):
+    base_image = 'gray_ubyte'
+
+
+class RGBFeature(BaseTestFeature):
+    base_image = 'rgb'
+    size = 3
+
+
 def test_save_load_roundtrip(tmpdir):
     """Test that saving and loading does not modify a FeatureVector."""
     window_shapes = ((3, 3), (5, 5))
 
-    feature = Pantex(window_shapes)
+    feature = GrayscaleFeature(window_shapes)
 
     shape = (2, 3, len(window_shapes), feature.size)
     vector = np.array(range(np.prod(shape)), dtype=float)
@@ -51,18 +69,26 @@ def generator(tmpdir):
 
 def test_extract_features(generator):
     """Test that features can be computed."""
-    window_shapes = (
-        (3, 3),
-        (5, 5),
-    )
-    feature = Pantex(window_shapes)
+    features = [
+        RGBFeature(window_shapes=((3, 2), )),
+        GrayscaleFeature(window_shapes=(
+            (3, 2),
+            (4, 4),
+        )),
+        GrayUbyteFeature(window_shapes=(
+            (4, 4),
+            (2, 5),
+        ))
+    ]
 
-    result = list(extract_features([feature], generator, n_jobs=1))[0]
+    results = tuple(extract_features(features, generator, n_jobs=1))
 
-    assert result.feature == feature
-    assert result.vector.any()
-    assert result.vector.shape == generator.shape + (len(window_shapes),
-                                                     feature.size)
+    assert len(results) == 3
+    for result, feature in zip(results, features):
+        assert result.feature == feature
+        assert result.vector.any()
+        shape = generator.shape + (len(feature.windows), feature.size)
+        assert result.vector.shape == shape
 
 
 @given(st_n_jobs)
@@ -72,13 +98,16 @@ def test_extract_features_parallel(generator, n_jobs):
         (3, 3),
         (5, 5),
     )
-    hog = HistogramOfGradients(window_shapes)
-    ndvi = NirNDVI(window_shapes)
-    features = [hog, ndvi]
+    features = [
+        GrayscaleFeature(window_shapes),
+    ]
     print("Computing reference features")
     references = list(extract_features(features, generator, n_jobs=1))
+    assert len(references) == 1
+
     print("Computing features in parallel")
     results = list(extract_features(features, generator, n_jobs=n_jobs))
+    assert len(results) == 1
 
     for reference, result in zip(references, results):
         np.testing.assert_array_equal(result.vector.mask,
