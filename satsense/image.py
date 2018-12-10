@@ -3,6 +3,7 @@
 import logging
 import time
 import warnings
+from ast import literal_eval as make_tuple
 from types import MappingProxyType
 
 import numpy as np
@@ -327,7 +328,7 @@ class FeatureVector():
             variable.grid_mapping = 'spatial_ref'
             variable.long_name = self.feature.name
 
-            transposed = np.transpose(data, (2, 0, 1))
+            transposed = np.moveaxis(data, source=2, destination=0)
             variable[:] = transposed
 
     def _save_as_tif(self, data, filename, window):
@@ -344,7 +345,7 @@ class FeatureVector():
                 width=width,
                 height=height,
                 count=size,
-                dtype=rasterio.float32,
+                dtype=data.dtype,
                 crs=self.crs,
                 transform=self.transform,
                 nodata=fill_value,
@@ -361,17 +362,27 @@ class FeatureVector():
             filename = new.get_filename(window, filename_prefix, extension)
             logger.debug("Loading feature %s from file %s", feature.name,
                          filename)
-            with Dataset(filename, 'r') as dataset:
-                var = dataset.variables[feature.name]
-                if new.vector is None:
-                    shape = var.shape[:2] + (len(feature.windows),
-                                             feature.size)
-                    new.vector = np.zeros(shape, dtype=np.float32)
-                window = tuple(dataset.window)
-                idx = feature.windows.index(window)
-                if repr(feature.kwargs) != dataset.arguments:
-                    logger.warning(
-                        "Stored arguments do not match feature, %r != %s",
-                        feature.kwargs, dataset.arguments)
-                new.vector[:, :, idx, :] = var[:]
+
+            if extension == 'nc':
+                with Dataset(filename, 'r') as dataset:
+                    data = dataset.variables[feature.name][:]
+                    window = tuple(dataset.window)
+                    arguments = dataset.arguments
+            else:
+                with rasterio.open(filename, 'r') as dataset:
+                    data = dataset.read()
+                    window = make_tuple(dataset.tags()['window'])
+                    arguments = dataset.tags()['arguments']
+
+            if new.vector is None:
+                shape = data.shape[1:] + (len(feature.windows), feature.size)
+                new.vector = np.zeros(shape, dtype=np.float32)
+            idx = feature.windows.index(window)
+            if repr(feature.kwargs) != arguments:
+                logger.warning(
+                    "Stored arguments do not match feature, %r != %s",
+                    feature.kwargs, dataset.arguments)
+
+            data = np.moveaxis(data, source=0, destination=2)
+            new.vector[:, :, idx, :] = data
         return new
