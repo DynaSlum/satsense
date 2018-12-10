@@ -277,11 +277,11 @@ class FeatureVector():
     def _save_as_netcdf(self, data, filename, window):
         """Save feature vector as NetCDF file."""
         if len(data.shape) == 2:
-            width, height = data.shape
+            height, width = data.shape
             value_length = 1
             data = data[:, :, np.newaxis]
         elif len(data.shape) == 3:
-            width, height, value_length = data.shape
+            height, width, value_length = data.shape
 
         with Dataset(filename, 'w') as dataset:
             # Metadata
@@ -294,36 +294,12 @@ class FeatureVector():
             dataset.arguments = repr(self.feature.kwargs)
             dataset.Conventions = 'CF-1.5'
 
-            # Latitude and Longitude variables
-            dataset.createDimension('lon', height)
-            dataset.createDimension('lat', width)
-
-            lats = dataset.createVariable('lat', 'f8', dimensions=('lat'))
-            lats.standard_name = 'latitude'
-            lats.long_name = 'latitude'
-            lats.units = 'degree_north'
-            lats._CoordinateAxisType = "Lat"  # noqa W0212
-            lons = dataset.createVariable('lon', 'f8', dimensions=('lon'))
-            lons.standard_name = 'longitude'
-            lons.long_name = "longitude"
-            lons.units = 'degrees_east'
-            lons._CoordinateAxisType = "Lon"  # noqa W0212
-
-            crs = dataset.createVariable('spatial_ref', 'c')
-            crs.spatial_ref = self.crs.wkt
-
-            # Transform the cell indices to lat/lon based on the image crs
-            # and transform
-            coords = rasterio.transform.xy(self.transform, np.arange(width),
-                                           np.arange(height))
-
-            lons[:] = coords[0]
-            lats[:] = coords[1]
+            dimensions = self.add_lat_lon_dimensions(dataset, height, width)
 
             # Actually add the values
             dataset.createDimension('length', value_length)
             variable = dataset.createVariable(
-                self.feature.name, 'f4', dimensions=('length', 'lat', 'lon'))
+                self.feature.name, 'f4', dimensions=('length', *dimensions))
             variable.grid_mapping = 'spatial_ref'
             variable.long_name = self.feature.name
 
@@ -332,9 +308,12 @@ class FeatureVector():
 
     def _save_as_tif(self, data, filename, window):
         """Save feature array as GeoTIFF file."""
-        width, height, size = data.shape
-        data = np.ma.filled(data)
+        height, width, size = data.shape
         fill_value = data.fill_value if np.ma.is_masked(data) else None
+
+        if np.ma.is_masked(data):
+            msk = (~data.mask * 255).astype('uint8')
+        # data = np.ma.filled(data)
         # This is probably wrong
         data = np.moveaxis(data, source=2, destination=0)
         with rasterio.open(
@@ -350,6 +329,8 @@ class FeatureVector():
                 nodata=fill_value,
         ) as dataset:
             dataset.write(data)
+            if np.ma.is_masked(data):
+                dataset.write_mask(msk)
             dataset.update_tags(
                 window=window, arguments=repr(self.feature.kwargs))
 
@@ -385,3 +366,56 @@ class FeatureVector():
             data = np.moveaxis(data, source=0, destination=2)
             new.vector[:, :, idx, :] = data
         return new
+
+    def add_lat_lon_dimensions(self, dataset, height, width):
+        if self.crs.is_geographic:
+            # Latitude and Longitude variables
+            dataset.createDimension('lon', width)
+            dataset.createDimension('lat', height)
+
+            lats = dataset.createVariable('lat', 'f8', dimensions=('lat'))
+            lons = dataset.createVariable('lon', 'f8', dimensions=('lon'))
+
+            lats.standard_name = 'latitude'
+            lats.long_name = 'latitude'
+            lats.units = 'degrees_north'
+            lats._CoordinateAxisType = "Lat"  # noqa W0212
+
+            lons.standard_name = 'longitude'
+            lons.long_name = 'longitude'
+            lons.units = 'degrees_east'
+            lons._CoordinateAxisType = "Lon"  # noqa W0212
+
+            dimensions = ('lat', 'lon')
+        else:
+            dataset.createDimension('x', width)
+            dataset.createDimension('y', height)
+
+            lats = dataset.createVariable('y', 'f8', dimensions=('y'))
+            lons = dataset.createVariable('x', 'f8', dimensions=('x'))
+
+            lats.standard_name = 'projection_y_coordinate'
+            lats.long_name = 'Northing'
+            #lats.units = 'meters'
+            lats._CoordinateAxisType = "GeoY"
+
+            lons.standard_name = 'projection_x_coordinate'
+            lons.long_name = "Easting"
+            lons._CoordinateAxisType = "GeoX"
+
+            dimensions = 'y', 'x'
+
+        crs = dataset.createVariable('spatial_ref', 'i4')
+        crs.spatial_ref = self.crs.wkt
+
+        # Transform the cell indices to lat/lon based on the image crs
+        # and transform
+        xs, _ = rasterio.transform.xy(self.transform, np.zeros(width),
+                                      np.arange(width))
+        _, ys = rasterio.transform.xy(self.transform, np.arange(height),
+                                      np.zeros(height))
+
+        lons[:] = xs
+        lats[:] = ys
+
+        return dimensions
