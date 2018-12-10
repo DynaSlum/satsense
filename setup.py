@@ -33,8 +33,7 @@ setup(
         'scikit-image',
         'scikit-learn',
         'scipy',
-        'shapely',
-        'pyproj'
+        'shapely'
     ],
     extras_require={
         'dev': [
