@@ -19,12 +19,8 @@ setup(
     author='Berend Weel, Elena Ranguelova',
     setup_requires=['pytest-runner'],
     tests_require=[
-        'hypothesis[numpy]',
-        'pytest',
-        'pytest-cov',
-        'pytest-html',
-        'pytest-flake8',
-        'pytest-env'
+        'hypothesis[numpy]', 'pytest', 'pytest-cov', 'pytest-env',
+        'pytest-flake8', 'pytest-html'
     ],
     install_requires=[
         'descartes',
@@ -49,8 +45,9 @@ setup(
             'prospector[with_pyroma]',
             'pytest',
             'pytest-cov',
-            'pytest-html',
+            'pytest-env',
             'pytest-flake8',
+            'pytest-html',
             'sphinx',
             'sphinx_rtd_theme',
             'yamllint',

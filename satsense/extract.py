@@ -92,7 +92,8 @@ def extract_feature(feature, generator):
     vector.mask = np.zeros_like(vector, dtype=bool)
 
     size = vector.shape[0]
-    for i, window in enumerate(generator):
+    i = 0
+    for window in generator:
         if window.shape[:2] not in feature.windows:
             continue
         if i % (size // 10 or 1) == 0:
@@ -101,6 +102,7 @@ def extract_feature(feature, generator):
             vector.mask[i] = True
         else:
             vector[i] = feature(window)
+        i += 1
 
     vector.shape = shape
     return vector
