@@ -10,7 +10,6 @@ import numpy as np
 import rasterio
 from affine import Affine
 from netCDF4 import Dataset
-from pyproj import Proj, transform
 from skimage import img_as_ubyte
 from skimage.color import gray2rgb, rgb2gray
 
