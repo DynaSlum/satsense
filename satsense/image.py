@@ -396,7 +396,8 @@ class FeatureVector():
 
             lats.standard_name = 'projection_y_coordinate'
             lats.long_name = 'Northing'
-            #lats.units = 'meters'
+            # TODO: How do we know if it's meters or something else?
+            # lats.units = 'meters'
             lats._CoordinateAxisType = "GeoY"
 
             lons.standard_name = 'projection_x_coordinate'
