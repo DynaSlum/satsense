@@ -292,9 +292,8 @@ class FeatureVector():
             dataset.title = self.feature.name
             dataset.window = window
             dataset.arguments = repr(self.feature.kwargs)
-            dataset.Conventions = 'CF-1.5'
 
-            dimensions = self.add_lat_lon_dimensions(dataset, height, width)
+            dimensions = self._add_lat_lon_dimensions(dataset, height, width)
 
             # Actually add the values
             dataset.createDimension('length', value_length)
@@ -313,8 +312,7 @@ class FeatureVector():
 
         if np.ma.is_masked(data):
             msk = (~data.mask * 255).astype('uint8')
-        # data = np.ma.filled(data)
-        # This is probably wrong
+
         data = np.moveaxis(data, source=2, destination=0)
         with rasterio.open(
                 filename,
@@ -332,7 +330,14 @@ class FeatureVector():
             if np.ma.is_masked(data):
                 dataset.write_mask(msk)
             dataset.update_tags(
-                window=window, arguments=repr(self.feature.kwargs))
+                history='Created ' + time.ctime(time.time()),
+                source='Satsense version ' + __version__,
+                description='Satsense extracted values for feature: '
+                            + self.feature.name,
+                title=self.feature.name,
+                window=window,
+                arguments=repr(self.feature.kwargs)
+            )
 
     @classmethod
     def from_file(cls, feature, filename_prefix, extension='nc'):
@@ -356,7 +361,7 @@ class FeatureVector():
 
             if new.vector is None:
                 shape = data.shape[1:] + (len(feature.windows), feature.size)
-                new.vector = np.zeros(shape, dtype=np.float32)
+                new.vector = np.zeros(shape, dtype=data.dtype)
             idx = feature.windows.index(window)
             if repr(feature.kwargs) != arguments:
                 logger.warning(
@@ -367,7 +372,7 @@ class FeatureVector():
             new.vector[:, :, idx, :] = data
         return new
 
-    def add_lat_lon_dimensions(self, dataset, height, width):
+    def _add_lat_lon_dimensions(self, dataset, height, width):
         if self.crs.is_geographic:
             # Latitude and Longitude variables
             dataset.createDimension('lon', width)
@@ -411,12 +416,12 @@ class FeatureVector():
 
         # Transform the cell indices to lat/lon based on the image crs
         # and transform
-        xs, _ = rasterio.transform.xy(self.transform, np.zeros(width),
-                                      np.arange(width))
-        _, ys = rasterio.transform.xy(self.transform, np.arange(height),
-                                      np.zeros(height))
+        x_coords, _ = rasterio.transform.xy(self.transform, np.zeros(width),
+                                            np.arange(width))
+        _, y_coords = rasterio.transform.xy(self.transform, np.arange(height),
+                                            np.zeros(height))
 
-        lons[:] = xs
-        lats[:] = ys
+        lons[:] = x_coords
+        lats[:] = y_coords
 
         return dimensions
