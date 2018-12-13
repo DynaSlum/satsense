@@ -194,6 +194,8 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
+    'rasterio': ('https://rasterio.readthedocs.io/en/latest/', None),
+    'skimage': ('http://scikit-image.org/docs/dev/', None),
 }
 
 autodoc_mock_imports = [

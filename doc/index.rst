@@ -5,7 +5,7 @@ Satsense is a Python library for land use/cover classification using satellite i
 
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
    installation

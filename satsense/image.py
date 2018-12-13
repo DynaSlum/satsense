@@ -17,12 +17,65 @@ logger = logging.getLogger(__name__)
 
 
 class Image:
+    """
+    Image class that provides a unified interface to satellite images
 
+    Under the hood rasterio is used, so any format supported by rasterio
+    can be used.
+
+    Parameters
+    ==========
+
+    filename: str
+        The name of the image
+    satellite: str
+        The name of the satelite (i.e. worldview3, quickbird etc.)
+    band: str
+        The band for the grayscale image, or 'rgb'. The default is 'rgb'
+    normalization_parameters: dict, optional
+        Dictionary that describes the normalizaiton parameters
+        The following keys can be supplied:
+
+        - technique: string
+            The technique to use, can be 'cumulative' (default),
+            'meanstd' or 'minmax'
+        - percentiles: array_like of int
+            The percentiles to use (exactly 2) if technique is cumulative,
+            default is [2, 98]
+        - numstds: float
+            Number of standard deviations to use if technique is meanstd
+    block: tuple or rasterio.windows.Window, optional
+        The part of the image read defined in a rasterio compatible way. e.g.
+        2 tuples or a rasterio.windows.Window object
+    cached: array-like or boolean, optional
+        If True bands and base images are cached in memory
+        if an array a band or base image is cached if its name is in the array
+
+    See also
+    ========
+    satsense.bands
+    """
     itypes = {}
 
     @classmethod
     def register(cls, itype, function):
-        """Register a new image type."""
+        """
+        Register a new image type.
+
+        Parameters
+        ==========
+        itype: str
+            (internal) name of the image type
+        function: function
+            Function definition that should take a single Image parameter
+            and return a numpy.ndarray or numpy.ma.masked_array
+
+        See Also
+        ========
+        get_gray_ubyte_image
+        get_grayscale_image
+        get_rgb_image
+        """
         cls.itypes[itype] = function
 
     def __init__(self,
@@ -54,7 +107,20 @@ class Image:
         self.attributes = {}
 
     def copy_block(self, block):
-        """Create a subset of Image."""
+        """
+        Create a subset of Image.
+
+        Parameters
+        ==========
+        block: tuple or rasterio.windows.Window, optional
+        The part of the image read defined in a rasterio compatible way. e.g.
+        2 tuples or a rasterio.windows.Window object
+
+        Returns
+        =======
+        image.Image:
+            subsetted image
+        """
         logger.info("Selecting block %s from image with shape %s", block,
                     self.shape)
         image = Image(
@@ -68,7 +134,29 @@ class Image:
         return image
 
     def __getitem__(self, itype):
-        """Get image of type."""
+        """
+        Get image of type.
+
+        Parameters
+        ==========
+        itype: str
+            The name of the image type to retrieve
+
+        Returns
+        =======
+        out: numpy.ndarray or numpy.ma.masked_array
+            The image of the supplied type
+
+        Examples
+        =======
+        Get the rgb image
+
+        >>> image['rgb'].shape
+        (152, 155, 3)
+
+        >>> image['gray_ubyte'].dtype
+        dtype('uint8')
+        """
         if itype in self.cache:
             return self.cache[itype]
 
@@ -197,7 +285,19 @@ class Image:
 
 
 def get_rgb_image(image: Image):
-    """Convert the image to rgb format."""
+    """
+    Convert the image to rgb format.
+
+    Parameters
+    ==========
+    image: image.Image
+        The image to calculate the rgb image from
+
+    Returns
+    =======
+    numpy.ndarray
+        The image converted to rgb
+    """
     #     logger.debug("Computing rgb image")
     if image.band == 'rgb':
         red = image['red']
@@ -216,6 +316,24 @@ Image.register('rgb', get_rgb_image)
 
 
 def get_grayscale_image(image: Image):
+    """
+    Convert the image to grayscale.
+
+    Parameters
+    ==========
+    image: image.Image
+        The image to calculate the grayscale image from
+
+    Returns
+    =======
+    numpy.ndarray
+        The image converted to grayscale in 0 - 1 range
+
+    See Also
+    ========
+    skimage.color.rgb2gray:
+        Used to convert rgb image to grayscale
+    """
     #     logger.debug("Computing grayscale image")
     if image.band == 'rgb':
         rgb = image['rgb']
@@ -231,9 +349,23 @@ Image.register('grayscale', get_grayscale_image)
 
 
 def get_gray_ubyte_image(image: Image):
-    """Convert image in 0 - 1 scale format to ubyte 0 - 255 format.
+    """
+    Convert image in 0 - 1 scale format to ubyte 0 - 255 format.
 
-    Uses img_as_ubyte from skimage.
+    Parameters
+    ==========
+    image: image.Image
+        The image to calculate the grayscale image from
+
+    Returns
+    =======
+    numpy.ndarray
+        The image converted to grayscale
+
+    See Also
+    ========
+    skimage.img_as_ubyte:
+        Used to convert the image to ubyte
     """
     #     logger.debug("Computing gray ubyte image")
     with warnings.catch_warnings():

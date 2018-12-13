@@ -6,7 +6,11 @@ Submodules
 
 .. toctree::
 
+   satsense.image
+   satsense.bands
    satsense.features
+   satsense.generators
+   satsense.extract
    satsense.performance
    satsense.util
 
