@@ -16,7 +16,7 @@ def create_test_file(filename, array):
     """Write an array of shape (bands, width, heigth) to file."""
     array = np.ma.asanyarray(array)
     crs = rasterio.crs.CRS(init='epsg:4326')
-    transform = from_origin(472137, 5015782, 0.5, 0.5)
+    transform = from_origin(52, 4, 10, 10)
     with rasterio.open(
             filename,
             mode='w',
@@ -99,7 +99,8 @@ st_window_shape = st.tuples(
     st.integers(min_value=1, max_value=10),
     st.integers(min_value=1, max_value=10))
 
-st_window_shapes = st.lists(st_window_shape, min_size=1, max_size=10)
+st_window_shapes = st.lists(
+    st_window_shape, min_size=1, max_size=10, unique=True)
 
 
 def create_step_and_image_strategy(limit):

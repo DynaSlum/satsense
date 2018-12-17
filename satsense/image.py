@@ -1,16 +1,20 @@
 """Methods for loading images."""
 
 import logging
-import math
+import os
+import time
 import warnings
+from ast import literal_eval as make_tuple
 from types import MappingProxyType
 
 import numpy as np
 import rasterio
+from affine import Affine
 from netCDF4 import Dataset
 from skimage import img_as_ubyte
 from skimage.color import gray2rgb, rgb2gray
 
+from . import __version__
 from .bands import BANDS
 
 logger = logging.getLogger(__name__)
@@ -184,16 +188,8 @@ class Image:
     def transform(self):
         return self._get_attribute('transform')
 
-    def scaled_transform(self, cell_size):
-        """Compute a transform for a scaled down version of the image."""
-        # TODO: check this, it may be off by a fraction of the cell size
-        x_length = math.ceil(self.shape[0] / cell_size[0])
-        y_length = math.ceil(self.shape[1] / cell_size[1])
-        (west, south, east, north) = rasterio.transform.array_bounds(
-            self.shape[0], self.shape[1], self.transform)
-        transform = rasterio.transform.from_bounds(west, south, east, north,
-                                                   x_length, y_length)
-        return transform
+    def scaled_transform(self, step_size):
+        return self.transform * Affine.scale(*step_size)
 
 
 def get_rgb_image(image: Image):
@@ -253,21 +249,23 @@ class FeatureVector():
     """Class to store a feature vector in."""
 
     def __init__(self, feature, vector, crs=None, transform=None):
-        self.vector = vector
-
         self.feature = feature
-
+        self.vector = vector
         self.crs = crs
         self.transform = transform
 
     def get_filename(self, window, prefix='', extension='nc'):
+        if os.path.isdir(prefix) and not str(prefix).endswith(os.sep):
+            prefix += os.sep
         return '{}{}_{}_{}.{}'.format(prefix, self.feature.name, window[0],
                                       window[1], extension)
 
     def save(self, filename_prefix='', extension='nc'):
         """Save feature vector to file."""
+        filenames = []
         for i, window in enumerate(self.feature.windows):
             filename = self.get_filename(window, filename_prefix, extension)
+            filenames.append(filename)
             logger.info("Saving feature %s window %s to file %s",
                         self.feature.name, window, filename)
 
@@ -276,33 +274,47 @@ class FeatureVector():
                 self._save_as_netcdf(data, filename, window)
             elif extension.lower() == 'tif':
                 self._save_as_tif(data, filename, window)
+        return filenames
 
     def _save_as_netcdf(self, data, filename, window):
         """Save feature vector as NetCDF file."""
+        if len(data.shape) == 2:
+            height, width = data.shape
+            value_length = 1
+            data = data[:, :, np.newaxis]
+        elif len(data.shape) == 3:
+            height, width, value_length = data.shape
+
         with Dataset(filename, 'w') as dataset:
+            # Metadata
+            dataset.history = 'Created ' + time.ctime(time.time())
+            dataset.source = 'Satsense version ' + __version__
+            dataset.description = (
+                'Satsense extracted values for feature: ' + self.feature.name)
+            dataset.title = self.feature.name
             dataset.window = window
             dataset.arguments = repr(self.feature.kwargs)
-            dataset.createDimension('size', data.shape[-1])
-            if len(data.shape) == 2:
-                dataset.createDimension('length', data.shape[0])
-                variable = dataset.createVariable(
-                    self.feature.name, 'f4', dimensions=('length', 'size'))
-            elif len(data.shape) == 3:
-                width, height = data.shape[:2]
-                dataset.createDimension('width', width)
-                dataset.createDimension('height', height)
-                variable = dataset.createVariable(
-                    self.feature.name,
-                    'f4',
-                    dimensions=('width', 'height', 'size'))
-            variable[:] = data
+
+            dimensions = self._add_lat_lon_dimensions(dataset, height, width)
+
+            # Actually add the values
+            dataset.createDimension('length', value_length)
+            variable = dataset.createVariable(
+                self.feature.name, 'f4', dimensions=('length', *dimensions))
+            variable.grid_mapping = 'spatial_ref'
+            variable.long_name = self.feature.name
+
+            transposed = np.moveaxis(data, source=2, destination=0)
+            variable[:] = transposed
 
     def _save_as_tif(self, data, filename, window):
         """Save feature array as GeoTIFF file."""
-        width, height, size = data.shape
-        data = np.ma.filled(data)
+        height, width, size = data.shape
         fill_value = data.fill_value if np.ma.is_masked(data) else None
-        # This is probably wrong
+
+        if np.ma.is_masked(data):
+            msk = (~data.mask * 255).astype('uint8')
+
         data = np.moveaxis(data, source=2, destination=0)
         with rasterio.open(
                 filename,
@@ -311,14 +323,23 @@ class FeatureVector():
                 width=width,
                 height=height,
                 count=size,
-                dtype=rasterio.float32,
+                dtype=data.dtype,
                 crs=self.crs,
                 transform=self.transform,
                 nodata=fill_value,
         ) as dataset:
             dataset.write(data)
+            if np.ma.is_masked(data):
+                dataset.write_mask(msk)
             dataset.update_tags(
-                window=window, arguments=repr(self.feature.kwargs))
+                history='Created ' + time.ctime(time.time()),
+                source='Satsense version ' + __version__,
+                description=('Satsense extracted values for feature: ' +
+                             self.feature.name),
+                title=self.feature.name,
+                window=window,
+                arguments=repr(self.feature.kwargs),
+            )
 
     @classmethod
     def from_file(cls, feature, filename_prefix, extension='nc'):
@@ -328,17 +349,81 @@ class FeatureVector():
             filename = new.get_filename(window, filename_prefix, extension)
             logger.debug("Loading feature %s from file %s", feature.name,
                          filename)
-            with Dataset(filename, 'r') as dataset:
-                var = dataset.variables[feature.name]
-                if new.vector is None:
-                    shape = var.shape[:2] + (len(feature.windows),
-                                             feature.size)
-                    new.vector = np.zeros(shape, dtype=np.float32)
-                window = tuple(dataset.window)
-                idx = feature.windows.index(window)
-                if repr(feature.kwargs) != dataset.arguments:
-                    logger.warning(
-                        "Stored arguments do not match feature, %r != %s",
-                        feature.kwargs, dataset.arguments)
-                new.vector[:, :, idx, :] = var[:]
+
+            if extension == 'nc':
+                with Dataset(filename, 'r') as dataset:
+                    data = dataset.variables[feature.name][:]
+                    window = tuple(dataset.window)
+                    arguments = dataset.arguments
+            else:
+                with rasterio.open(filename, 'r') as dataset:
+                    data = dataset.read()
+                    window = make_tuple(dataset.tags()['window'])
+                    arguments = dataset.tags()['arguments']
+
+            if new.vector is None:
+                shape = data.shape[1:] + (len(feature.windows), feature.size)
+                new.vector = np.zeros(shape, dtype=data.dtype)
+            idx = feature.windows.index(window)
+            if repr(feature.kwargs) != arguments:
+                logger.warning(
+                    "Stored arguments do not match feature, %r != %s",
+                    feature.kwargs, dataset.arguments)
+
+            data = np.moveaxis(data, source=0, destination=2)
+            new.vector[:, :, idx, :] = data
         return new
+
+    def _add_lat_lon_dimensions(self, dataset, height, width):
+        if self.crs.is_geographic:
+            # Latitude and Longitude variables
+            dataset.createDimension('lon', width)
+            dataset.createDimension('lat', height)
+
+            lats = dataset.createVariable('lat', 'f8', dimensions=('lat'))
+            lons = dataset.createVariable('lon', 'f8', dimensions=('lon'))
+
+            lats.standard_name = 'latitude'
+            lats.long_name = 'latitude'
+            lats.units = 'degrees_north'
+            lats._CoordinateAxisType = "Lat"  # noqa W0212
+
+            lons.standard_name = 'longitude'
+            lons.long_name = 'longitude'
+            lons.units = 'degrees_east'
+            lons._CoordinateAxisType = "Lon"  # noqa W0212
+
+            dimensions = ('lat', 'lon')
+        else:
+            dataset.createDimension('x', width)
+            dataset.createDimension('y', height)
+
+            lats = dataset.createVariable('y', 'f8', dimensions=('y'))
+            lons = dataset.createVariable('x', 'f8', dimensions=('x'))
+
+            lats.standard_name = 'projection_y_coordinate'
+            lats.long_name = 'Northing'
+            # TODO: How do we know if it's meters or something else?
+            # lats.units = 'meters'
+            lats._CoordinateAxisType = "GeoY"
+
+            lons.standard_name = 'projection_x_coordinate'
+            lons.long_name = "Easting"
+            lons._CoordinateAxisType = "GeoX"
+
+            dimensions = 'y', 'x'
+
+        crs = dataset.createVariable('spatial_ref', 'i4')
+        crs.spatial_ref = self.crs.wkt
+
+        # Transform the cell indices to lat/lon based on the image crs
+        # and transform
+        x_coords, _ = rasterio.transform.xy(self.transform, np.zeros(width),
+                                            np.arange(width))
+        _, y_coords = rasterio.transform.xy(self.transform, np.arange(height),
+                                            np.zeros(height))
+
+        lons[:] = x_coords
+        lats[:] = y_coords
+
+        return dimensions
