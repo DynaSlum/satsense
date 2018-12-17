@@ -1,6 +1,7 @@
 """Methods for loading images."""
 
 import logging
+import os
 import time
 import warnings
 from ast import literal_eval as make_tuple
@@ -248,13 +249,14 @@ class FeatureVector():
     """Class to store a feature vector in."""
 
     def __init__(self, feature, vector, crs=None, transform=None):
-        self.vector = vector
         self.feature = feature
-
+        self.vector = vector
         self.crs = crs
         self.transform = transform
 
     def get_filename(self, window, prefix='', extension='nc'):
+        if os.path.isdir(prefix) and not str(prefix).endswith(os.sep):
+            prefix += os.sep
         return '{}{}_{}_{}.{}'.format(prefix, self.feature.name, window[0],
                                       window[1], extension)
 
@@ -332,11 +334,11 @@ class FeatureVector():
             dataset.update_tags(
                 history='Created ' + time.ctime(time.time()),
                 source='Satsense version ' + __version__,
-                description='Satsense extracted values for feature: '
-                            + self.feature.name,
+                description=('Satsense extracted values for feature: ' +
+                             self.feature.name),
                 title=self.feature.name,
                 window=window,
-                arguments=repr(self.feature.kwargs)
+                arguments=repr(self.feature.kwargs),
             )
 
     @classmethod
