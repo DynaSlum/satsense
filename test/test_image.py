@@ -1,4 +1,7 @@
+import os
+
 import numpy as np
+import pytest
 import rasterio
 from hypothesis import given
 from netCDF4 import Dataset
@@ -23,6 +26,24 @@ def create_featurevector(image_shape, window_shapes):
     transform = rasterio.transform.from_origin(52, 4, 10, 10)
     featurevector = FeatureVector(feature, vector, crs, transform)
     return feature, vector, featurevector
+
+
+@given(st_image_shape, st_window_shapes)
+@pytest.mark.parametrize('extension', ['nc', 'tif'])
+def test_save_load_roundtrip(tmpdir, extension, image_shape, window_shapes):
+    """Test that saving and loading does not modify a FeatureVector."""
+    feature, _, feature_vector = create_featurevector(image_shape,
+                                                      window_shapes)
+
+    prefix = os.path.join(tmpdir, 'test')
+    feature_vector.save(prefix, extension)
+    restored_vector = feature_vector.from_file(feature, prefix)
+
+    np.testing.assert_array_equal(feature_vector.vector.mask,
+                                  restored_vector.vector.mask)
+    np.testing.assert_array_almost_equal_nulp(
+        feature_vector.vector.compressed(),
+        restored_vector.vector.compressed())
 
 
 @given(st_image_shape, st_window_shapes)
