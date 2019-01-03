@@ -19,10 +19,16 @@ install:
   - sudo apt update
   - sudo apt install -y libgdal-dev libnetcdf-dev
 
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+
 script: python setup.py test
 
 after_success:
-  if [[ $(python --version) =~ "Python 3.7" ]]; then
+  if [[ "$TRAVIS_PULL_REQUEST" == "false" && "$TRAVIS_PYTHON_VERSION" == "3.7" ]]; then
+    ./cc-test-reporter after-build test-reports/coverage.xml;
     pip install codacy-coverage;
     python-codacy-coverage -r test-reports/coverage.xml;
   fi
