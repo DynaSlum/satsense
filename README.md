@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.com/DynaSlum/satsense.svg?branch=master)](https://travis-ci.com/DynaSlum/satsense)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/458c8543cd304b8387b7b114218dc57c)](https://www.codacy.com/app/DynaSlum/satsense?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=DynaSlum/satsense&amp;utm_campaign=Badge_Grade)
+[![Maintainability](https://api.codeclimate.com/v1/badges/ed3655f6056f89f5e107/maintainability)](https://codeclimate.com/github/DynaSlum/satsense/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/ed3655f6056f89f5e107/test_coverage)](https://codeclimate.com/github/DynaSlum/satsense/test_coverage)
 [![Documentation Status](https://readthedocs.org/projects/satsense/badge/?version=latest)](https://satsense.readthedocs.io/en/latest/?badge=latest)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1463015.svg)](https://doi.org/10.5281/zenodo.1463015)
 
@@ -32,7 +34,7 @@ Linux 18.04 and later, you can do so by running
 sudo apt install libgdal-dev libnetcdf-dev
 ```
 When using your OS's package manager, you may still want to create and
-activate a virtual environment for satsense, e.g. using 
+activate a virtual environment for satsense, e.g. using
 [venv](https://docs.python.org/3/library/venv.html)
 ```bash
 python3 -m venv ~/venv/satsense
