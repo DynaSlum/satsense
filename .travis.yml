@@ -28,7 +28,8 @@ script: python setup.py test
 
 after_success:
   if [[ "$TRAVIS_PULL_REQUEST" == "false" && "$TRAVIS_PYTHON_VERSION" == "3.7" ]]; then
-    ./cc-test-reporter after-build test-reports/coverage.xml;
+    ./cc-test-reporter format-coverage -t coverage.py test-reports/coverage.xml;
+    ./cc-test-reporter upload-coverage;
     pip install codacy-coverage;
     python-codacy-coverage -r test-reports/coverage.xml;
   fi
