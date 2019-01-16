@@ -1,6 +1,8 @@
 """Methods for loading images."""
 
+import json
 import logging
+import pathlib
 import time
 import warnings
 from ast import literal_eval as make_tuple
@@ -46,7 +48,7 @@ class Image:
             normalization_parameters = {
                 'technique': 'cumulative',
                 'percentiles': [2.0, 98.0],
-                'dtype': np.float32,
+                'dtype': np.dtype(np.float32).str,
             }
         self.normalization_parameters = normalization_parameters
 
@@ -93,7 +95,7 @@ class Image:
         """Read band from file and normalize if required."""
         image = self._read_band(band, block)
         if self.normalization_parameters:
-            dtype = self.normalization_parameters['dtype']
+            dtype = np.dtype(self.normalization_parameters['dtype'])
             image = image.astype(dtype, casting='same_kind', copy=False)
             self._normalize(image, band)
         return image
@@ -115,6 +117,53 @@ class Image:
         for band in bands or self.bands:
             if band not in self.normalization:
                 self._get_normalization_limits(band)
+
+    def save_normalization_limits(self, filename_prefix=''):
+        path = pathlib.Path(self.filename).absolute()
+        if filename_prefix != '':
+            cwd = pathlib.Path(filename_prefix).absolute()
+            filepath = cwd / (path.name + '.norm')
+            filehandle = open(filepath, 'w')
+        else:
+            filepath = path.parent / (path.name + '.norm')
+
+            try:
+                filehandle = open(filepath, 'w')
+            except IOError:
+                if filename_prefix != '':
+                    cwd = pathlib.Path(filename_prefix).absolute()
+                else:
+                    cwd = pathlib.Path().absolute()
+                filepath = cwd / (path.name + '.norm')
+                filehandle = open(filepath, 'w')
+
+        norm = {
+            'parameters': self.normalization_parameters,
+            'values': self.normalization
+        }
+        json.dump(norm, filehandle)
+
+        filehandle.close()
+
+        return filepath
+
+    def load_normalization_limits(self, filename_prefix=''):
+        path = pathlib.Path(self.filename).absolute()
+        if filename_prefix != '':
+            cwd = pathlib.Path(filename_prefix).absolute()
+            filepath = cwd / (path.name + '.norm')
+        else:
+            filepath = path.parent / (path.name + '.norm')
+            if not filepath.exists():
+                cwd = pathlib.Path().absolute()
+                filepath = cwd / (path.name + '.norm')
+
+        if filepath.exists():
+            with open(filepath, 'r') as filehandle:
+                norm = json.load(filehandle)
+
+                self.normalization_parameters = norm['parameters']
+                self.normalization = norm['values']
 
     def _get_normalization_limits(self, band, image=None):
         """Return normalization limits for band."""
@@ -321,7 +370,7 @@ class FeatureVector():
                 width=width,
                 height=height,
                 count=size,
-                dtype=data.dtype,
+                dtype=np.dtype(data.dtype),
                 crs=self.crs,
                 transform=self.transform,
                 nodata=fill_value,
@@ -361,7 +410,7 @@ class FeatureVector():
 
             if new.vector is None:
                 shape = data.shape[1:] + (len(feature.windows), feature.size)
-                new.vector = np.zeros(shape, dtype=data.dtype)
+                new.vector = np.zeros(shape, dtype=np.dtype(data.dtype))
             idx = feature.windows.index(window)
             if repr(feature.kwargs) != arguments:
                 logger.warning(
