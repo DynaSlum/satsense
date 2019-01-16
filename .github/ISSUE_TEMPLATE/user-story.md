@@ -7,6 +7,6 @@ assignees: ''
 
 ---
 
-*As a* <user>
-*I want to* <what>
-*because* <why>
+**As a** <user>
+**I want to** <what>
+**because** <why>
