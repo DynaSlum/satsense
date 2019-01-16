@@ -10,7 +10,7 @@ class Feature(ABC):
     def __init__(self, window_shapes, **kwargs):
         self._indices = {}
         self._length = 0
-        self._windows = window_shapes
+        self._windows = tuple(sorted(window_shapes, reverse=True))
         self.kwargs = kwargs
         self.name = self.__class__.__name__
 

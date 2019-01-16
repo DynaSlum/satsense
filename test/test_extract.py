@@ -33,25 +33,6 @@ class RGBFeature(BaseTestFeature):
     size = 3
 
 
-def test_save_load_roundtrip(tmpdir):
-    """Test that saving and loading does not modify a FeatureVector."""
-    window_shapes = ((3, 3), (5, 5))
-
-    feature = GrayscaleFeature(window_shapes)
-
-    shape = (2, 3, len(window_shapes), feature.size)
-    vector = np.array(range(np.prod(shape)), dtype=float)
-    vector.shape = shape
-
-    feature_vector = FeatureVector(feature, vector)
-    prefix = str(tmpdir) + os.sep
-    feature_vector.save(prefix)
-    restored_vector = feature_vector.from_file(feature, prefix)
-
-    np.testing.assert_array_almost_equal_nulp(feature_vector.vector,
-                                              restored_vector.vector)
-
-
 @pytest.fixture
 def generator(tmpdir):
     image_shape = (10, 10)
@@ -65,6 +46,47 @@ def generator(tmpdir):
     image = create_test_image(tmpdir, array)
     generator = FullGenerator(image, step_size)
     return generator
+
+
+def test_save_load_roundtrip_nc(generator, tmpdir):
+    """Test that saving and loading does not modify a FeatureVector."""
+    window_shapes = ((3, 3), (5, 5))
+
+    feature = GrayscaleFeature(window_shapes)
+
+    shape = (*generator.shape, len(window_shapes), feature.size)
+    vector = np.array(range(np.prod(shape)), dtype=float)
+    vector.shape = shape
+
+    feature_vector = FeatureVector(
+        feature, vector, crs=generator.crs, transform=generator.transform)
+    prefix = str(tmpdir) + os.sep
+    feature_vector.save(prefix)
+    restored_vector = feature_vector.from_file(feature, prefix)
+
+    np.testing.assert_array_almost_equal_nulp(feature_vector.vector,
+                                              restored_vector.vector)
+
+
+def test_save_load_roundtrip_tif(generator, tmpdir):
+    """Test that saving and loading does not modify a FeatureVector."""
+    window_shapes = ((3, 3), (5, 5))
+
+    feature = GrayscaleFeature(window_shapes)
+
+    shape = (*generator.shape, len(window_shapes), feature.size)
+    vector = np.array(range(np.prod(shape)), dtype=float)
+    vector.shape = shape
+
+    feature_vector = FeatureVector(
+        feature, vector, crs=generator.crs, transform=generator.transform)
+    prefix = str(tmpdir) + os.sep
+    feature_vector.save(prefix, extension='tif')
+    restored_vector = feature_vector.from_file(feature, prefix,
+                                               extension='tif')
+
+    np.testing.assert_array_almost_equal_nulp(feature_vector.vector,
+                                              restored_vector.vector)
 
 
 def test_extract_features(generator):
