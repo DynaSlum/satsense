@@ -201,7 +201,7 @@ class Image:
                         band, self.filename, self.normalization_parameters,
                         limits))
 
-            self.normalization[band] = limits
+            self.normalization[band] = limits.tolist()
 
         return self.normalization[band]
 
