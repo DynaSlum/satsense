@@ -7,7 +7,20 @@
 [![Documentation Status](https://readthedocs.org/projects/satsense/badge/?version=latest)](https://satsense.readthedocs.io/en/latest/?badge=latest)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1463015.svg)](https://doi.org/10.5281/zenodo.1463015)
 
-Satsense is a library for land use/cover classification using satellite imagery.
+Satsense is an open source Python library for patch based land-use and land-cover classification, initially
+developed for a project on deprived neighborhood detection. However, many of the algorithms made available
+through Satsense can be applied in other domains, such as ecology and climate science.
+
+Satsense is based on readily available open source libraries, such as opencv for machine learning and the
+rasterio/gdal and netcdf libraries for data access. It has a modular design that makes it easy to add your own
+hand-crafted feature or use deep learning instead.
+
+Detection of deprived neighborhoods is a land-use classification problem that is traditionally solved using
+hand crafted features like HoG, Lacunarity, NDXI, Pantex, Texton, and SIFT, computed from very high resolution
+satellite images. One of the goals of Satsense is to facilitate assessing the performance of these features on
+practical applications. To achieve this Satsense provides an easy to use open source reference implementation for
+these and other features, as well as facilities to distribute feature computation over multiple cpu’s. In the future the
+library will also provide easy access to metrics for assessing algorithm performance.
 
 * satsense - library for analysing satellite images, performance evaluation, etc.
 * notebooks - IPython notebooks for illustrating and testing the usage of Satsense
