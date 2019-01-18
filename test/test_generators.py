@@ -1,7 +1,7 @@
 import hypothesis.strategies as st
 import numpy as np
 import rasterio
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.extra.numpy import arrays
 from rasterio.transform import from_origin
 
@@ -147,6 +147,7 @@ def test_full_generator(tmpdir, window_shapes, step_and_image):
 
 @given(st_window_shapes, st_step_and_image,
        st.integers(min_value=1, max_value=5))
+@settings(deadline=1000)
 def test_full_generator_split(tmpdir, window_shapes, step_and_image, n_chunks):
     step_size, image_array = step_and_image
 
