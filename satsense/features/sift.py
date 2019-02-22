@@ -5,18 +5,21 @@ import cv2
 import numpy as np
 from sklearn.cluster import MiniBatchKMeans
 
-from ..image import Image
 from ..generators import FullGenerator
+from ..image import Image
 from .feature import Feature
 
-def sift_cluster(images: Iterator[Image], n_clusters=32,
-                 sample_size=100000, sample_window=(8192, 8192)) -> MiniBatchKMeans:
+
+def sift_cluster(images: Iterator[Image],
+                 n_clusters=32,
+                 sample_size=100000,
+                 sample_window=(8192, 8192)) -> MiniBatchKMeans:
     """Create the clusters needed to compute the sift feature."""
     nfeatures = int(sample_size / len(images))
     SIFT = cv2.xfeatures2d.SIFT_create(nfeatures)
 
-    descriptors = None
-    for image in images:       
+    descriptors = []
+    for image in images:
         if image.shape[0] < sample_window[0]:
             sample_window = (image.shape[0], sample_window[1])
         if image.shape[1] < sample_window[1]:
@@ -25,23 +28,27 @@ def sift_cluster(images: Iterator[Image], n_clusters=32,
         generator = FullGenerator(image, sample_window)
         generator.load_image('gray_ubyte', (sample_window, ))
 
+        img_descriptors = None
         for img in generator:
             inverse_mask = (~img.mask).astype(np.uint8)
             _, new_descriptors = SIFT.detectAndCompute(img, inverse_mask)
             del _  # Free up memory
 
             # Add descriptors if we already had some
-            if descriptors is None:
-                descriptors = new_descriptors
+            if img_descriptors is None:
+                img_descriptors = new_descriptors
             else:
-                descriptors = np.append(descriptors, new_descriptors, axis=0)
+                img_descriptors = np.append(
+                    img_descriptors, new_descriptors, axis=0)
 
-            if descriptors.shape[0] > nfeatures:
+            if img_descriptors.shape[0] > nfeatures:
                 # Limit the number of descriptors to nfeatures
                 # by randomly selecting some rows
-                descriptors = descriptors[np.random.choice(
-                    descriptors.shape[0], nfeatures, replace=False), :]
+                img_descriptors = img_descriptors[np.random.choice(
+                    img_descriptors.shape[0], nfeatures, replace=False), :]
                 break
+        descriptors.append(img_descriptors)
+    descriptors = np.vstack(descriptors)
 
     # Cluster the descriptors
     mbkmeans = MiniBatchKMeans(
@@ -90,5 +97,6 @@ class Sift(Feature):
                     sample_size=100000,
                     sample_window=(8192, 8192),
                     normalized=True):
-        kmeans = sift_cluster(images, n_clusters, sample_size, sample_window=sample_window)
+        kmeans = sift_cluster(
+            images, n_clusters, sample_size, sample_window=sample_window)
         return cls(windows, kmeans, normalized)
