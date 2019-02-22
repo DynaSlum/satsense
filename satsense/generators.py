@@ -21,7 +21,8 @@ class FullGenerator():
                  image: Image,
                  step_size: tuple,
                  offset=(0, 0),
-                 shape=None):
+                 shape=None,
+                 with_slices=False):
         """Window generator that covers the full image.
 
         Parameters
@@ -49,6 +50,8 @@ class FullGenerator():
         self.crs = image.crs
         self.transform = image.scaled_transform(step_size)
 
+        self.with_slices = with_slices
+
         # set using load_image
         self.loaded_itype = None
         self._image_cache = None
@@ -61,17 +64,35 @@ class FullGenerator():
         self._padding = tuple(
             max(math.ceil(0.5 * w[i]) for w in windows) for i in range(2))
 
-        block = []
-        for i in range(2):
-            offset = math.floor((self.offset[i] + 0.5) * self.step_size[i])
-            start = offset - self._padding[i]
-            end = (
-                offset + self._padding[i] + self.shape[i] * self.step_size[i])
-            block.append((start, end))
-        block = tuple(block)
+        block = self.get_blocks()
         image = self.image.copy_block(block)
         self._image_cache = image[itype]
         self.loaded_itype = itype
+
+    def get_blocks(self):
+        block = []
+        for i in range(2):
+            start = self.offset[i] - self._padding[i]
+            end = (self.offset[i] + self._padding[i] +
+                   self.shape[i] * self.step_size[i])
+            block.append((start, end))
+
+        return tuple(block)
+
+    def get_slices(self, index, window):
+        slices = []
+
+        for i in range(2):
+            if not self.step_size[i] % 2 == 0:
+                step_size = self.step_size[i] + 1
+
+            middle = self._padding[i] + math.floor(
+                (index[i] + 0.5) * step_size)
+            start = math.floor(middle - 0.5 * window[i])
+            end = start + window[i]
+            slices.append(slice(start, end))
+
+        return slices
 
     def __iter__(self):
         if self._image_cache is None:
@@ -82,17 +103,12 @@ class FullGenerator():
                     yield self[i, j, window]
 
     def __getitem__(self, index):
-
         window = index[2]
 
-        slices = []
-        for i in range(2):
-            middle = self._padding[i] + math.floor(
-                (index[i] + 0.5) * self.step_size[i])
-            start = math.floor(middle - 0.5 * window[i])
-            end = start + window[i]
-            slices.append(slice(start, end))
+        slices = self.get_slices(index, window)
 
+        if self.with_slices:
+            return self._image_cache[slices[0], slices[1]], slices
         return self._image_cache[slices[0], slices[1]]
 
     def split(self, n_chunks):
