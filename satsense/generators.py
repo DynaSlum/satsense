@@ -81,18 +81,22 @@ class FullGenerator():
 
     def get_slices(self, index, window):
         slices = []
+        paddless = []
 
         for i in range(2):
             if not self.step_size[i] % 2 == 0:
                 step_size = self.step_size[i] + 1
+            else:
+                step_size = self.step_size[i]
 
             middle = self._padding[i] + math.floor(
                 (index[i] + 0.5) * step_size)
             start = math.floor(middle - 0.5 * window[i])
             end = start + window[i]
             slices.append(slice(start, end))
+            paddless.append(slice(start - self._padding[i], end - self._padding[i]))
 
-        return slices
+        return slices, paddless
 
     def __iter__(self):
         if self._image_cache is None:
@@ -105,10 +109,10 @@ class FullGenerator():
     def __getitem__(self, index):
         window = index[2]
 
-        slices = self.get_slices(index, window)
+        slices, paddless = self.get_slices(index, window)
 
         if self.with_slices:
-            return self._image_cache[slices[0], slices[1]], slices
+            return self._image_cache[slices[0], slices[1]], slices, paddless
         return self._image_cache[slices[0], slices[1]]
 
     def split(self, n_chunks):
