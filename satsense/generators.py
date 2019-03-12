@@ -294,17 +294,11 @@ class FullGenerator():
         paddless = []
 
         for i in range(2):
-            middle = (
-                # (self.offset[i] * self.step_size[i]) +
-                self._padding[i] + (index[i] * self.step_size[i]) + math.floor(
-                    0.5 * window[i]))
-            start = math.floor(middle - math.floor(0.5 * window[i]))
+            start = self._padding[i] + (index[i] * self.step_size[i])
             end = start + window[i]
             slices.append(slice(start, end))
             paddless.append(
                 slice(start - self._padding[i], end - self._padding[i]))
-
-        return slices, paddless
 
     def __iter__(self):
         if self._image_cache is None:
