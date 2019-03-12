@@ -2,10 +2,12 @@
 
 import json
 import logging
+import os
 import pathlib
 import time
 import warnings
 from ast import literal_eval as make_tuple
+from pathlib import Path
 from types import MappingProxyType
 
 import numpy as np
@@ -429,13 +431,14 @@ class FeatureVector():
     """Class to store a feature vector in."""
 
     def __init__(self, feature, vector, crs=None, transform=None):
-        self.vector = vector
         self.feature = feature
-
+        self.vector = vector
         self.crs = crs
         self.transform = transform
 
     def get_filename(self, window, prefix='', extension='nc'):
+        if os.path.isdir(prefix) and not str(prefix).endswith(os.sep):
+            prefix += os.sep
         return '{}{}_{}_{}.{}'.format(prefix, self.feature.name, window[0],
                                       window[1], extension)
 
@@ -449,94 +452,91 @@ class FeatureVector():
                         self.feature.name, window, filename)
 
             data = self.vector[..., i, :]
+            data = np.moveaxis(data, source=2, destination=0)
+
+            description = 'Satsense extracted values for feature: {}'.format(
+                self.feature.name)
+            attributes = {
+                'history': 'Created ' + time.ctime(),
+                'source': 'Satsense version ' + __version__,
+                'description': description,
+                'title': self.feature.name,
+                'window': window,
+                'arguments': repr(self.feature.kwargs),
+            }
             if extension.lower() == 'nc':
-                self._save_as_netcdf(data, filename, window)
+                self._save_as_netcdf(data, filename, attributes)
             elif extension.lower() == 'tif':
-                self._save_as_tif(data, filename, window)
+                self._save_as_tif(data, filename, attributes)
         return filenames
 
-    def _save_as_netcdf(self, data, filename, window):
+    def _save_as_netcdf(self, data, filename, attributes):
         """Save feature vector as NetCDF file."""
-        if len(data.shape) == 2:
-            height, width = data.shape
-            value_length = 1
-            data = data[:, :, np.newaxis]
-        elif len(data.shape) == 3:
-            height, width, value_length = data.shape
+        feature_size, height, width = data.shape
 
         with Dataset(filename, 'w') as dataset:
-            # Metadata
-            dataset.history = 'Created ' + time.ctime(time.time())
-            dataset.source = 'Satsense version ' + __version__
-            dataset.description = (
-                'Satsense extracted values for feature: ' + self.feature.name)
-            dataset.title = self.feature.name
-            dataset.window = window
-            dataset.arguments = repr(self.feature.kwargs)
+            for attr in attributes:
+                setattr(dataset, attr, attributes[attr])
 
             dimensions = self._add_lat_lon_dimensions(dataset, height, width)
 
             # Actually add the values
-            dataset.createDimension('length', value_length)
+            dataset.createDimension('length', feature_size)
             variable = dataset.createVariable(
                 self.feature.name, 'f4', dimensions=('length', *dimensions))
             variable.grid_mapping = 'spatial_ref'
             variable.long_name = self.feature.name
 
-            transposed = np.moveaxis(data, source=2, destination=0)
-            variable[:] = transposed
+            variable[:] = data
 
-    def _save_as_tif(self, data, filename, window):
+    def _save_as_tif(self, data, filename, attributes):
         """Save feature array as GeoTIFF file."""
-        height, width, size = data.shape
-        fill_value = data.fill_value if np.ma.is_masked(data) else None
-
+        feature_size, height, width = data.shape
         if np.ma.is_masked(data):
-            msk = (~data.mask * 255).astype('uint8')
+            fill_value = data.fill_value
+            data = data.filled()
+        else:
+            fill_value = None
 
-        data = np.moveaxis(data, source=2, destination=0)
         with rasterio.open(
                 filename,
                 mode='w',
                 driver='GTiff',
                 width=width,
                 height=height,
-                count=size,
+                count=feature_size,
                 dtype=np.dtype(data.dtype),
                 crs=self.crs,
                 transform=self.transform,
                 nodata=fill_value,
         ) as dataset:
             dataset.write(data)
-            if np.ma.is_masked(data):
-                dataset.write_mask(msk)
-            dataset.update_tags(
-                history='Created ' + time.ctime(time.time()),
-                source='Satsense version ' + __version__,
-                description='Satsense extracted values for feature: '
-                            + self.feature.name,
-                title=self.feature.name,
-                window=window,
-                arguments=repr(self.feature.kwargs)
-            )
+            dataset.update_tags(**attributes)
 
     @classmethod
-    def from_file(cls, feature, filename_prefix, extension='nc'):
+    def from_file(cls, feature, filename_prefix):
         """Restore saved features."""
         new = cls(feature, None)
         for window in feature.windows:
-            filename = new.get_filename(window, filename_prefix, extension)
-            logger.debug("Loading feature %s from file %s", feature.name,
-                         filename)
+            for ext in ('nc', 'tif'):
+                filename = new.get_filename(window, filename_prefix, ext)
+                if Path(filename).is_file():
+                    logger.debug("Loading feature %s from file %s",
+                                 feature.name, filename)
+                    break
+            else:
+                raise ValueError(
+                    "Could not find a file containing feature {} in {}".format(
+                        feature.name, filename_prefix))
 
-            if extension == 'nc':
+            if Path(filename).suffix == '.nc':
                 with Dataset(filename, 'r') as dataset:
-                    data = dataset.variables[feature.name][:]
+                    data = np.ma.array(dataset.variables[feature.name][:])
                     window = tuple(dataset.window)
                     arguments = dataset.arguments
             else:
                 with rasterio.open(filename, 'r') as dataset:
-                    data = dataset.read()
+                    data = dataset.read(masked=True)
                     window = make_tuple(dataset.tags()['window'])
                     arguments = dataset.tags()['arguments']
 
@@ -544,13 +544,22 @@ class FeatureVector():
                 shape = data.shape[1:] + (len(feature.windows), feature.size)
                 new.vector = np.zeros(shape, dtype=np.dtype(data.dtype))
             idx = feature.windows.index(window)
+
             if repr(feature.kwargs) != arguments:
                 logger.warning(
                     "Stored arguments do not match feature, %r != %s",
-                    feature.kwargs, dataset.arguments)
+                    feature.kwargs, arguments)
 
+            if new.vector is None:
+                shape = data.shape[1:] + (len(feature.windows), feature.size)
+                new.vector = np.ma.zeros(shape, dtype=data.dtype)
+                new.vector.mask = np.zeros(shape, dtype=bool)
+
+            idx = feature.windows.index(window)
             data = np.moveaxis(data, source=0, destination=2)
             new.vector[:, :, idx, :] = data
+            new.vector.mask[:, :, idx, :] = data.mask
+
         return new
 
     def _add_lat_lon_dimensions(self, dataset, height, width):

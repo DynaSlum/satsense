@@ -7,6 +7,7 @@ from scipy.signal import convolve
 from skimage.filters import gabor_kernel, gaussian
 from sklearn.cluster import MiniBatchKMeans
 
+from ..generators import FullGenerator
 from ..image import Image
 from .feature import Feature
 
@@ -59,21 +60,36 @@ Image.register('texton_descriptors', get_texton_descriptors)
 
 
 def texton_cluster(images: Iterator[Image], n_clusters=32,
-                   sample_size=100000) -> MiniBatchKMeans:
+                   sample_size=100000,
+                   sample_window=(8192, 8192)) -> MiniBatchKMeans:
     """Compute texton clusters."""
+    nfeatures = int(sample_size / len(images))
     descriptors = []
-    for image in images:
-        array = image['texton_descriptors']
-        array = array.reshape(-1, array.shape[-1])
-        non_masked = ~array.mask.any(axis=-1)
-        descriptors.append(array.data[non_masked])
-    descriptors = np.vstack(descriptors)
+    for image in images:       
+        if image.shape[0] < sample_window[0]:
+            sample_window = (image.shape[0], sample_window[1])
+        if image.shape[1] < sample_window[1]:
+            sample_window = (sample_window[0], image.shape[1])
 
-    if descriptors.shape[0] > sample_size:
-        # Limit the number of descriptors to sample_size
-        # by randomly selecting some rows
-        descriptors = descriptors[np.random.choice(
-            descriptors.shape[0], sample_size, replace=False), :]
+        generator = FullGenerator(image, sample_window)
+        generator.load_image('texton_descriptors', (sample_window, ))
+
+        img_descriptors = []
+        for img in generator:
+            array = img
+            array = array.reshape(-1, array.shape[-1])
+            non_masked = ~array.mask.any(axis=-1)
+            img_descriptors.append(array.data[non_masked])
+        img_descriptors = np.vstack(img_descriptors)
+
+        if img_descriptors.shape[0] > nfeatures:
+            # Limit the number of descriptors to nfeatures
+            # by randomly selecting some rows
+            img_descriptors = img_descriptors[np.random.choice(
+                img_descriptors.shape[0], nfeatures, replace=False), :]
+
+        descriptors.append(img_descriptors)
+    descriptors = np.vstack(descriptors)
 
     # Cluster the descriptors
     mbkmeans = MiniBatchKMeans(
@@ -116,6 +132,7 @@ class Texton(Feature):
                     images: Iterator[Image],
                     n_clusters=32,
                     sample_size=100000,
+                    sample_window=(8192, 8192),
                     normalized=True):
-        kmeans = texton_cluster(images, n_clusters, sample_size)
+        kmeans = texton_cluster(images, n_clusters, sample_size, sample_window=sample_window)
         return cls(windows, kmeans, normalized)

@@ -1,16 +1,13 @@
 """Test feature extraction related functions."""
-import os
-
 import hypothesis.strategies as st
 import numpy as np
 import pytest
-from hypothesis import given
+from hypothesis import given, settings
 
 from satsense.bands import BANDS
 from satsense.extract import extract_features
 from satsense.features import Feature
 from satsense.generators import FullGenerator
-from satsense.image import FeatureVector
 
 from .test_generators import create_test_image
 
@@ -44,49 +41,8 @@ def generator(tmpdir):
     array = np.array(range(np.prod(shape)), dtype=float)
     array.shape = shape
     image = create_test_image(tmpdir, array)
-    generator = FullGenerator(image, step_size)
-    return generator
-
-
-def test_save_load_roundtrip_nc(generator, tmpdir):
-    """Test that saving and loading does not modify a FeatureVector."""
-    window_shapes = ((3, 3), (5, 5))
-
-    feature = GrayscaleFeature(window_shapes)
-
-    shape = (*generator.shape, len(window_shapes), feature.size)
-    vector = np.array(range(np.prod(shape)), dtype=float)
-    vector.shape = shape
-
-    feature_vector = FeatureVector(
-        feature, vector, crs=generator.crs, transform=generator.transform)
-    prefix = str(tmpdir) + os.sep
-    feature_vector.save(prefix)
-    restored_vector = feature_vector.from_file(feature, prefix)
-
-    np.testing.assert_array_almost_equal_nulp(feature_vector.vector,
-                                              restored_vector.vector)
-
-
-def test_save_load_roundtrip_tif(generator, tmpdir):
-    """Test that saving and loading does not modify a FeatureVector."""
-    window_shapes = ((3, 3), (5, 5))
-
-    feature = GrayscaleFeature(window_shapes)
-
-    shape = (*generator.shape, len(window_shapes), feature.size)
-    vector = np.array(range(np.prod(shape)), dtype=float)
-    vector.shape = shape
-
-    feature_vector = FeatureVector(
-        feature, vector, crs=generator.crs, transform=generator.transform)
-    prefix = str(tmpdir) + os.sep
-    feature_vector.save(prefix, extension='tif')
-    restored_vector = feature_vector.from_file(feature, prefix,
-                                               extension='tif')
-
-    np.testing.assert_array_almost_equal_nulp(feature_vector.vector,
-                                              restored_vector.vector)
+    gen = FullGenerator(image, step_size)
+    return gen
 
 
 def test_extract_features(generator):
@@ -114,6 +70,7 @@ def test_extract_features(generator):
 
 
 @given(st.integers(min_value=-1, max_value=10))
+@settings(deadline=1000)
 def test_extract_features_parallel(generator, n_jobs):
     """Test that parallel feature computation produces identical results."""
     window_shapes = (
