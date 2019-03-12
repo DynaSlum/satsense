@@ -103,28 +103,37 @@ st_window_shapes = st.lists(
     st_window_shape, min_size=1, max_size=10, unique=True)
 
 
-def create_step_and_image_strategy(limit):
-
+def create_step_and_image_strategy(args):
+    limit, dtype = args
     step_size = st.tuples(
         st.integers(min_value=1, max_value=limit[0]),
         st.integers(min_value=1, max_value=limit[1]),
     )
 
+    if np.issubdtype(dtype, np.floating):
+        elements = st.floats(min_value=-1, max_value=1)
+    else:
+        elements = st.integers(min_value=0, max_value=255)
+
     image_array = arrays(
-        dtype=st_rasterio_dtypes,
+        dtype=dtype,
         shape=st.tuples(
             st.just(len(BANDS['quickbird'])),
             st.integers(min_value=limit[0], max_value=10),
             st.integers(min_value=limit[1], max_value=10),
         ),
+        elements=elements
     )
 
     return st.tuples(step_size, image_array)
 
 
 st_step_and_image = st.tuples(
-    st.integers(min_value=1, max_value=10),
-    st.integers(min_value=1, max_value=10),
+    st.tuples(
+        st.integers(min_value=1, max_value=10),
+        st.integers(min_value=1, max_value=10)
+    ),
+    st_rasterio_dtypes
 ).flatmap(create_step_and_image_strategy)
 
 
@@ -134,7 +143,7 @@ def test_full_generator(tmpdir, window_shapes, step_and_image):
 
     image = create_test_image(tmpdir, image_array, normalization=False)
     generator = FullGenerator(image, step_size)
-    itype = 'grayscale'
+    itype = 'gray_ubyte'
     generator.load_image(itype, window_shapes)
     assert generator.loaded_itype == itype
 
@@ -153,7 +162,7 @@ def test_full_generator_split(tmpdir, window_shapes, step_and_image, n_chunks):
 
     image = create_test_image(tmpdir, image_array, normalization=False)
     generator = FullGenerator(image, step_size)
-    itype = 'grayscale'
+    itype = 'gray_ubyte'
     generator.load_image(itype, window_shapes)
     reference = list(generator)
 
