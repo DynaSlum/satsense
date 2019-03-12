@@ -300,6 +300,8 @@ class FullGenerator():
             paddless.append(
                 slice(start - self._padding[i], end - self._padding[i]))
 
+        return slices, paddless
+
     def __iter__(self):
         if self._image_cache is None:
             raise RuntimeError("Please load an image first using load_image.")
