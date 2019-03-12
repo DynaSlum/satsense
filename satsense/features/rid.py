@@ -407,12 +407,12 @@ class RoadIntersectionDensity:
         # a ceil() instead. The round() will give one off errors when the
         # computed dimensions of the interpolated feature matrix has the first
         # decimal lower than 0.5.
-        if (zoom_level[0] * feature_shape[0]) % 1 < 0.5:
-            zoom_level[0] = (
-                math.ceil(zoom_level[0] * feature_shape[0]) / feature_shape[0])
-        if (zoom_level[1] * feature_shape[1]) % 1 < 0.5:
-            zoom_level[1] = (
-                math.ceil(zoom_level[1] * feature_shape[1]) / feature_shape[1])
+
+        for zl_ind in range(0, len(zoom_level)):  # loop over zoom_level indices
+            if (zoom_level[zl_ind] * feature_shape[zl_ind]) % 1 < 0.5:
+                zoom_level[zl_ind] = (
+                    math.ceil(zoom_level[zl_ind] * feature_shape[zl_ind]) /
+                    feature_shape[zl_ind])
 
         return zoom(feature, zoom_level, order=3)
 
