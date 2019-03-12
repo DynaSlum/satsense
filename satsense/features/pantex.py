@@ -52,8 +52,8 @@ def __get_rii_dist_angle(pixels_dist):
     """
     angle = np.arctan2(pixels_dist[:, 0], pixels_dist[:, 1])
     distance = [
-        sp.spatial.distance.euclidean(
-            [0, 0], [pixels_dist[i, 0], pixels_dist[i, 1]])
+        sp.spatial.distance.euclidean([0, 0],
+                                      [pixels_dist[i, 0], pixels_dist[i, 1]])
         for i in range(len(pixels_dist[:, 0]))
     ]
     return (distance, angle)

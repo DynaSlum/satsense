@@ -7,14 +7,13 @@ from enum import Enum
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+from pysal.esda.getisord import G_Local
+from pysal.weights.Distance import DistanceBand
+from satsense.image import SatelliteImage
 from scipy import ndimage as nd
 from scipy import signal as sg
 from scipy.ndimage import zoom
 from skimage.feature import peak_local_max
-
-from pysal.esda.getisord import G_Local
-from pysal.weights.Distance import DistanceBand
-from satsense.image import SatelliteImage
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -408,7 +407,8 @@ class RoadIntersectionDensity:
         # computed dimensions of the interpolated feature matrix has the first
         # decimal lower than 0.5.
 
-        for zl_ind in range(0, len(zoom_level)):  # loop over zoom_level indices
+        for zl_ind in range(0,
+                            len(zoom_level)):  # loop over zoom_level indices
             if (zoom_level[zl_ind] * feature_shape[zl_ind]) % 1 < 0.5:
                 zoom_level[zl_ind] = (
                     math.ceil(zoom_level[zl_ind] * feature_shape[zl_ind]) /

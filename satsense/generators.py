@@ -25,8 +25,8 @@ class BalancedGenerator():
             Satellite image
         masks: 1-D array-like
             List of masks, one for each class, to use for generating patches
-            A mask should have a positive value for the array positions that are
-            included in the class
+            A mask should have a positive value for the array positions that
+            are included in the class
         p: 1-D array-like, optional
             The probabilities associated with each entry in masks.
             If not given the sample assumes a uniform distribution
@@ -124,12 +124,12 @@ class BalancedGenerator():
         chunk_size = math.ceil(self.shape[0] / n_chunks)
         for job in range(n_chunks):
             row_offset = self.offset[0] + job * chunk_size[0]
-            #col_offset = self.offset[1] + job * chunk_size[1]
+            # col_offset = self.offset[1] + job * chunk_size[1]
             row_length = min(chunk_size[0], self.shape[0] - row_offset)
-            #col_length = min(chunk_size[1], self.shape[1] - col_offset)
+            # col_length = min(chunk_size[1], self.shape[1] - col_offset)
             if row_length <= 0:
                 break
-            #if col_length <= 0:
+            # if col_length <= 0:
             #    break
 
             yield BalancedGenerator(
@@ -295,9 +295,9 @@ class FullGenerator():
 
         for i in range(2):
             middle = (
-                #(self.offset[i] * self.step_size[i]) + 
-                self._padding[i] +
-                (index[i] * self.step_size[i]) + math.floor(0.5 * window[i]))
+                # (self.offset[i] * self.step_size[i]) +
+                self._padding[i] + (index[i] * self.step_size[i]) + math.floor(
+                    0.5 * window[i]))
             start = math.floor(middle - math.floor(0.5 * window[i]))
             end = start + window[i]
             slices.append(slice(start, end))
