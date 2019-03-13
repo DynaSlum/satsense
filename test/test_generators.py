@@ -71,28 +71,28 @@ def test_full_generator_windows(tmpdir):
     image._block = None
     original_image = image[itype]
     print('original image:\n', original_image)
-    assert windows[0][1][1] == original_image[1][1]
-    assert windows[1][1][1] == original_image[1][4]
-    assert windows[2][1][1] == original_image[4][1]
-    assert windows[3][1][1] == original_image[4][4]
+    assert windows[0][2][2] == original_image[1][1]
+    assert windows[1][2][2] == original_image[1][4]
+    assert windows[2][2][2] == original_image[4][1]
+    assert windows[3][2][2] == original_image[4][4]
 
     # horizontal edges are masked
-    # assert np.all(windows[0].mask[0])
-    # assert np.all(windows[1].mask[0])
-    # assert np.all(windows[2].mask[-1])
-    # assert np.all(windows[3].mask[-1])
+    assert np.all(windows[0].mask[0])
+    assert np.all(windows[1].mask[0])
+    assert np.all(windows[2].mask[-1])
+    assert np.all(windows[3].mask[-1])
 
     # vertical edges are masked
-    # assert np.all(windows[0].mask[:, 0])
-    # assert np.all(windows[1].mask[:, 3:])
-    # assert np.all(windows[2].mask[:, 0])
-    # assert np.all(windows[3].mask[:, 3:])
+    assert np.all(windows[0].mask[:, 0])
+    assert np.all(windows[1].mask[:, 3:])
+    assert np.all(windows[2].mask[:, 0])
+    assert np.all(windows[3].mask[:, 3:])
 
     # data is not masked
-    # assert not np.any(windows[0].mask[1:, 1:])
-    # assert not np.any(windows[1].mask[1:, :3])
-    # assert not np.any(windows[2].mask[:3, 1:])
-    # assert not np.any(windows[3].mask[:3, :3])
+    assert not np.any(windows[0].mask[1:, 1:])
+    assert not np.any(windows[1].mask[1:, :3])
+    assert not np.any(windows[2].mask[:3, 1:])
+    assert not np.any(windows[3].mask[:3, :3])
 
 
 st_window_shape = st.tuples(
@@ -103,28 +103,37 @@ st_window_shapes = st.lists(
     st_window_shape, min_size=1, max_size=10, unique=True)
 
 
-def create_step_and_image_strategy(limit):
-
+def create_step_and_image_strategy(args):
+    limit, dtype = args
     step_size = st.tuples(
         st.integers(min_value=1, max_value=limit[0]),
         st.integers(min_value=1, max_value=limit[1]),
     )
 
+    if np.issubdtype(dtype, np.floating):
+        elements = st.floats(min_value=-1, max_value=1)
+    else:
+        elements = st.integers(min_value=0, max_value=255)
+
     image_array = arrays(
-        dtype=st_rasterio_dtypes,
+        dtype=dtype,
         shape=st.tuples(
             st.just(len(BANDS['quickbird'])),
             st.integers(min_value=limit[0], max_value=10),
             st.integers(min_value=limit[1], max_value=10),
         ),
+        elements=elements
     )
 
     return st.tuples(step_size, image_array)
 
 
 st_step_and_image = st.tuples(
-    st.integers(min_value=1, max_value=10),
-    st.integers(min_value=1, max_value=10),
+    st.tuples(
+        st.integers(min_value=1, max_value=10),
+        st.integers(min_value=1, max_value=10)
+    ),
+    st_rasterio_dtypes
 ).flatmap(create_step_and_image_strategy)
 
 
@@ -134,7 +143,7 @@ def test_full_generator(tmpdir, window_shapes, step_and_image):
 
     image = create_test_image(tmpdir, image_array, normalization=False)
     generator = FullGenerator(image, step_size)
-    itype = 'grayscale'
+    itype = 'gray_ubyte'
     generator.load_image(itype, window_shapes)
     assert generator.loaded_itype == itype
 
@@ -153,7 +162,7 @@ def test_full_generator_split(tmpdir, window_shapes, step_and_image, n_chunks):
 
     image = create_test_image(tmpdir, image_array, normalization=False)
     generator = FullGenerator(image, step_size)
-    itype = 'grayscale'
+    itype = 'gray_ubyte'
     generator.load_image(itype, window_shapes)
     reference = list(generator)
 

@@ -124,14 +124,10 @@ class BalancedGenerator():
         chunk_size = math.ceil(self.shape[0] / n_chunks)
         for job in range(n_chunks):
             row_offset = self.offset[0] + job * chunk_size[0]
-            # col_offset = self.offset[1] + job * chunk_size[1]
             row_length = min(chunk_size[0], self.shape[0] - row_offset)
-            # col_length = min(chunk_size[1], self.shape[1] - col_offset)
             if row_length <= 0:
                 break
-            # if col_length <= 0:
-            #    break
-
+              
             yield BalancedGenerator(
                 image=self.image,
                 masks=self.masks,
@@ -294,8 +290,10 @@ class FullGenerator():
         paddless = []
 
         for i in range(2):
-            start = self._padding[i] + (index[i] * self.step_size[i])
-            end = start + window[i]
+            mid = self._padding[i] + math.floor(
+                (index[i] + .5) * self.step_size[i])
+            start = mid - math.floor(.5 * window[i])
+            end = mid + math.ceil(.5 * window[i])
             slices.append(slice(start, end))
             paddless.append(
                 slice(start - self._padding[i], end - self._padding[i]))
