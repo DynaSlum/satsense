@@ -22,11 +22,11 @@ def get_rii_dist_angles():
         pixels_dist_223 = np.array([[1, -2], [2, -1], [2, 1], [1, 2]])
         pixels_dist_3 = np.array([[2, 2], [2, -2]])
 
-        (angles_1, distances_1) = __get_rii_dist_angle(pixels_dist_1)
-        (angles_14, distances_14) = __get_rii_dist_angle(pixels_dist_14)
-        (angles_2, distances_2) = __get_rii_dist_angle(pixels_dist_2)
-        (angles_223, distances_223) = __get_rii_dist_angle(pixels_dist_223)
-        (angles_3, distances_3) = __get_rii_dist_angle(pixels_dist_3)
+        (distances_1, angles_1) = _get_rii_dist_angle(pixels_dist_1)
+        (distances_14, angles_14) = _get_rii_dist_angle(pixels_dist_14)
+        (distances_2, angles_2) = _get_rii_dist_angle(pixels_dist_2)
+        (distances_223, angles_223) = _get_rii_dist_angle(pixels_dist_223)
+        (distances_3, angles_3) = _get_rii_dist_angle(pixels_dist_3)
 
         offsets_1 = np.stack((distances_1, angles_1), axis=1)
         offsets_14 = np.stack((distances_14, angles_14), axis=1)
@@ -46,10 +46,8 @@ def get_rii_dist_angles():
     return get_rii_dist_angles.offsets
 
 
-def __get_rii_dist_angle(pixels_dist):
-    """
-    Return angles and distances of the pixels
-    """
+def _get_rii_dist_angle(pixels_dist):
+    """Return angles and distances of the pixels."""
     angle = np.arctan2(pixels_dist[:, 0], pixels_dist[:, 1])
     distance = [
         sp.spatial.distance.euclidean([0, 0],
