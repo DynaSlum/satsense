@@ -271,7 +271,8 @@ class FullGenerator():
         """Load image with sufficient additional data to cover windows."""
         self._windows = tuple(sorted(windows, reverse=True))
         self._padding = tuple(
-            max(math.ceil(0.5 * w[i]) for w in windows) for i in range(2))
+            max(math.ceil(0.5 * w[i]) + math.ceil(self.step_size[i])
+                for w in windows) for i in range(2))
 
         block = self.get_blocks()
         image = self.image.copy_block(block)
