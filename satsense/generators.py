@@ -2,8 +2,6 @@
 import logging
 import math
 
-import numpy as np
-
 from .image import Image
 
 logger = logging.getLogger(__name__)
@@ -43,7 +41,6 @@ class BalancedGenerator():
                                  ],
                                  [0.33, 0.33, 0.33])
         """
- 
 
 
 class FullGenerator():
