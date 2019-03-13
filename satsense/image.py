@@ -221,7 +221,22 @@ class Image:
             return image
 
     def precompute_normalization(self, *bands):
+        """
+        Precompute the normalization of the image
 
+        Normalization is done using the normalization_parameters supplied
+        during class instantiation.
+
+        Parameters
+        ==========
+        bands: list or None
+            The list of bands to normalize, if None all bands will be normalized
+
+        See Also
+        ========
+        Image
+        :func: _normalize
+        """
         if not self.normalization_parameters:
             return
 
