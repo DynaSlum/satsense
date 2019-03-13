@@ -33,28 +33,28 @@ class Image:
     Parameters
     ==========
 
-    filename: str
+    filename : str
         The name of the image
-    satellite: str
-        The name of the satelite (i.e. worldview3, quickbird etc.)
-    band: str
-        The band for the grayscale image, or 'rgb'. The default is 'rgb'
-    normalization_parameters: dict, optional
+    satellite : str
+        The name of the satellite (i.e. worldview3, quickbird etc.)
+    band : str
+        The `band` for the grayscale image, or 'rgb'. The default is 'rgb'
+    normalization_parameters : dict
         Dictionary that describes the normalizaiton parameters
         The following keys can be supplied:
 
-        - technique: string
-            The technique to use, can be 'cumulative' (default),
+        - technique : string
+            The `technique` to use, can be 'cumulative' (default),
             'meanstd' or 'minmax'
-        - percentiles: array_like of int
-            The percentiles to use (exactly 2) if technique is cumulative,
+        - percentiles : array_like of int
+            The `percentiles` to use (exactly 2) if technique is cumulative,
             default is [2, 98]
-        - numstds: float
+        - numstds : float
             Number of standard deviations to use if technique is meanstd
-    block: tuple or rasterio.windows.Window, optional
+    block : tuple or rasterio.windows.Window
         The part of the image read defined in a rasterio compatible way. e.g.
         2 tuples or a rasterio.windows.Window object
-    cached: array-like or boolean, optional
+    cached : list or bool
         If True bands and base images are cached in memory
         if an array a band or base image is cached if its name is in the array
 
@@ -71,17 +71,17 @@ class Image:
 
         Parameters
         ==========
-        itype: str
+        itype : str
             (internal) name of the image type
-        function: function
+        function
             Function definition that should take a single Image parameter
             and return a numpy.ndarray or numpy.ma.masked_array
 
         See Also
         ========
-        get_gray_ubyte_image
-        get_grayscale_image
-        get_rgb_image
+        :func: get_gray_ubyte_image
+        :func: get_grayscale_image
+        :func: get_rgb_image
         """
         cls.itypes[itype] = function
 
@@ -91,7 +91,7 @@ class Image:
                  band='rgb',
                  normalization_parameters=None,
                  block=None,
-                 cached=None):
+                 cached=False) -> None:
 
         self.filename = filename
         self.satellite = satellite
@@ -108,7 +108,7 @@ class Image:
         self.normalization_parameters = normalization_parameters
 
         self._block = block
-        self.cached = [] if cached is None else cached
+        self.cached = [] if cached is False else cached
         self.cache = {}
 
         self.attributes = {}
@@ -119,13 +119,13 @@ class Image:
 
         Parameters
         ==========
-        block: tuple or rasterio.windows.Window, optional
-        The part of the image read defined in a rasterio compatible way. e.g.
-        2 tuples or a rasterio.windows.Window object
+        block : tuple or rasterio.windows.Window
+            The part of the image read defined in a rasterio compatible way.
+             e.g. 2 tuples or a rasterio.windows.Window object
 
         Returns
         =======
-        image.Image:
+        image.Image
             subsetted image
         """
         logger.info("Selecting block %s from image with shape %s", block,
@@ -146,12 +146,12 @@ class Image:
 
         Parameters
         ==========
-        itype: str
+        itype : str
             The name of the image type to retrieve
 
         Returns
         =======
-        out: numpy.ndarray or numpy.ma.masked_array
+        numpy.ndarray or numpy.ma.MaskedArray
             The image of the supplied type
 
         Examples
@@ -336,7 +336,7 @@ def get_rgb_image(image: Image):
 
     Parameters
     ==========
-    image: image.Image
+    image : image.Image
         The image to calculate the rgb image from
 
     Returns
@@ -367,7 +367,7 @@ def get_grayscale_image(image: Image):
 
     Parameters
     ==========
-    image: image.Image
+    image : image.Image
         The image to calculate the grayscale image from
 
     Returns
@@ -515,7 +515,21 @@ class FeatureVector():
 
     @classmethod
     def from_file(cls, feature, filename_prefix):
-        """Restore saved features."""
+        """
+        Restore saved features.
+        
+        Parameters
+        ----------
+        feature : Feature
+            The feature to restore from a file
+        filename_prefix : str
+            The directory and other prefixes to find the feature file at
+
+        Returns
+        -------
+        satsense.image.FeatureVector
+            The feature loaded into a FeatureVector object
+        """
         new = cls(feature, None)
         for window in feature.windows:
             for ext in ('nc', 'tif'):

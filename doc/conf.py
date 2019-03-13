@@ -213,3 +213,8 @@ autodoc_mock_imports = [
 ]
 
 nitpicky = True
+nitpick_ignore = [(':py:class:')]
+
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+
