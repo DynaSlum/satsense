@@ -70,7 +70,7 @@ def test_extract_features(generator):
 
 
 @given(st.integers(min_value=-1, max_value=10))
-@settings(deadline=1000)
+@settings(deadline=2000)
 def test_extract_features_parallel(generator, n_jobs):
     """Test that parallel feature computation produces identical results."""
     window_shapes = (
