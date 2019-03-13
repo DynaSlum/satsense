@@ -71,28 +71,28 @@ def test_full_generator_windows(tmpdir):
     image._block = None
     original_image = image[itype]
     print('original image:\n', original_image)
-    assert windows[0][1][1] == original_image[1][1]
-    assert windows[1][1][1] == original_image[1][4]
-    assert windows[2][1][1] == original_image[4][1]
-    assert windows[3][1][1] == original_image[4][4]
+    assert windows[0][2][2] == original_image[1][1]
+    assert windows[1][2][2] == original_image[1][4]
+    assert windows[2][2][2] == original_image[4][1]
+    assert windows[3][2][2] == original_image[4][4]
 
     # horizontal edges are masked
-    # assert np.all(windows[0].mask[0])
-    # assert np.all(windows[1].mask[0])
-    # assert np.all(windows[2].mask[-1])
-    # assert np.all(windows[3].mask[-1])
+    assert np.all(windows[0].mask[0])
+    assert np.all(windows[1].mask[0])
+    assert np.all(windows[2].mask[-1])
+    assert np.all(windows[3].mask[-1])
 
     # vertical edges are masked
-    # assert np.all(windows[0].mask[:, 0])
-    # assert np.all(windows[1].mask[:, 3:])
-    # assert np.all(windows[2].mask[:, 0])
-    # assert np.all(windows[3].mask[:, 3:])
+    assert np.all(windows[0].mask[:, 0])
+    assert np.all(windows[1].mask[:, 3:])
+    assert np.all(windows[2].mask[:, 0])
+    assert np.all(windows[3].mask[:, 3:])
 
     # data is not masked
-    # assert not np.any(windows[0].mask[1:, 1:])
-    # assert not np.any(windows[1].mask[1:, :3])
-    # assert not np.any(windows[2].mask[:3, 1:])
-    # assert not np.any(windows[3].mask[:3, :3])
+    assert not np.any(windows[0].mask[1:, 1:])
+    assert not np.any(windows[1].mask[1:, :3])
+    assert not np.any(windows[2].mask[:3, 1:])
+    assert not np.any(windows[3].mask[:3, :3])
 
 
 st_window_shape = st.tuples(
