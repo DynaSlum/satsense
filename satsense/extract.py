@@ -7,7 +7,6 @@ from os import cpu_count
 from typing import Iterator
 
 import numpy as np
-
 from satsense.generators import FullGenerator
 
 from .features import Feature
