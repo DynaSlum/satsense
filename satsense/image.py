@@ -58,10 +58,26 @@ class Image:
         If True bands and base images are cached in memory
         if an array a band or base image is cached if its name is in the array
 
+    Examples
+    ========
+    Load an image and inspect the shape and bands
+
+    from satsense import Image
+    >>> image = Image('test/data/source/section_2_sentinel.tif', 'quickbird')
+    >>> image.shape
+    (152, 155)
+
+    >>> image.bands
+    {'blue': 0, 'green': 1, 'red': 2, 'nir-1': 3}
+
+    >>> image.crs
+    CRS({'init': 'epsg:32643'})
+
     See also
     ========
     satsense.bands
     """
+
     itypes = {}
 
     @classmethod
@@ -142,7 +158,12 @@ class Image:
 
     def __getitem__(self, itype):
         """
-        Get image of type.
+        Get image of a type registered using the `register` method.
+
+        By default the following itypes are supplied:
+         - 'rgb'
+         - 'grayscale'
+         - 'gray_ubyte'
 
         Parameters
         ==========
@@ -156,7 +177,7 @@ class Image:
 
         Examples
         =======
-        Get the rgb image
+        Get the rgb and gray_ubyte image
 
         >>> image['rgb'].shape
         (152, 155, 3)
