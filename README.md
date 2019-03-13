@@ -41,8 +41,13 @@ conda env update
 
 If you prefer to use the package manager of your OS, use it to install
 the [GDAL](https://pypi.org/project/GDAL/) and
-[netCDF4](http://unidata.github.io/netcdf4-python/) dependencies. On Ubuntu
-Linux 18.04 and later, you can do so by running
+[netCDF4](http://unidata.github.io/netcdf4-python/) dependencies. 
+
+### Ubuntu Linux 18.04 and later
+
+Clone the repository.
+
+Install the dependencies by running:
 ```bash
 sudo apt install libgdal-dev libnetcdf-dev
 ```
