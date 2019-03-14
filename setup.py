@@ -4,23 +4,23 @@ from setuptools import find_packages, setup
 with open('README.md') as file:
     README = file.read()
 
-with open('satsense/_version.py') as file:
-    for line in file:
-        line = line.strip()
-        if line.startswith('__version__'):
-            VERSION = line.split('=')[1].strip(' "').strip("'")
-            break
-
 setup(
     name='satsense',
-    version=VERSION,
+    use_scm_version=True,
     url='https://github.com/DynaSlum/SateliteImaging',
     license='Apache Software License',
     author='Berend Weel, Elena Ranguelova',
-    setup_requires=['pytest-runner'],
+    setup_requires=[
+        'pytest-runner',
+        'setuptools_scm',
+    ],
     tests_require=[
-        'hypothesis[numpy]', 'pytest', 'pytest-cov', 'pytest-env',
-        'pytest-flake8', 'pytest-html'
+        'hypothesis[numpy]',
+        'pytest',
+        'pytest-cov',
+        'pytest-env',
+        'pytest-flake8',
+        'pytest-html',
     ],
     install_requires=[
         'descartes',
