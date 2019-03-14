@@ -25,43 +25,12 @@ logger = logging.getLogger(__name__)
 
 class Image:
     """
-    Image class that provides a unified interface to satellite images
+    Image class that provides a unified interface to satellite images.
 
     Under the hood rasterio is used, so any format supported by rasterio
     can be used.
-
-    Parameters
-    ==========
-
-    filename: str
-        The name of the image
-    satellite: str
-        The name of the satelite (i.e. worldview3, quickbird etc.)
-    band: str
-        The band for the grayscale image, or 'rgb'. The default is 'rgb'
-    normalization_parameters: dict, optional
-        Dictionary that describes the normalizaiton parameters
-        The following keys can be supplied:
-
-        - technique: string
-            The technique to use, can be 'cumulative' (default),
-            'meanstd' or 'minmax'
-        - percentiles: array_like of int
-            The percentiles to use (exactly 2) if technique is cumulative,
-            default is [2, 98]
-        - numstds: float
-            Number of standard deviations to use if technique is meanstd
-    block: tuple or rasterio.windows.Window, optional
-        The part of the image read defined in a rasterio compatible way. e.g.
-        2 tuples or a rasterio.windows.Window object
-    cached: array-like or boolean, optional
-        If True bands and base images are cached in memory
-        if an array a band or base image is cached if its name is in the array
-
-    See also
-    ========
-    satsense.bands
     """
+
     itypes = {}
 
     @classmethod
@@ -70,7 +39,7 @@ class Image:
         Register a new image type.
 
         Parameters
-        ==========
+        ----------
         itype: str
             (internal) name of the image type
         function: function
@@ -78,7 +47,7 @@ class Image:
             and return a numpy.ndarray or numpy.ma.masked_array
 
         See Also
-        ========
+        --------
         get_gray_ubyte_image
         get_grayscale_image
         get_rgb_image
@@ -92,7 +61,41 @@ class Image:
                  normalization_parameters=None,
                  block=None,
                  cached=None):
+        """
+        Constructor of Image class.
 
+        Parameters
+        ----------
+        filename: str
+            The name of the image
+        satellite: str
+            The name of the satelite (i.e. worldview3, quickbird etc.)
+        band: str
+            The band for the grayscale image, or 'rgb'. The default is 'rgb'
+        normalization_parameters: dict, optional
+            Dictionary that describes the normalizaiton parameters
+            The following keys can be supplied:
+
+            - technique: string
+                The technique to use, can be 'cumulative' (default),
+                'meanstd' or 'minmax'
+            - percentiles: array_like of int
+                The percentiles to use (exactly 2) if technique is cumulative,
+                default is [2, 98]
+            - numstds: float
+                Number of standard deviations to use if technique is meanstd
+        block: tuple or rasterio.windows.Window, optional
+            The part of the image read defined in a rasterio compatible way,
+            e.g. two tuples or a rasterio.windows.Window object
+        cached: array-like or boolean, optional
+            If True bands and base images are cached in memory
+            if an array a band or base image is cached if its name is in the
+            array
+
+        See also
+        ========
+        satsense.bands
+        """
         self.filename = filename
         self.satellite = satellite
         self.bands = BANDS[satellite.lower()]
@@ -118,13 +121,13 @@ class Image:
         Create a subset of Image.
 
         Parameters
-        ==========
+        ----------
         block: tuple or rasterio.windows.Window, optional
-        The part of the image read defined in a rasterio compatible way. e.g.
-        2 tuples or a rasterio.windows.Window object
+            The part of the image read defined in a rasterio compatible way,
+            e.g. two tuples or a rasterio.windows.Window object
 
         Returns
-        =======
+        -------
         image.Image:
             subsetted image
         """
@@ -145,17 +148,17 @@ class Image:
         Get image of type.
 
         Parameters
-        ==========
+        ----------
         itype: str
             The name of the image type to retrieve
 
         Returns
-        =======
+        -------
         out: numpy.ndarray or numpy.ma.masked_array
             The image of the supplied type
 
         Examples
-        =======
+        --------
         Get the rgb image
 
         >>> image['rgb'].shape
@@ -182,7 +185,21 @@ class Image:
         return image
 
     def _load_band(self, band, block=None):
-        """Read band from file and normalize if required."""
+        """
+        Read band from file and normalize if required.
+
+        Parameters
+        ----------
+        band: str
+            The band of the grayscale image, or 'rgb'
+        block: tuple or rasterio.windows.Window, optional
+            The part of the image read defined in a rasterio compatible way
+
+        Returns
+        -------
+            TODO#docstring
+
+        """
         image = self._read_band(band, block)
         if self.normalization_parameters:
             dtype = np.dtype(self.normalization_parameters['dtype'])
@@ -191,7 +208,20 @@ class Image:
         return image
 
     def _read_band(self, band, block=None):
-        """Read band from file."""
+        """
+        Read spectral band from file.
+
+        Parameters
+        ----------
+        band: str
+            The band of the grayscale image, or 'rgb'
+        block: tuple or rasterio.windows.Window, optional
+            The part of the image read defined in a rasterio compatible way
+
+        Returns
+        -------
+        TODO#docstring
+        """
         logger.info("Loading band %s from file %s", band, self.filename)
         bandno = self.bands[band] + 1
         with rasterio.open(self.filename) as dataset:
@@ -200,7 +230,14 @@ class Image:
             return image
 
     def precompute_normalization(self, *bands):
+        """
+        Get normalization limits for band(s).
 
+        Parameters
+        ----------
+        *bands: str
+            One or more bands
+        """
         if not self.normalization_parameters:
             return
 
@@ -209,6 +246,14 @@ class Image:
                 self._get_normalization_limits(band)
 
     def save_normalization_limits(self, filename_prefix=''):
+        """
+        Save normalization limits to json file.
+
+        Parameters
+        ----------
+        filename_prefix: str
+            Filename prefix to use
+        """
         path = pathlib.Path(self.filename).absolute()
         if filename_prefix != '':
             cwd = pathlib.Path(filename_prefix).absolute()
@@ -238,6 +283,14 @@ class Image:
         return filepath
 
     def load_normalization_limits(self, filename_prefix=''):
+        """
+        Load normalization limits from json file.
+
+        Parameters
+        ----------
+        filename_prefix: str
+            Filename prefix to use
+        """
         path = pathlib.Path(self.filename).absolute()
         if filename_prefix != '':
             cwd = pathlib.Path(filename_prefix).absolute()
@@ -256,7 +309,16 @@ class Image:
                 self.normalization = norm['values']
 
     def _get_normalization_limits(self, band, image=None):
-        """Return normalization limits for band."""
+        """
+        Return normalization limits for band.
+
+        Parameters
+        ----------
+        band: str
+            The band of the grayscale image, or 'rgb'
+        image: numpy.ndarray or numpy.ma.masked_array, optional
+            Image to normalize
+        """
         if band not in self.normalization:
             # select only non-masked values for computing scale
             if image is None:
@@ -296,7 +358,16 @@ class Image:
         return self.normalization[band]
 
     def _normalize(self, image, band):
-        """Normalize image with limits for band."""
+        """
+        Normalize image with limits for band.
+
+        Parameters
+        ----------
+        image: numpy.ndarray or numpy.ma.masked_array
+            Image to normalize
+        band: str
+            The band of the grayscale image, or 'rgb'
+        """
         lower, upper = self._get_normalization_limits(band, image)
         if np.isclose(lower, upper):
             logger.warning(
@@ -316,17 +387,27 @@ class Image:
 
     @property
     def shape(self):
+        """Provide shape attribute."""
         return self._get_attribute('shape')
 
     @property
     def crs(self):
+        """Provide crs attribute."""
         return self._get_attribute('crs')
 
     @property
     def transform(self):
+        """Provide transform attribute."""
         return self._get_attribute('transform')
 
     def scaled_transform(self, step_size):
+        """
+        Perform a scaled transformation.
+
+        Returns
+        -------
+            TODO#docstring
+        """
         return self.transform * Affine.scale(*step_size)
 
 
@@ -335,12 +416,12 @@ def get_rgb_image(image: Image):
     Convert the image to rgb format.
 
     Parameters
-    ==========
+    ----------
     image: image.Image
         The image to calculate the rgb image from
 
     Returns
-    =======
+    -------
     numpy.ndarray
         The image converted to rgb
     """
@@ -366,17 +447,17 @@ def get_grayscale_image(image: Image):
     Convert the image to grayscale.
 
     Parameters
-    ==========
+    ----------
     image: image.Image
         The image to calculate the grayscale image from
 
     Returns
-    =======
+    -------
     numpy.ndarray
         The image converted to grayscale in 0 - 1 range
 
     See Also
-    ========
+    --------
     skimage.color.rgb2gray:
         Used to convert rgb image to grayscale
     """
@@ -399,17 +480,17 @@ def get_gray_ubyte_image(image: Image):
     Convert image in 0 - 1 scale format to ubyte 0 - 255 format.
 
     Parameters
-    ==========
+    ----------
     image: image.Image
         The image to calculate the grayscale image from
 
     Returns
-    =======
+    -------
     numpy.ndarray
         The image converted to grayscale
 
     See Also
-    ========
+    --------
     skimage.img_as_ubyte:
         Used to convert the image to ubyte
     """
@@ -431,19 +512,57 @@ class FeatureVector():
     """Class to store a feature vector in."""
 
     def __init__(self, feature, vector, crs=None, transform=None):
+        """
+        Constructor for FeatureVector class.
+
+        Parameters
+        ----------
+        feature:
+        vector:
+        crs: , optional
+        transform: , optional
+        """
         self.feature = feature
         self.vector = vector
         self.crs = crs
         self.transform = transform
 
     def get_filename(self, window, prefix='', extension='nc'):
+        """
+        Construct filename from input parameters.
+
+        Parameters
+        ----------
+        window: TODO#docstring
+            TODO#docstring
+        prefix: str, optional
+            Prefix for the filename
+        extension: str, optional
+            Filename extension
+
+        Returns
+        -------
+            str
+        """
         if os.path.isdir(prefix) and not str(prefix).endswith(os.sep):
             prefix += os.sep
         return '{}{}_{}_{}.{}'.format(prefix, self.feature.name, window[0],
                                       window[1], extension)
 
     def save(self, filename_prefix='', extension='nc'):
-        """Save feature vector to file."""
+        """
+        Save feature vectors to files.
+
+        Parameters
+        ----------
+        filename_prefix: str, optional
+            Prefix for the filename
+        extension: str, optional
+            Filename extension
+
+        Returns:
+            1-D array-like (str)
+        """
         filenames = []
         for i, window in enumerate(self.feature.windows):
             filename = self.get_filename(window, filename_prefix, extension)
@@ -471,7 +590,18 @@ class FeatureVector():
         return filenames
 
     def _save_as_netcdf(self, data, filename, attributes):
-        """Save feature vector as NetCDF file."""
+        """
+        Save feature vector as NetCDF file.
+
+        Parameters
+        ----------
+        data: np.array
+            Feature vector
+        filename: str
+            Filename to save to
+        attributes: dict of attributes
+            Attributes to set in NetCDF file
+        """
         feature_size, height, width = data.shape
 
         with Dataset(filename, 'w') as dataset:
@@ -490,7 +620,18 @@ class FeatureVector():
             variable[:] = data
 
     def _save_as_tif(self, data, filename, attributes):
-        """Save feature array as GeoTIFF file."""
+        """
+        Save feature array as GeoTIFF file.
+
+        Parameters
+        ----------
+        data: np.array
+            Feature vector
+        filename: str
+            Filename to save to
+        attributes: dict of attributes
+            Attributes to set in NetCDF file
+        """
         feature_size, height, width = data.shape
         if np.ma.is_masked(data):
             fill_value = data.fill_value
@@ -515,7 +656,22 @@ class FeatureVector():
 
     @classmethod
     def from_file(cls, feature, filename_prefix):
-        """Restore saved features."""
+        """
+        Restore saved features.
+
+        Parameters
+        ----------
+        cls: TODO#docstring
+            TODO#docstring
+        feature: obj
+            Feature object
+        filename_prefix: str
+            Filename prefix used to save features
+
+        Returns
+        -------
+        TODO#docstring
+        """
         new = cls(feature, None)
         for window in feature.windows:
             for ext in ('nc', 'tif'):
@@ -563,6 +719,18 @@ class FeatureVector():
         return new
 
     def _add_lat_lon_dimensions(self, dataset, height, width):
+        """
+        Add longitude and latitude dimensions to dataset.
+
+        Parameters
+        ----------
+        dataset: netCDF4._netCDF4.Dataset
+            netCDF4 dataset
+        height: int
+            height of dataset
+        width: int
+            width of dataset
+        """
         if self.crs.is_geographic:
             # Latitude and Longitude variables
             dataset.createDimension('lon', width)
