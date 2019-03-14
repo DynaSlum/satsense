@@ -1,12 +1,12 @@
 """Methods for loading and saving mask images."""
 import numpy as np
 import rasterio
-from satsense.features.feature import Feature
 from scipy.misc import imread
 from skimage.filters import threshold_otsu
 
 from ..extract import extract_features
 from ..features import NirNDVI
+from ..features.feature import Feature
 from .conversions import multipolygon2mask
 from .shapefile import load_shapefile2multipolygon
 
