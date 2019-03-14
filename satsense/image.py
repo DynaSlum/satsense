@@ -217,7 +217,7 @@ def get_grayscale_image(image: Image):
     if image.band == 'rgb':
         rgb = image['rgb']
         mask = np.bitwise_or.reduce(rgb.mask, axis=2)
-        gray = np.ma.array(rgb2gray(rgb), mask=mask)
+        gray = np.ma.array(rgb2gray(rgb), mask=mask, dtype=np.float32)
     else:
         gray = image[image.band]
     #     logger.debug("Done computing grayscale image")
