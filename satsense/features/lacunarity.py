@@ -2,7 +2,6 @@
 import logging
 
 import numpy as np
-from numba import jit, prange
 from skimage.feature import canny
 from skimage.filters.rank import equalize
 from skimage.morphology import disk
@@ -33,7 +32,6 @@ def get_canny_edge_image(image: Image, radius=30, sigma=0.5):
 Image.register('canny_edge', get_canny_edge_image)
 
 
-@jit("float64(boolean[:, :], int64)", nopython=True)
 def lacunarity(edged_image, box_size):
     """
     Calculate the lacunarity value over an image.
@@ -50,13 +48,13 @@ def lacunarity(edged_image, box_size):
     """
     # accumulator holds the amount of ones for each position in the image,
     # defined by a sliding window
-    accumulator = np.zeros((edged_image.shape[0] - box_size,
-                            edged_image.shape[1] - box_size))
-    for i in prange(accumulator.shape[0]):
-        for j in prange(accumulator.shape[1]):
-            # sum the binary-box for the amount of 1s in this box
-            accumulator[i, j] = np.sum(
-                edged_image[i:i + box_size, j:j + box_size])
+    shape = (edged_image.shape[0] - box_size, edged_image.shape[1] - box_size)
+    idx = np.ndindex(shape)
+    accumulator = np.array([
+        np.sum(edged_image[ix[0]:ix[0] + box_size, ix[1]:ix[1] + box_size])
+        for ix in idx
+    ])
+    accumulator.shape = shape
     mean_sqrd = np.mean(accumulator)**2
     if mean_sqrd == 0:
         return 0.0
@@ -64,11 +62,9 @@ def lacunarity(edged_image, box_size):
     return np.var(accumulator) / mean_sqrd + 1
 
 
-@jit
 def lacunarities(canny_edge_image, box_sizes):
-    result = np.zeros(len(box_sizes))
-    for i, box_size in enumerate(box_sizes):
-        result[i] = lacunarity(canny_edge_image, box_size)
+    """Calculate the lacunarities for all box_sizes"""
+    result = [lacunarity(canny_edge_image, box_size) for box_size in box_sizes]
     return result
 
 
