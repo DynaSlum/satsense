@@ -1,6 +1,7 @@
 import hypothesis.strategies as st
 import numpy as np
 import rasterio
+import pytest
 from hypothesis import given, settings
 from hypothesis.extra.numpy import arrays
 from rasterio.transform import from_origin
@@ -13,7 +14,7 @@ from .strategies import st_rasterio_dtypes
 
 
 def create_test_file(filename, array):
-    """Write an array of shape (bands, width, heigth) to file."""
+    """Write an array of shape (bands, width, height) to file."""
     array = np.ma.asanyarray(array)
     crs = rasterio.crs.CRS(init='epsg:4326')
     transform = from_origin(52, 4, 10, 10)
@@ -38,6 +39,164 @@ def create_test_image(dirname, array, normalization=None):
     satellite = 'quickbird'
     image = Image(filename, satellite, normalization_parameters=normalization)
     return image
+
+def create_mono_image(dirname, array, normalization=None):
+    """Create a test Image instance."""
+    filename = str(dirname / 'tmp.tif')
+    create_test_file(filename, array)
+    satellite = 'monochrome'
+    image = Image(filename, satellite, normalization_parameters=normalization)
+    return image
+
+# 'image_shape','step_size','window_shape','window_ref_arrays'
+WINDOW_TEST_DATA = [
+    ((3, 3), (2, 1), (3, 4), [
+         np.ma.array([[0, 0, 0, 1],
+                      [0, 0, 3, 4],
+                      [0, 0, 6, 7]],
+                     mask=[[True, True, False, False],
+                           [True, True, False, False],
+                           [True, True, False, False]]),
+         np.ma.array([[0, 0, 1, 2],
+                      [0, 3, 4, 5],
+                      [0, 6, 7, 8]],
+                     mask=[[True, False, False, False],
+                           [True, False, False, False],
+                           [True, False, False, False]]),
+         np.ma.array([[0, 1, 2, 0],
+                      [3, 4, 5, 0],
+                      [6, 7, 8, 0]],
+                     mask=[[False, False, False, True],
+                           [False, False, False, True],
+                           [False, False, False, True]]),
+         np.ma.array([[0, 0, 6, 7],
+                      [0, 0, 0, 0],
+                      [0, 0, 0, 0]],
+                     mask=[[True, True, False, False],
+                           [True, True, True, True,],
+                           [True, True, True, True,]]),
+         np.ma.array([[0, 6, 7, 8],
+                      [0, 0, 0, 0],
+                      [0, 0, 0, 0]],
+                     mask=[[True, False, False, False],
+                           [True, True, True, True,],
+                           [True, True, True, True,]]),
+         np.ma.array([[6, 7, 8, 0],
+                      [0, 0, 0, 0],
+                      [0, 0, 0, 0]],
+                     mask=[[False, False, False, True],
+                           [True, True, True, True,],
+                           [True, True, True, True,]]),
+     ]),
+    ((6, 6), (2, 3), (5, 5), [
+        np.ma.array([[0, 0, 0, 0, 0],
+                     [0, 0, 1, 2, 3],
+                     [0, 6, 7, 8, 9],
+                     [0, 12, 13, 14, 15],
+                     [0, 18, 19, 20, 21]],
+                     mask=[[True, True, True, True, True],
+                           [True, False, False, False, False],
+                           [True, False, False, False, False],
+                           [True, False, False, False, False],
+                           [True, False, False, False, False]]),
+        np.ma.array([[0, 0, 0, 0, 0],
+                     [2, 3, 4, 5, 0],
+                     [8, 9, 10, 11, 0],
+                     [14, 15, 16, 17, 0],
+                     [20, 21, 22, 23, 0]],
+                     mask=[[True, True, True, True, True],
+                           [False, False, False, False, True],
+                           [False, False, False, False, True],
+                           [False, False, False, False, True],
+                           [False, False, False, False, True]]),
+        np.ma.array([[0, 6, 7, 8, 9],
+                     [0, 12, 13, 14, 15],
+                     [0, 18, 19, 20, 21],
+                     [0, 24, 25, 26, 27],
+                     [0, 30, 31, 32, 33]],
+                     mask=[[True, False, False, False, False],
+                           [True, False, False, False, False],
+                           [True, False, False, False, False],
+                           [True, False, False, False, False],
+                           [True, False, False, False, False]]),
+        np.ma.array([[8, 9, 10, 11, 0],
+                     [14, 15, 16, 17, 0],
+                     [20, 21, 22, 23, 0],
+                     [26, 27, 28, 29, 0],
+                     [32, 33, 34, 35, 0]],
+                     mask=[[False, False, False, False, True],
+                           [False, False, False, False, True],
+                           [False, False, False, False, True],
+                           [False, False, False, False, True],
+                           [False, False, False, False, True]]),
+        np.ma.array([[0, 18, 19, 20, 21],
+                     [0, 24, 25, 26, 27],
+                     [0, 30, 31, 32, 33],
+                     [0, 0, 0, 0, 0],
+                     [0, 0, 0, 0, 0]],
+                     mask=[[True, False, False, False, False],
+                           [True, False, False, False, False],
+                           [True, False, False, False, False],
+                           [True, True, True, True, True],
+                           [True, True, True, True, True]]),
+        np.ma.array([[20, 21, 22, 23, 0],
+                     [26, 27, 28, 29, 0],
+                     [32, 33, 34, 35, 0],
+                     [0, 0, 0, 0, 0],
+                     [0, 0, 0, 0, 0]],
+                     mask=[[False, False, False, False, True],
+                           [False, False, False, False, True],
+                           [False, False, False, False, True],
+                           [True, True, True, True, True],
+                           [True, True, True, True, True]])
+    ]),
+    ((4, 3), (2, 3), (5, 2), [
+        np.ma.array([[0, 0],
+                     [0, 1],
+                     [3, 4],
+                     [6, 7],
+                     [9, 10]],
+                     mask=[[True, True],
+                           [False, False],
+                           [False, False],
+                           [False, False],
+                           [False, False]]),
+        np.ma.array([[3, 4],
+                     [6, 7],
+                     [9, 10],
+                     [0, 0],
+                     [0, 0]],
+                     mask=[[False, False],
+                           [False, False],
+                           [False, False],
+                           [True, True],
+                           [True, True]])
+    ])
+]
+
+@pytest.mark.parametrize(['image_shape','step_size','window_shape',
+                          'window_ref_arrays'], WINDOW_TEST_DATA)
+def test_windows(tmpdir, image_shape, step_size, window_shape,
+                 window_ref_arrays):
+    satellite = 'monochrome'
+    itype = 'pan'
+
+    n_bands = len(BANDS[satellite])
+    shape = (n_bands, ) + image_shape
+    image_array = np.array(range(np.prod(shape)), dtype=float)
+    image_array.shape = shape
+    print('window_ref_array[0]= ', window_ref_arrays[0])
+
+    image = create_mono_image(tmpdir, image_array, normalization=False)
+    generator = FullGenerator(image, step_size)
+    generator.load_image(itype, (window_shape, ))
+    windows = [window for window in generator]
+    print('generator._image_cache:\n', generator._image_cache)
+
+    assert len(window_ref_arrays) == len(windows)
+    for i, (window, reference) in enumerate(zip(windows, window_ref_arrays)):
+        print('window', i, ' =', window)
+        np.testing.assert_array_equal(window, reference)
 
 
 def test_full_generator_windows(tmpdir):
