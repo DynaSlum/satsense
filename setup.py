@@ -26,7 +26,6 @@ setup(
         'descartes',
         'fiona',
         'netCDF4!=1.4.2',
-        'numba',
         'numpy==1.15.4',
         'opencv-contrib-python-headless<3.4.3',
         'rasterio',
