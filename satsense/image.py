@@ -29,6 +29,53 @@ class Image:
 
     Under the hood rasterio is used, so any format supported by rasterio
     can be used.
+
+    Parameters
+    ----------
+    filename: str
+        The name of the image
+    satellite: str
+        The name of the satelite (i.e. worldview3, quickbird etc.)
+    band: str
+        The band for the grayscale image, or 'rgb'. The default is 'rgb'
+    normalization_parameters: dict, optional
+        Dictionary that describes the normalizaiton parameters
+        The following keys can be supplied:
+
+        - technique: string
+            The technique to use, can be 'cumulative' (default),
+            'meanstd' or 'minmax'
+        - percentiles: list[int]
+            The percentiles to use (exactly 2) if technique is cumulative,
+            default is [2, 98]
+        - numstds: float
+            Number of standard deviations to use if technique is meanstd
+    block: tuple or rasterio.windows.Window, optional
+        The part of the image read defined in a rasterio compatible way,
+        e.g. two tuples or a rasterio.windows.Window object
+    cached: array-like or boolean, optional
+        If True bands and base images are cached in memory
+        if an array a band or base image is cached if its name is in the
+        array
+
+    Examples
+    ========
+    Load an image and inspect the shape and bands
+
+    from satsense import Image
+    >>> image = Image('test/data/source/section_2_sentinel.tif', 'quickbird')
+    >>> image.shape
+    (152, 155)
+
+    >>> image.bands
+    {'blue': 0, 'green': 1, 'red': 2, 'nir-1': 3}
+
+    >>> image.crs
+    CRS({'init': 'epsg:32643'})
+
+    See also
+    ========
+    satsense.bands
     """
 
     itypes = {}
@@ -48,9 +95,9 @@ class Image:
 
         See Also
         --------
-        get_gray_ubyte_image
-        get_grayscale_image
-        get_rgb_image
+        :ufunc: get_gray_ubyte_image
+        :ufunc: get_grayscale_image
+        :ufunc: get_rgb_image
         """
         cls.itypes[itype] = function
 
@@ -61,56 +108,6 @@ class Image:
                  normalization_parameters=None,
                  block=None,
                  cached=None):
-        """
-        Constructor of Image class.
-
-        Parameters
-        ----------
-        filename: str
-            The name of the image
-        satellite: str
-            The name of the satelite (i.e. worldview3, quickbird etc.)
-        band: str
-            The band for the grayscale image, or 'rgb'. The default is 'rgb'
-        normalization_parameters: dict, optional
-            Dictionary that describes the normalizaiton parameters
-            The following keys can be supplied:
-
-            - technique: string
-                The technique to use, can be 'cumulative' (default),
-                'meanstd' or 'minmax'
-            - percentiles: array_like of int
-                The percentiles to use (exactly 2) if technique is cumulative,
-                default is [2, 98]
-            - numstds: float
-                Number of standard deviations to use if technique is meanstd
-        block: tuple or rasterio.windows.Window, optional
-            The part of the image read defined in a rasterio compatible way,
-            e.g. two tuples or a rasterio.windows.Window object
-        cached: array-like or boolean, optional
-            If True bands and base images are cached in memory
-            if an array a band or base image is cached if its name is in the
-            array
-
-        Examples
-        ========
-        Load an image and inspect the shape and bands
-
-        from satsense import Image
-        >>> image = Image('test/data/source/section_2_sentinel.tif', 'quickbird')
-        >>> image.shape
-        (152, 155)
-
-        >>> image.bands
-        {'blue': 0, 'green': 1, 'red': 2, 'nir-1': 3}
-
-        >>> image.crs
-        CRS({'init': 'epsg:32643'})
-
-        See also
-        ========
-        satsense.bands
-        """
         self.filename = filename
         self.satellite = satellite
         self.bands = BANDS[satellite.lower()]
@@ -137,8 +134,8 @@ class Image:
 
         Parameters
         ----------
-        block: tuple or rasterio.windows.Window, optional
-            The part of the image read defined in a rasterio compatible way,
+        block: tuple or rasterio.windows.Window
+            The part of the image to read defined in a rasterio compatible way,
             e.g. two tuples or a rasterio.windows.Window object
 
         Returns
@@ -162,10 +159,11 @@ class Image:
         """
         Get image of a type registered using the `register` method.
 
-        By default the following itypes are supplied:
-         - 'rgb'
-         - 'grayscale'
-         - 'gray_ubyte'
+        The following itypes are available to facilitate creating
+        new features:
+        - 'rgb'
+        - 'grayscale'
+        - 'gray_ubyte'
 
         Parameters
         ----------
@@ -258,8 +256,9 @@ class Image:
 
         Parameters
         ==========
-        *bands: list of str or None
-            The list of bands to normalize, if None all bands will be normalized
+        *bands : list[str] or None
+            The list of bands to normalize, if None all bands will be
+            normalized
 
         See Also
         ========
@@ -435,7 +434,8 @@ class Image:
 
         Returns
         -------
-            An affine transformation scaled by the step size
+            out : affine.Affine
+                An affine transformation scaled by the step size
         """
         return self.transform * Affine.scale(*step_size)
 
@@ -546,10 +546,14 @@ class FeatureVector():
 
         Parameters
         ----------
-        feature:
-        vector:
-        crs: , optional
-        transform: , optional
+        feature : satsense.feature.Feature
+            The feature to store
+        vector : array-like
+            The data of the computed feature
+        crs :
+            The coordinate reference system for the data
+        transform : Affine 
+            The affine transformation for the data
         """
         self.feature = feature
         self.vector = vector
@@ -564,9 +568,9 @@ class FeatureVector():
         ----------
         window: tuple
             The shape of the window used to calculate the feature
-        prefix: str, optional
+        prefix: str
             Prefix for the filename
-        extension: str, optional
+        extension: str
             Filename extension
 
         Returns
@@ -584,9 +588,9 @@ class FeatureVector():
 
         Parameters
         ----------
-        filename_prefix: str, optional
+        filename_prefix: str
             Prefix for the filename
-        extension: str, optional
+        extension: str
             Filename extension
 
         Returns:

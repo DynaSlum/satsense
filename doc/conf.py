@@ -210,7 +210,10 @@ autodoc_mock_imports = [
     'skimage',
     'scipy',
     'shapely',
+    'affine',
 ]
+
+autodoc_member_order = 'bysource'
 
 nitpicky = True
 nitpick_ignore = [(':py:class:')]

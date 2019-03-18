@@ -59,13 +59,14 @@ def get_texton_descriptors(image: Image):
 Image.register('texton_descriptors', get_texton_descriptors)
 
 
-def texton_cluster(images: Iterator[Image], n_clusters=32,
+def texton_cluster(images: Iterator[Image],
+                   n_clusters=32,
                    sample_size=100000,
                    sample_window=(8192, 8192)) -> MiniBatchKMeans:
     """Compute texton clusters."""
     nfeatures = int(sample_size / len(images))
     descriptors = []
-    for image in images:       
+    for image in images:
         if image.shape[0] < sample_window[0]:
             sample_window = (image.shape[0], sample_window[1])
         if image.shape[1] < sample_window[1]:
@@ -134,5 +135,6 @@ class Texton(Feature):
                     sample_size=100000,
                     sample_window=(8192, 8192),
                     normalized=True):
-        kmeans = texton_cluster(images, n_clusters, sample_size, sample_window=sample_window)
+        kmeans = texton_cluster(
+            images, n_clusters, sample_size, sample_window=sample_window)
         return cls(windows, kmeans, normalized)

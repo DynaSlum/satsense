@@ -346,7 +346,7 @@ class FullGenerator():
         ----------
             itype: str
                 Image type
-            windows: list of tuples
+            windows: list[tuple]
                 The list of tuples of window shapes that will be used
                 with this generator
         """
@@ -388,8 +388,9 @@ class FullGenerator():
 
         Returns
         -------
-            tuple of tuples : The x-range and y-range slices for the index and
-                              window both with and without the padding included
+            tuple[tuple]
+                The x-range and y-range slices for the index and
+                window both with and without the padding included
         """
         slices = []
         paddless = []
