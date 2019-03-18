@@ -2,7 +2,6 @@ import hypothesis.strategies as st
 import numpy as np
 import rasterio
 import pytest
-import operator
 from hypothesis import given, settings
 from hypothesis.extra.numpy import arrays
 from rasterio.transform import from_origin
@@ -197,6 +196,7 @@ WINDOW_TEST_DATA = [
     ])
 ]
 
+
 @pytest.mark.parametrize(['image_shape', 'step_size', 'window_shape',
                           'window_ref_arrays'], WINDOW_TEST_DATA)
 def test_windows(tmpdir, image_shape, step_size, window_shape,
@@ -219,7 +219,6 @@ def test_windows(tmpdir, image_shape, step_size, window_shape,
     for i, (window, reference) in enumerate(zip(windows, window_ref_arrays)):
         np.testing.assert_array_equal(window, reference)
         assert np.all(window.mask == reference.mask)
-
 
 
 def test_full_generator_windows(tmpdir):

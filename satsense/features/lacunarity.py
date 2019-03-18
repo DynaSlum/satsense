@@ -49,7 +49,8 @@ def lacunarity(edged_image, box_size):
     """
     # # accumulator holds the amount of ones for each position in the image,
     # # defined by a sliding window
-    # shape = (edged_image.shape[0] - box_size, edged_image.shape[1] - box_size)
+    # shape = (edged_image.shape[0] - box_size,
+    #          edged_image.shape[1] - box_size)
     # idx = np.ndindex(shape)
     # accumulator = np.array([
     #     np.sum(edged_image[ix[0]:ix[0] + box_size, ix[1]:ix[1] + box_size])
