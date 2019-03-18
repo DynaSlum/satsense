@@ -16,7 +16,7 @@ def sift_cluster(images: Iterator[Image],
                  sample_window=(8192, 8192)) -> MiniBatchKMeans:
     """Create the clusters needed to compute the sift feature."""
     nfeatures = int(sample_size / len(images))
-    sift = cv2.xfeatures2d.SIFT_create(nfeatures)
+    sift_object = cv2.xfeatures2d.SIFT_create(nfeatures)
 
     descriptors = []
     for image in images:
@@ -31,7 +31,8 @@ def sift_cluster(images: Iterator[Image],
         img_descriptors = None
         for img in generator:
             inverse_mask = (~img.mask).astype(np.uint8)
-            _, new_descriptors = sift.detectAndCompute(img, inverse_mask)
+            _, new_descriptors = sift_object.detectAndCompute(
+                img, inverse_mask)
             del _  # Free up memory
 
             # Add descriptors if we already had some
@@ -57,10 +58,15 @@ def sift_cluster(images: Iterator[Image],
     return mbkmeans
 
 
+SIFT = cv2.xfeatures2d.SIFT_create()
+"""
+SIFT feature calculator used by the sift function
+"""
+
+
 def sift(window_gray_ubyte, kmeans: MiniBatchKMeans, normalized=True):
     """Calculate the sift feature on the given window."""
-    sift = cv2.xfeatures2d.SIFT_create()
-    _, descriptors = sift.detectAndCompute(window_gray_ubyte, None)
+    _, descriptors = SIFT.detectAndCompute(window_gray_ubyte, None)
     del _  # Free up memory
 
     # Is none if no descriptors are found, i.e. on 0 input range

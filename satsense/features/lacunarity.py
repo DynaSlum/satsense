@@ -67,7 +67,7 @@ def lacunarity(edged_image, box_size):
 
 
 def lacunarities(canny_edge_image, box_sizes):
-    """Calculate the lacunarities for all box_sizes"""
+    """Calculate the lacunarities for all box_sizes."""
     result = [lacunarity(canny_edge_image, box_size) for box_size in box_sizes]
     return result
 
