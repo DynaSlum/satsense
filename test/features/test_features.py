@@ -2,7 +2,6 @@
 Testing features
 """
 import numpy as np
-import pytest
 import rasterio
 from netCDF4 import Dataset
 
@@ -12,7 +11,7 @@ from satsense.features.ndxi import ndxi_image
 from satsense.features.pantex import pantex
 from satsense.features.sift import sift, sift_cluster
 from satsense.features.texton import (get_texton_descriptors, texton,
-                                      texton_cluster)  # , texton_cluster_old)
+                                      texton_cluster)
 
 
 def test_ndvi(image):
@@ -94,7 +93,7 @@ def test_lacunarity():
     Test lacunarity
     """
     dataset = Dataset(
-        "test/data/target/lacunarity_fixed.nc", "r", format="NETCDF4")
+        "test/data/target/lacunarity.nc", "r", format="NETCDF4")
     target = dataset.variables['lacunarity'][:]
 
     slices = dataset.variables['window'][:]
@@ -141,7 +140,7 @@ def test_sift(image):
     slices = dataset.variables['window'][:]
     window = slice(*slices[0:3]), slice(*slices[3:6])
 
-    clusters = sift_cluster([image])
+    clusters = sift_cluster([image, image], max_samples=1000)
 
     win = image['gray_ubyte'][window]
     features = sift(win, clusters)
@@ -151,21 +150,16 @@ def test_sift(image):
     assert same.all()
 
 
-@pytest.mark.skip()
 def test_texton(image):
-    dataset = Dataset("test/data/target/texton.nc", "r", format="NETCDF4")
-    target = dataset.variables['texton'][:]
+    """Texton feature test."""
+    window = slice(100, 125, 1), slice(100, 125, 1)
 
-    slices = dataset.variables['window'][:]
-    window = slice(*slices[0:3]), slice(*slices[3:6])
-
-    # clusters2 = texton_cluster_old([image])
-    clusters = texton_cluster([image])
+    clusters = texton_cluster([image, image], max_samples=1000)
     descriptors = get_texton_descriptors(image)
 
     win = descriptors[window]
     features = texton(win, clusters)
 
-    same = target == features
-
-    assert same.all()
+    # Because of the random.choice I don't have a better
+    # idea of how to test this
+    assert features.shape == (32,)

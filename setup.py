@@ -26,7 +26,7 @@ setup(
         'descartes',
         'fiona',
         'netCDF4!=1.4.2',
-        'numpy==1.15.4',
+        'numpy',
         'opencv-contrib-python-headless<3.4.3',
         'rasterio',
         'scikit-image',

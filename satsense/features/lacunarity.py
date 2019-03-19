@@ -47,16 +47,6 @@ def lacunarity(edged_image, box_size):
     identification of urban slums in Hyderabad, India using remote sensing
     data." Applied Geography 32.2 (2012): 660-667.
     """
-    # # accumulator holds the amount of ones for each position in the image,
-    # # defined by a sliding window
-    # shape = (edged_image.shape[0] - box_size,
-    #          edged_image.shape[1] - box_size)
-    # idx = np.ndindex(shape)
-    # accumulator = np.array([
-    #     np.sum(edged_image[ix[0]:ix[0] + box_size, ix[1]:ix[1] + box_size])
-    #     for ix in idx
-    # ])
-    # accumulator.shape = shape
     kernel = np.ones((box_size, box_size))
     accumulator = scipy.signal.convolve2d(edged_image, kernel, mode='valid')
     mean_sqrd = np.mean(accumulator)**2

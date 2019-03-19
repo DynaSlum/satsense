@@ -292,7 +292,7 @@ def create_step_and_image_strategy(args):
     )
 
     if np.issubdtype(dtype, np.floating):
-        elements = st.floats(min_value=-1, max_value=1)
+        elements = st.floats(min_value=0, max_value=1)
     else:
         elements = st.integers(min_value=np.iinfo(dtype).min,
                                max_value=np.iinfo(dtype).max)
@@ -325,7 +325,7 @@ def test_full_generator(tmpdir, window_shapes, step_and_image):
 
     image = create_test_image(tmpdir, image_array, normalization=False)
     generator = FullGenerator(image, step_size)
-    itype = 'gray_ubyte'
+    itype = 'grayscale'
     generator.load_image(itype, window_shapes)
     assert generator.loaded_itype == itype
 
@@ -352,38 +352,6 @@ def test_full_generator_split(tmpdir, window_shapes, step_and_image, n_chunks):
     for gen in generator.split(n_chunks):
         gen.load_image(itype, window_shapes)
         windows.extend(gen)
-
-    for i, window in enumerate(windows):
-        np.testing.assert_array_equal(reference[i].mask, window.mask)
-        np.testing.assert_array_equal(reference[i][~reference[i].mask],
-                                      window[~window.mask])
-
-    assert len(reference) == len(windows)
-
-
-def test_full_generator_split_fixed(tmpdir):
-    image_shape = (5, 5)
-    window_shapes = ((5, 5), )
-    step_size = (3, 3)
-    satellite = 'quickbird'
-    itype = 'grayscale'
-    n_chunks = 4
-
-    n_bands = len(BANDS[satellite])
-    shape = (n_bands, ) + image_shape
-    array = np.array(range(np.prod(shape)), dtype=float)
-    array.shape = shape
-
-    image = create_test_image(tmpdir, array, normalization=False)
-    generator = FullGenerator(image, step_size)
-    generator.load_image(itype, window_shapes)
-
-    reference = list(generator)
-
-    windows = []
-    for gen in generator.split(n_chunks):
-        gen.load_image(itype, window_shapes)
-        windows.extend(list(gen))
 
     for i, window in enumerate(windows):
         np.testing.assert_array_equal(reference[i].mask, window.mask)
