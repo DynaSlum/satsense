@@ -36,7 +36,9 @@ def sift_cluster(images: Iterator[Image],
 
             if new_descriptors.shape[0] > max_features_per_window:
                 new_descriptors = new_descriptors[np.random.choice(
-                    new_descriptors.shape[0], nfeatures, replace=False), :]
+                    new_descriptors.shape[0],
+                    max_features_per_window,
+                    replace=False), :]
 
             # Add descriptors if we already had some
             if img_descriptors is None:
