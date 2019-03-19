@@ -229,9 +229,6 @@ def test_windows(tmpdir, image_shape, step_size, window_shape,
     windows = [window for window in generator]
     print('generator._image_cache:\n', generator._image_cache)
 
-    print(WINDOW_TEST_DATA[0].keys(),
-          [d.values for d in WINDOW_TEST_DATA])
-
     assert len(window_ref_arrays) == len(windows)
     for window, reference in zip(windows, window_ref_arrays):
         np.testing.assert_array_equal(window, reference)
