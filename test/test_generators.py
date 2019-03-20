@@ -1,7 +1,7 @@
 import hypothesis.strategies as st
 import numpy as np
-import rasterio
 import pytest
+import rasterio
 from hypothesis import given, settings
 from hypothesis.extra.numpy import arrays
 from rasterio.transform import from_origin
@@ -298,8 +298,7 @@ st_window_shapes = st.lists(
     st_window_shape, min_size=1, max_size=10, unique=True)
 
 
-def create_step_and_image_strategy(args):
-    limit, dtype = args
+def create_step_and_image_strategy(limit, dtype):
     step_size = st.tuples(
         st.integers(min_value=1, max_value=limit[0]),
         st.integers(min_value=1, max_value=limit[1]),
@@ -330,7 +329,7 @@ st_step_and_image = st.tuples(
         st.integers(min_value=1, max_value=10)
     ),
     st_rasterio_dtypes
-).flatmap(create_step_and_image_strategy)
+).flatmap(lambda args: create_step_and_image_strategy(*args))
 
 
 @given(st_window_shapes, st_step_and_image)
