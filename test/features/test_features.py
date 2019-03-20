@@ -138,16 +138,21 @@ def test_pantex():
 
 def test_sift(image):
     """Sift feature test."""
-    window = slice(100, 125, 1), slice(100, 125, 1)
+    with Dataset(
+            "test/data/target/sift.nc", "r", format="NETCDF4") as dataset:
+        target = dataset.variables['sift'][:]
+        slices = dataset.variables['window'][:]
+
+    window = slice(*slices[0:3]), slice(*slices[3:6])
 
     clusters = sift_cluster([image, image], max_samples=1000)
 
     win = image['gray_ubyte'][window]
     features = sift(win, clusters)
 
-    # Because of the random.choice I don't have a better
-    # idea of how to test this
-    assert features.shape == (32,)
+    same = target == features
+
+    assert same.all()
 
 
 def test_texton(image):
