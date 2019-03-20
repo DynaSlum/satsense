@@ -41,6 +41,7 @@ class BalancedGenerator():
                                  ],
                                  [0.33, 0.33, 0.33])
         """
+        raise NotImplementedError
 
 
 class FullGenerator():
