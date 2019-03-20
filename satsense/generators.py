@@ -92,12 +92,12 @@ class FullGenerator():
         self._padding = tuple(
             max(math.ceil(0.5 * w[i]) for w in windows) for i in range(2))
 
-        block = self.get_blocks()
+        block = self._get_blocks()
         image = self.image.copy_block(block)
         self._image_cache = image[itype]
         self.loaded_itype = itype
 
-    def get_blocks(self):
+    def _get_blocks(self):
         block = []
         for i in range(2):
             offset = self.offset[i] * self.step_size[i]
@@ -108,7 +108,7 @@ class FullGenerator():
 
         return tuple(block)
 
-    def get_slices(self, index, window):
+    def _get_slices(self, index, window):
         slices = []
         paddless = []
 
@@ -134,7 +134,7 @@ class FullGenerator():
     def __getitem__(self, index):
         window = index[2]
 
-        slices, paddless = self.get_slices(index, window)
+        slices, paddless = self._get_slices(index, window)
 
         if self.with_slices:
             return self._image_cache[slices[0], slices[1]], slices, paddless
