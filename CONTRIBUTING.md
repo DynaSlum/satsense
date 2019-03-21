@@ -8,6 +8,12 @@ Please follow the installation instructions on
 [readthedocs](https://satsense.readthedocs.io/en/latest/installation.html)
 to get started.
 
+To install additional tools useful for development, run
+
+```python
+pip install .[dev]
+```
+
 # Testing
 
 Please add unit tests for the code you are writing (e.g. when fixing a bug, implement
