@@ -261,7 +261,7 @@ class Image:
 
         See Also
         ========
-        Image 
+        Image
             :func: _normalize
             Get normalization limits for band(s).
         """
