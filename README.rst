@@ -70,6 +70,14 @@ Finally, to install satsense, run
 
    pip install .
 
+If you would like to use the Jupyter notebooks, you can install the required
+dependencies along with satsense by running
+
+.. code:: bash
+
+   pip install .[notebooks]
+
+
 Contributing
 ------------
 
