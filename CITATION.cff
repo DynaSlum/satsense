@@ -15,6 +15,18 @@ authors:
     affiliation: "Netherlands eScience Center"
     family-names: Andela
     given-names: Bouwe
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Dzigan
+    given-names: Yifat
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: van Haren
+    given-names: Ronald
+  -
+    affiliation: "Netherlands eScience Center"
+    family-names: Drost
+    given-names: Niels
 cff-version: "1.0.3"
 license: "Apache-2.0"
 message: "If you use this software, please cite it using these metadata."
