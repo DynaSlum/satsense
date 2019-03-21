@@ -400,12 +400,6 @@ def create_step_and_image_strategy(limit, dtype):
         st.integers(min_value=1, max_value=limit[1]),
     )
 
-    if np.issubdtype(dtype, np.floating):
-        elements = st.floats(min_value=0, max_value=1)
-    else:
-        elements = st.integers(min_value=np.iinfo(dtype).min,
-                               max_value=np.iinfo(dtype).max)
-
     image_array = arrays(
         dtype=dtype,
         shape=st.tuples(
@@ -413,7 +407,6 @@ def create_step_and_image_strategy(limit, dtype):
             st.integers(min_value=limit[0], max_value=10),
             st.integers(min_value=limit[1], max_value=10),
         ),
-        elements=elements
     )
 
     return st.tuples(step_size, image_array)
@@ -422,9 +415,9 @@ def create_step_and_image_strategy(limit, dtype):
 st_step_and_image = st.tuples(
     st.tuples(
         st.integers(min_value=1, max_value=10),
-        st.integers(min_value=1, max_value=10)
+        st.integers(min_value=1, max_value=10),
     ),
-    st_rasterio_dtypes
+    st_rasterio_dtypes,
 ).flatmap(lambda args: create_step_and_image_strategy(*args))
 
 
@@ -453,7 +446,7 @@ def test_full_generator_split(tmpdir, window_shapes, step_and_image, n_chunks):
 
     image = create_test_image(tmpdir, image_array, normalization=False)
     generator = FullGenerator(image, step_size)
-    itype = 'gray_ubyte'
+    itype = 'grayscale'
     generator.load_image(itype, window_shapes)
     reference = list(generator)
 

@@ -16,7 +16,7 @@ def sift_cluster(images: Iterator[Image],
                  sample_window=(8192, 8192)) -> MiniBatchKMeans:
     """Create the clusters needed to compute the sift feature."""
     nfeatures = int(max_samples / len(images))
-    descriptors = None
+    descriptors = []
     for image in images:
         chunk = np.minimum(image.shape, sample_window)
 
@@ -30,11 +30,7 @@ def sift_cluster(images: Iterator[Image],
             inverse_mask = (~img.mask).astype(np.uint8)
             _, new_descriptors = sift_object.detectAndCompute(
                 img, inverse_mask)
-            if descriptors is None:
-                descriptors = new_descriptors
-            else:
-                np.append(descriptors, new_descriptors, axis=0)
-
+            descriptors.append(new_descriptors)
 
     descriptors = np.vstack(descriptors)
 

@@ -13,8 +13,6 @@ from .feature import Feature
 
 logger = logging.getLogger(__name__)
 
-RAND_STATE = np.random.RandomState(seed=9876)
-
 
 def create_texton_kernels():
     """Create filter bank kernels."""
@@ -76,18 +74,17 @@ def texton_cluster(images: Iterator[Image],
 
         max_features_per_window = int(nfeatures / np.prod(generator.shape))
 
-        img_descriptors = []
+        rand_state = np.random.RandomState(seed=0)
+
         for array in generator:
             array = array.reshape(-1, array.shape[-1])
             non_masked = ~array.mask.any(axis=-1)
             data = array.data[non_masked]
             if data.shape[0] > max_features_per_window:
-                data = data[RAND_STATE.choice(
+                data = data[rand_state.choice(
                     data.shape[0], max_features_per_window, replace=False)]
-            img_descriptors.append(data)
-        img_descriptors = np.vstack(img_descriptors)
+            descriptors.append(data)
 
-        descriptors.append(img_descriptors)
     descriptors = np.vstack(descriptors)
 
     # Cluster the descriptors

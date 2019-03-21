@@ -145,7 +145,7 @@ def test_sift(image):
 
     window = slice(*slices[0:3]), slice(*slices[3:6])
 
-    clusters = sift_cluster([image, image], max_samples=1000)
+    clusters = sift_cluster([image, image])
 
     win = image['gray_ubyte'][window]
     features = sift(win, clusters)
@@ -157,7 +157,12 @@ def test_sift(image):
 
 def test_texton(image):
     """Texton feature test."""
-    window = slice(100, 125, 1), slice(100, 125, 1)
+    with Dataset(
+            "test/data/target/texton.nc", "r", format="NETCDF4") as dataset:
+        target = dataset.variables['texton'][:]
+        slices = dataset.variables['window'][:]
+
+    window = slice(*slices[0:3]), slice(*slices[3:6])
 
     clusters = texton_cluster([image, image], max_samples=1000)
     descriptors = get_texton_descriptors(image)
@@ -165,6 +170,6 @@ def test_texton(image):
     win = descriptors[window]
     features = texton(win, clusters)
 
-    # Because of the random.choice I don't have a better
-    # idea of how to test this
-    assert features.shape == (32,)
+    same = target == features
+
+    assert same.all()
