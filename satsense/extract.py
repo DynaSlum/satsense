@@ -79,7 +79,15 @@ def _extract_features(features, generator):
 
 
 def extract_feature(feature, generator):
-    """Compute a feature vector."""
+    """Compute a single feature vector.
+
+    Parameters
+    ----------
+    feature : Feature
+        The feature to calculate
+    generator:
+        Generator providing the required windows on the image.
+    """
     logger.info("Computing feature %s with windows %s and arguments %s",
                 feature.__class__.__name__, feature.windows, feature.kwargs)
     if not generator.loaded_itype == feature.base_image:

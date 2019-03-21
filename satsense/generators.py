@@ -8,36 +8,33 @@ logger = logging.getLogger(__name__)
 
 
 class BalancedGenerator():
-    """Balanced window generator.
+    """
+    Balanced window generator.
 
     Parameters
     ----------
-    image: Image
+    image : Image
         Satellite image
-    masks: 1-D array-like
+    masks : 1-D array-like
         List of masks, one for each class, to use for generating patches
         A mask should have a positive value for the array positions that
         are included in the class
-    p: 1-D array-like, optional
+    p : 1-D array-like, optional
         The probabilities associated with each entry in masks.
         If not given the sample assumes a uniform distribution
         over all entries in a.
-    samples: int, optional
+    samples : int, optional
         The maximum number of samples to generate, otherwise infinite
 
     Examples:
     ---------
+        from satsense.generators import BalancedGenerator
 
-    from satsense.generators import BalancedGenerator
-
-    BalancedGenerator(image,
-                        [
-                            class1_mask,
-                            class2_mask
-                            class3_mask
-                        ],
-                        [0.33, 0.33, 0.33])
+        BalancedGenerator(image,
+                          [class1_mask, class2_mask, class3_mask],
+                          [0.33, 0.33, 0.33])
     """
+
     def __init__(self,
                  image: Image,
                  masks,
@@ -135,7 +132,7 @@ class FullGenerator():
                 The x and y coordinates for the slice in steps
             window: 1-D array-like
                 The x and y size of the window
-        
+
         Returns
         -------
             tuple[tuple]
