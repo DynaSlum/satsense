@@ -25,7 +25,11 @@ class BalancedGenerator():
     samples: int, optional
         The maximum number of samples to generate, otherwise infinite
 
-    example:
+    Examples:
+    ---------
+
+    from satsense.generators import BalancedGenerator
+
     BalancedGenerator(image,
                         [
                             class1_mask,
@@ -191,7 +195,8 @@ class FullGenerator():
     def split(self, n_chunks):
         """
         Split processing into chunks.
-         Parameters
+
+        Parameters
         ----------
             n_chunks: int
                 Number of chunks to split the image into

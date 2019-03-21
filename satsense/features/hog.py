@@ -273,7 +273,9 @@ class HistogramOfGradients(Feature):
         windows = ((50, 50), )
         hog = HistogramOfGradients(windows)
 
-        image = Image(filename, 'worldview3')
+        image = Image('test/data/baseimage/section_2_sentinel.tif',
+                      'quickbird')
+        image.precompute_normalization()
         generator = FullGenerator(image, (10, 10))
 
         feature_vector = extract_feature(hog, generator)
