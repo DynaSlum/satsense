@@ -95,7 +95,6 @@ def smoothe_histogram(histogram, kernel, bandwidth):
     -------
     numpy.ndarray
         The smoothed histogram.
-
     """
     if len(histogram.shape) > 1:
         raise ValueError("Can only smooth a 1d array histogram")
@@ -233,6 +232,52 @@ def hog_features(window, bins=50, kernel=None, bandwidth=0.7):
 
 
 class HistogramOfGradients(Feature):
+    """
+    Histogram of Oriented Gradient Feature Calculator
+
+    The compute method calculates the feature on a particular
+    window this returns the 1st and 2nd heaved central shift moments, the
+    orientation of the first and second highest peaks and the absolute sine
+    difference between the orientations of the highest peaks
+
+    Parameters
+    ----------
+    window_shapes: list
+        The window shapes to calculate the feature on.
+    bins : int
+        The number of bins to use. The default is 50
+    kernel : :obj:`typing.Callable`
+        The function to use for smoothing. The default is
+        :obj:`scipy.stats.norm().pdf`.
+    bandwidth: float
+        The bandwidth for the smoothing. The default is 0.7
+
+
+    Attributes
+    ----------
+    size: int
+        The size of the feature vector returned by this feature
+    base_image: str
+        The name of the base image used to calculate the feature
+
+
+    Example
+    -------
+    Calculating the HistogramOfGradients on an image using a generator::
+
+        from satsense import Image
+        from satsense.generators import FullGenerator
+        from satsense.extract import extract_feature
+        from satsense.features import HistogramOfGradients
+
+        windows = ((50, 50), )
+        hog = HistogramOfGradients(windows)
+
+        image = Image(filename, 'worldview3')
+        generator = FullGenerator(image, (10, 10))
+
+        feature_vector = extract_feature(hog, generator)
+    """
     base_image = 'grayscale'
     size = 5
     compute = staticmethod(hog_features)
