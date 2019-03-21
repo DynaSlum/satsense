@@ -154,6 +154,8 @@ class Image:
                         band, self.filename, self.normalization_parameters,
                         limits))
 
+            if not bool(self.normalization):
+                self.normalization = {}  # overwrite mappingproxy with dict
             self.normalization[band] = limits
 
         return self.normalization[band]
