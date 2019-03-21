@@ -1,7 +1,7 @@
 """Satsense package."""
 from setuptools import find_packages, setup
 
-with open('README.md') as file:
+with open('README.rst') as file:
     README = file.read()
 
 setup(
@@ -26,11 +26,10 @@ setup(
         'descartes',
         'fiona',
         'netCDF4!=1.4.2',
-        'numba',
-        'numpy',
+        'numpy<16',
         'opencv-contrib-python-headless<3.4.3',
         'rasterio',
-        'scikit-image',
+        'scikit-image>=0.14.2',
         'scikit-learn',
         'scipy',
         'shapely',

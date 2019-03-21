@@ -2,7 +2,7 @@
 import logging
 
 import numpy as np
-from numba import jit, prange
+import scipy
 from skimage.feature import canny
 from skimage.filters.rank import equalize
 from skimage.morphology import disk
@@ -33,10 +33,11 @@ def get_canny_edge_image(image: Image, radius=30, sigma=0.5):
 Image.register('canny_edge', get_canny_edge_image)
 
 
-@jit("float64(boolean[:, :], int64)", nopython=True)
 def lacunarity(edged_image, box_size):
     """
-    Calculate the lacunarity value over an image, following these papers:
+    Calculate the lacunarity value over an image.
+
+    The calculation is performed following these papers:
 
     Kit, Oleksandr, and Matthias Luedeke. "Automated detection of slum area
     change in Hyderabad, India using multitemporal satellite imagery."
@@ -46,16 +47,8 @@ def lacunarity(edged_image, box_size):
     identification of urban slums in Hyderabad, India using remote sensing
     data." Applied Geography 32.2 (2012): 660-667.
     """
-
-    # accumulator holds the amount of ones for each position in the image,
-    # defined by a sliding window
-    accumulator = np.zeros((edged_image.shape[0] - box_size,
-                            edged_image.shape[1] - box_size))
-    for i in prange(accumulator.shape[0]):
-        for j in prange(accumulator.shape[1]):
-            # sum the binary-box for the amount of 1s in this box
-            accumulator[i, j] = np.sum(
-                edged_image[i:i + box_size, j:j + box_size])
+    kernel = np.ones((box_size, box_size))
+    accumulator = scipy.signal.convolve2d(edged_image, kernel, mode='valid')
     mean_sqrd = np.mean(accumulator)**2
     if mean_sqrd == 0:
         return 0.0
@@ -63,16 +56,15 @@ def lacunarity(edged_image, box_size):
     return np.var(accumulator) / mean_sqrd + 1
 
 
-@jit
 def lacunarities(canny_edge_image, box_sizes):
-    result = np.zeros(len(box_sizes))
-    for i, box_size in enumerate(box_sizes):
-        result[i] = lacunarity(canny_edge_image, box_size)
+    """Calculate the lacunarities for all box_sizes."""
+    result = [lacunarity(canny_edge_image, box_size) for box_size in box_sizes]
     return result
 
 
 class Lacunarity(Feature):
     """Lacunarity feature."""
+
     base_image = 'canny_edge'
     compute = staticmethod(lacunarities)
 

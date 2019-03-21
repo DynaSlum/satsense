@@ -13,3 +13,4 @@ __pycache__
 satsense.egg-info/
 test-reports/
 .vscode
+*.aux.xml

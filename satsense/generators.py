@@ -8,12 +8,40 @@ logger = logging.getLogger(__name__)
 
 
 class BalancedGenerator():
-    def __init__(self, image: Image, mask, ratio=1.0):
+    def __init__(self,
+                 image: Image,
+                 masks,
+                 p=None,
+                 samples=None,
+                 offset=(0, 0),
+                 shape=None):
         """Balanced window generator.
 
-        Select a balanced set of masked and non-masked point from the
-        image and generators windows at those locations.
+        Parameters
+        ----------
+        image: Image
+            Satellite image
+        masks: 1-D array-like
+            List of masks, one for each class, to use for generating patches
+            A mask should have a positive value for the array positions that
+            are included in the class
+        p: 1-D array-like, optional
+            The probabilities associated with each entry in masks.
+            If not given the sample assumes a uniform distribution
+            over all entries in a.
+        samples: int, optional
+            The maximum number of samples to generate, otherwise infinite
+
+        example:
+        BalancedGenerator(image,
+                                 [
+                                     class1_mask,
+                                     class2_mask
+                                     class3_mask
+                                 ],
+                                 [0.33, 0.33, 0.33])
         """
+        raise NotImplementedError
 
 
 class FullGenerator():
@@ -61,17 +89,33 @@ class FullGenerator():
         self._padding = tuple(
             max(math.ceil(0.5 * w[i]) for w in windows) for i in range(2))
 
-        block = []
-        for i in range(2):
-            offset = math.floor((self.offset[i] + 0.5) * self.step_size[i])
-            start = offset - self._padding[i]
-            end = (
-                offset + self._padding[i] + self.shape[i] * self.step_size[i])
-            block.append((start, end))
-        block = tuple(block)
+        block = self._get_blocks()
         image = self.image.copy_block(block)
         self._image_cache = image[itype]
         self.loaded_itype = itype
+
+    def _get_blocks(self):
+        block = []
+        for i in range(2):
+            offset = self.offset[i] * self.step_size[i]
+            start = offset - self._padding[i]
+            end = (offset + self._padding[i] +
+                   (self.shape[i] * self.step_size[i]))
+            block.append((start, end))
+
+        return tuple(block)
+
+    def _get_slices(self, index, window):
+        slices = []
+
+        for i in range(2):
+            mid = self._padding[i] + math.floor(
+                (index[i] + .5) * self.step_size[i])
+            start = mid - math.floor(.5 * window[i])
+            end = start + window[i]
+            slices.append(slice(start, end))
+
+        return slices
 
     def __iter__(self):
         if self._image_cache is None:
@@ -82,16 +126,9 @@ class FullGenerator():
                     yield self[i, j, window]
 
     def __getitem__(self, index):
-
         window = index[2]
 
-        slices = []
-        for i in range(2):
-            middle = self._padding[i] + math.floor(
-                (index[i] + 0.5) * self.step_size[i])
-            start = math.floor(middle - 0.5 * window[i])
-            end = start + window[i]
-            slices.append(slice(start, end))
+        slices = self._get_slices(index, window)
 
         return self._image_cache[slices[0], slices[1]]
 

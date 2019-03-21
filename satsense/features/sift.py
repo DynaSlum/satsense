@@ -5,39 +5,44 @@ import cv2
 import numpy as np
 from sklearn.cluster import MiniBatchKMeans
 
+from ..generators import FullGenerator
 from ..image import Image
 from .feature import Feature
 
-SIFT = cv2.xfeatures2d.SIFT_create()
 
-
-def sift_cluster(images: Iterator[Image], n_clusters=32,
-                 sample_size=100000) -> MiniBatchKMeans:
+def sift_cluster(images: Iterator[Image],
+                 n_clusters=32,
+                 max_samples=100000,
+                 sample_window=(8192, 8192)) -> MiniBatchKMeans:
     """Create the clusters needed to compute the sift feature."""
-    descriptors = None
+    nfeatures = int(max_samples / len(images))
+    descriptors = []
     for image in images:
-        array = image['gray_ubyte']
-        inverse_mask = (~array.mask).astype(np.uint8)
-        _, new_descriptors = SIFT.detectAndCompute(array, inverse_mask)
-        del _  # Free up memory
+        chunk = np.minimum(image.shape, sample_window)
 
-        # Add descriptors if we already had some
-        if descriptors is None:
-            descriptors = new_descriptors
-        else:
-            descriptors = np.append(descriptors, new_descriptors, axis=0)
+        generator = FullGenerator(image, chunk)
+        generator.load_image('gray_ubyte', (chunk, ))
 
-    if descriptors.shape[0] > sample_size:
-        # Limit the number of descriptors to sample_size
-        # by randomly selecting some rows
-        descriptors = descriptors[np.random.choice(
-            descriptors.shape[0], sample_size, replace=False), :]
+        max_features_per_window = int(nfeatures / np.prod(generator.shape))
+        sift_object = cv2.xfeatures2d.SIFT_create(max_features_per_window)
+
+        for img in generator:
+            inverse_mask = (~img.mask).astype(np.uint8)
+            _, new_descriptors = sift_object.detectAndCompute(
+                img, inverse_mask)
+            descriptors.append(new_descriptors)
+
+    descriptors = np.vstack(descriptors)
 
     # Cluster the descriptors
     mbkmeans = MiniBatchKMeans(
         n_clusters=n_clusters, random_state=42).fit(descriptors)
 
     return mbkmeans
+
+
+SIFT = cv2.xfeatures2d.SIFT_create()
+"""SIFT feature calculator used by the sift function."""
 
 
 def sift(window_gray_ubyte, kmeans: MiniBatchKMeans, normalized=True):
@@ -76,7 +81,9 @@ class Sift(Feature):
                     windows,
                     images: Iterator[Image],
                     n_clusters=32,
-                    sample_size=100000,
+                    max_samples=100000,
+                    sample_window=(8192, 8192),
                     normalized=True):
-        kmeans = sift_cluster(images, n_clusters, sample_size)
+        kmeans = sift_cluster(
+            images, n_clusters, max_samples, sample_window=sample_window)
         return cls(windows, kmeans, normalized)

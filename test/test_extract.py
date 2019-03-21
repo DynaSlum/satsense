@@ -41,8 +41,8 @@ def generator(tmpdir):
     array = np.array(range(np.prod(shape)), dtype=float)
     array.shape = shape
     image = create_test_image(tmpdir, array)
-    generator = FullGenerator(image, step_size)
-    return generator
+    gen = FullGenerator(image, step_size)
+    return gen
 
 
 def test_extract_features(generator):
