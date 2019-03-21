@@ -88,12 +88,14 @@ References
 ----------
 
 The collection of algorithms made available trough this package is
-inspired by > J. Graesser, A. Cheriyadat, R. R. Vatsavai, V. Chandola,
-J. Long and > E. Bright, “Image Based Characterization of Formal and
-Informal > Neighborhoods in an Urban Landscape,” in IEEE Journal of
-Selected Topics in > Applied Earth Observations and Remote Sensing,
-vol. 5, no. 4, pp. 1164-1176, > Aug. 2012. doi:
-10.1109/JSTARS.2012.2190383
+inspired by
+
+    J. Graesser, A. Cheriyadat, R. R. Vatsavai, V. Chandola,
+    J. Long and E. Bright, "Image Based Characterization of Formal and
+    Informal Neighborhoods in an Urban Landscape", in IEEE Journal of
+    Selected Topics in Applied Earth Observations and Remote Sensing,
+    vol. 5, no. 4, pp. 1164-1176, Aug. 2012. doi:
+    10.1109/JSTARS.2012.2190383
 
 Jordan Graesser himself also maintains `a
 library <https://github.com/jgrss/spfeas>`__ with many of these

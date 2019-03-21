@@ -81,9 +81,9 @@ class Sift(Feature):
                     windows,
                     images: Iterator[Image],
                     n_clusters=32,
-                    sample_size=100000,
+                    max_samples=100000,
                     sample_window=(8192, 8192),
                     normalized=True):
         kmeans = sift_cluster(
-            images, n_clusters, sample_size, sample_window=sample_window)
+            images, n_clusters, max_samples, sample_window=sample_window)
         return cls(windows, kmeans, normalized)

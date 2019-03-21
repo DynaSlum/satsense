@@ -6,5 +6,5 @@ from rasterio import check_dtype
 st_rasterio_dtypes = st.one_of(
     integer_dtypes(),
     unsigned_integer_dtypes(),
-    floating_dtypes()
+    floating_dtypes(),
 ).filter(check_dtype)

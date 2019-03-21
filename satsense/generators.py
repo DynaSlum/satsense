@@ -112,7 +112,7 @@ class FullGenerator():
             mid = self._padding[i] + math.floor(
                 (index[i] + .5) * self.step_size[i])
             start = mid - math.floor(.5 * window[i])
-            end = mid + math.ceil(.5 * window[i])
+            end = start + window[i]
             slices.append(slice(start, end))
 
         return slices
