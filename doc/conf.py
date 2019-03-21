@@ -203,7 +203,6 @@ autodoc_mock_imports = [
     'descartes',
     'fiona',
     'netCDF4',
-    'numba',
     'numpy',
     'rasterio',
     'sklearn',

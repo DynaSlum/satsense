@@ -8,7 +8,6 @@ dependencies:
   - descartes
   - fiona
   - netcdf4
-  - numba
   - numpy
   - opencv
   - rasterio

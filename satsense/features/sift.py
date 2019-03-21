@@ -12,42 +12,26 @@ from .feature import Feature
 
 def sift_cluster(images: Iterator[Image],
                  n_clusters=32,
-                 sample_size=100000,
+                 max_samples=100000,
                  sample_window=(8192, 8192)) -> MiniBatchKMeans:
     """Create the clusters needed to compute the sift feature."""
-    nfeatures = int(sample_size / len(images))
-    SIFT = cv2.xfeatures2d.SIFT_create(nfeatures)
-
+    nfeatures = int(max_samples / len(images))
     descriptors = []
     for image in images:
-        if image.shape[0] < sample_window[0]:
-            sample_window = (image.shape[0], sample_window[1])
-        if image.shape[1] < sample_window[1]:
-            sample_window = (sample_window[0], image.shape[1])
+        chunk = np.minimum(image.shape, sample_window)
 
-        generator = FullGenerator(image, sample_window)
-        generator.load_image('gray_ubyte', (sample_window, ))
+        generator = FullGenerator(image, chunk)
+        generator.load_image('gray_ubyte', (chunk, ))
 
-        img_descriptors = None
+        max_features_per_window = int(nfeatures / np.prod(generator.shape))
+        sift_object = cv2.xfeatures2d.SIFT_create(max_features_per_window)
+
         for img in generator:
             inverse_mask = (~img.mask).astype(np.uint8)
-            _, new_descriptors = SIFT.detectAndCompute(img, inverse_mask)
-            del _  # Free up memory
+            _, new_descriptors = sift_object.detectAndCompute(
+                img, inverse_mask)
+            descriptors.append(new_descriptors)
 
-            # Add descriptors if we already had some
-            if img_descriptors is None:
-                img_descriptors = new_descriptors
-            else:
-                img_descriptors = np.append(
-                    img_descriptors, new_descriptors, axis=0)
-
-            if img_descriptors.shape[0] > nfeatures:
-                # Limit the number of descriptors to nfeatures
-                # by randomly selecting some rows
-                img_descriptors = img_descriptors[np.random.choice(
-                    img_descriptors.shape[0], nfeatures, replace=False), :]
-                break
-        descriptors.append(img_descriptors)
     descriptors = np.vstack(descriptors)
 
     # Cluster the descriptors
@@ -57,9 +41,12 @@ def sift_cluster(images: Iterator[Image],
     return mbkmeans
 
 
+SIFT = cv2.xfeatures2d.SIFT_create()
+"""SIFT feature calculator used by the sift function."""
+
+
 def sift(window_gray_ubyte, kmeans: MiniBatchKMeans, normalized=True):
     """Calculate the sift feature on the given window."""
-    SIFT = cv2.xfeatures2d.SIFT_create()
     _, descriptors = SIFT.detectAndCompute(window_gray_ubyte, None)
     del _  # Free up memory
 
@@ -94,9 +81,9 @@ class Sift(Feature):
                     windows,
                     images: Iterator[Image],
                     n_clusters=32,
-                    sample_size=100000,
+                    max_samples=100000,
                     sample_window=(8192, 8192),
                     normalized=True):
         kmeans = sift_cluster(
-            images, n_clusters, sample_size, sample_window=sample_window)
+            images, n_clusters, max_samples, sample_window=sample_window)
         return cls(windows, kmeans, normalized)

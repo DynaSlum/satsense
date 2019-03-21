@@ -19,7 +19,7 @@ def plot_coords(ax, ob):
 
 def show_multipolygon(multipolygon, axis, show_coords, extent, color, alpha,
                       title):
-
+    """Visualize multipolygon in plot."""
     for polygon in multipolygon:
         if show_coords:
             plot_coords(axis, polygon.exterior)

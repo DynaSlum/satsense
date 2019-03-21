@@ -8,9 +8,8 @@ from typing import Iterator
 
 import numpy as np
 
-from satsense.generators import FullGenerator
-
 from .features import Feature
+from .generators import FullGenerator
 from .image import FeatureVector
 
 logger = logging.getLogger(__name__)
