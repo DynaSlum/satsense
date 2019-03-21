@@ -1,7 +1,7 @@
 """Satsense package."""
 from setuptools import find_packages, setup
 
-with open('README.md') as file:
+with open('README.rst') as file:
     README = file.read()
 
 setup(
