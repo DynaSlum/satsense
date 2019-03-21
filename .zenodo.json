@@ -11,7 +11,20 @@
         {
             "affiliation": "Netherlands eScience Center",
             "name": "Andela, Bouwe"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Dzigan, Yifat"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "van Haren, Ronald"
+        },
+        {
+            "affiliation": "Netherlands eScience Center",
+            "name": "Drost, Niels"
         }
+
     ],
     "description": "Satsense is a library for land use classification using satellite imagery.\n",
     "license": {

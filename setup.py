@@ -9,7 +9,8 @@ setup(
     use_scm_version=True,
     url='https://github.com/DynaSlum/SateliteImaging',
     license='Apache Software License',
-    author='Berend Weel, Elena Ranguelova',
+    author=('Berend Weel, Elena Ranguelova, Bouwe Andela, Yifat Dzigan,'
+            ' Ronald van Haren, Niels Drost'),
     setup_requires=[
         'pytest-runner',
         'setuptools_scm',
