@@ -11,6 +11,10 @@ Feature.__module__ = __name__
 NDXI.__module__ = __name__
 
 __all__ = [
+    'Feature',
+    'FeatureSet',
+    'HistogramOfGradients',
+    'Pantex',
     'NDXI',
     'NirNDVI',
     'RgNDVI',
@@ -18,11 +22,7 @@ __all__ = [
     'NDSI',
     'NDWI',
     'WVSI',
-    'HistogramOfGradients',
     'Lacunarity',
-    'Pantex',
     'Sift',
     'Texton',
-    'Feature',
-    'FeatureSet',
 ]
