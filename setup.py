@@ -23,6 +23,7 @@ setup(
         'pytest-html',
     ],
     install_requires=[
+        'affine',
         'descartes',
         'fiona',
         'netCDF4!=1.4.2',
