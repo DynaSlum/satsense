@@ -49,36 +49,110 @@ def print_ndxi_statistics(ndxi, option):
 
 
 class NDXI(Feature):
-    """The parent class of the family of NDXI features."""
+    """
+    The parent class of the family of NDXI features.
+
+    Parameters
+    ----------
+    window_shapes: list
+        The window shapes to calculate the feature on.
+
+    """
     size = 1
     compute = staticmethod(np.mean)
 
 
 class NirNDVI(NDXI):
-    """The infrared-green normalized difference vegetation index."""
+    """
+    The infrared-green normalized difference vegetation index.
+
+    For more information see [2]_.
+
+    Parameters
+    ----------
+    window_shapes: list
+        The window shapes to calculate the feature on.
+
+    Notes
+    -----
+    .. [2] https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index
+    """
     base_image = 'nir_ndvi'
 
 
 class RgNDVI(NDXI):
-    """The red-green normalized difference vegetation index."""
+    """
+    The red-green normalized difference vegetation index.
+
+    For more information see [3]_.
+
+    Parameters
+    ----------
+    window_shapes: list
+        The window shapes to calculate the feature on.
+
+    Notes
+    -----
+    .. [3] Motohka, T., Nasahara, K.N., Oguma, H. and Tsuchida, S., 2010.
+           "Applicability of green-red vegetation index for remote sensing of
+           vegetation phenology". Remote Sensing, 2(10), pp. 2369-2387.
+    """
     base_image = 'rg_ndvi'
 
 
 class RbNDVI(NDXI):
-    """The red-blue normalized difference vegetation index."""
+    """
+    The red-blue normalized difference vegetation index.
+
+    For more information see [4]_.
+
+    Parameters
+    ----------
+    window_shapes: list
+        The window shapes to calculate the feature on.
+
+    Notes
+    -----
+    .. [4] Tanaka, S., Goto, S., Maki, M., Akiyama, T., Muramoto, Y. and
+           Yoshida, K., 2007. "Estimation of leaf chlorophyll concentration in
+           winter wheat [Triticum aestivum] before maturing stage by a newly
+           developed vegetation index-RBNDVI". Journal of the Japanese
+           Agricultural Systems Society (Japan).
+    """
     base_image = 'rb_ndvi'
 
 
 class NDSI(NDXI):
-    """The snow cover index."""
+    """
+    The snow cover index.
+
+    Parameters
+    ----------
+    window_shapes: list
+        The window shapes to calculate the feature on.
+    """
     base_image = 'ndsi'
 
 
 class NDWI(NDXI):
-    """The water cover index."""
+    """
+    The water cover index.
+
+    Parameters
+    ----------
+    window_shapes: list
+        The window shapes to calculate the feature on.
+    """
     base_image = 'ndwi'
 
 
 class WVSI(NDXI):
-    """The soil cover index."""
+    """
+    The soil cover index.
+
+    Parameters
+    ----------
+    window_shapes: list
+        The window shapes to calculate the feature on.
+    """
     base_image = 'wvsi'

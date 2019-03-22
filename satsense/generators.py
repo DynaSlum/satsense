@@ -26,13 +26,14 @@ class BalancedGenerator():
     samples : int, optional
         The maximum number of samples to generate, otherwise infinite
 
-    Examples:
+    Examples
     ---------
-        from satsense.generators import BalancedGenerator
+    Using BalancedGenerator
 
-        BalancedGenerator(image,
-                          [class1_mask, class2_mask, class3_mask],
-                          [0.33, 0.33, 0.33])
+        >>> from satsense.generators import BalancedGenerator
+        >>> BalancedGenerator(image,
+                              [class1_mask, class2_mask, class3_mask],
+                              [0.33, 0.33, 0.33])
     """
 
     def __init__(self,

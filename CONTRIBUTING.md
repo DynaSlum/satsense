@@ -1,18 +1,12 @@
 Contributions are very welcome. Please make sure there is a github issue
 associated with with every pull request. Creating an issue is also a good
-way to propose new features.
+way to propose/discuss new features or get help with using satsense.
 
 # Installation for development
 
 Please follow the installation instructions on
 [readthedocs](https://satsense.readthedocs.io/en/latest/installation.html)
 to get started.
-
-To install additional tools useful for development, run
-
-```python
-pip install .[dev]
-```
 
 # Testing
 
@@ -39,9 +33,24 @@ isort satsense/my_file.py
 yapf -i satsense/my_file.py
 ```
 
+Please use prospector to check that your code meets our standards:
+
+```bash
+prospector satsense/my_file.py
+```
+
+# Pull requests
+
+Please create a pull request early, to keep other developers informed of what you're doing.
+Limit the amount of work in a pull request to fixing a single bug or adding a single new feature.
+Make sure the unit tests on Travis pass and review the comments by Codacy (click the Travis/Codacy
+buttons below your pull request). Note that Codacy occasionally reports false positives, ask if in
+doubt.
+
 # Documentation
 
-All public functions should have [numpy style docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_numpy.html).
+All public functions should have
+[numpy style docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_numpy.html).
 You can build the documentation locally by running
 
 ```bash

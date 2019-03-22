@@ -10,9 +10,10 @@ dependencies:
   - fiona
   - netcdf4
   - numpy
-  - opencv
+  - opencv<3.4.3
+  - python>=3.6
   - rasterio
-  - scikit-image
+  - scikit-image>=0.14.2
   - scikit-learn
   - scipy
   - shapely
