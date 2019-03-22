@@ -48,7 +48,7 @@ SIFT = cv2.xfeatures2d.SIFT_create()
 
 def sift(window_gray_ubyte, kmeans: MiniBatchKMeans, normalized=True):
     """Calculate the sift feature on the given window."""
-    descriptors = SIFT.detectAndCompute(window_gray_ubyte)[1]
+    descriptors = SIFT.detectAndCompute(window_gray_ubyte, None)[1]
 
     # Is none if no descriptors are found, i.e. on 0 input range
     n_clusters = kmeans.n_clusters
