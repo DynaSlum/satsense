@@ -251,13 +251,22 @@ class Image:
         Precompute the normalization of the image
 
         Normalization is done using the normalization_parameters supplied
-        during class instantiation.
+        during class instantiation. Normalization parameters are computed
+        automatically for all bands when required, but doing it explicitly
+        can save some time, e.g. if there are more bands in the image than
+        needed.
 
         Parameters
         ==========
         *bands : list[str] or None
             The list of bands to normalize, if None all bands will be
             normalized
+
+        Raises
+        ======
+        ValueError:
+            When trying to compute the normalization on a partial image,
+            as created by using the `copy_block` method.
 
         See Also
         ========
@@ -284,6 +293,12 @@ class Image:
             Image to normalize
         """
         if band not in self.normalization:
+            if isinstance(self.normalization, MappingProxyType):
+                raise ValueError(
+                    "Unable to compute normalization on part of the image. "
+                    "Please use the precompute_normalization() method of "
+                    "the full image.")
+
             # select only non-masked values for computing scale
             if image is None:
                 overwrite_input = True

@@ -18,6 +18,8 @@ def sift_cluster(images: Iterator[Image],
     nfeatures = int(max_samples / len(images))
     descriptors = []
     for image in images:
+        image.precompute_normalization()
+
         chunk = np.minimum(image.shape, sample_window)
 
         generator = FullGenerator(image, chunk)
@@ -28,9 +30,8 @@ def sift_cluster(images: Iterator[Image],
 
         for img in generator:
             inverse_mask = (~img.mask).astype(np.uint8)
-            _, new_descriptors = sift_object.detectAndCompute(
-                img, inverse_mask)
-            descriptors.append(new_descriptors)
+            new_descr = sift_object.detectAndCompute(img, inverse_mask)[1]
+            descriptors.append(new_descr)
 
     descriptors = np.vstack(descriptors)
 
@@ -68,8 +69,7 @@ def sift(window_gray_ubyte, kmeans: MiniBatchKMeans, normalized=True):
         ndarray
             The histogram of sift feature codewords
     """
-    _, descriptors = SIFT.detectAndCompute(window_gray_ubyte, None)
-    del _  # Free up memory
+    descriptors = SIFT.detectAndCompute(window_gray_ubyte, None)[1]
 
     # Is none if no descriptors are found, i.e. on 0 input range
     n_clusters = kmeans.n_clusters

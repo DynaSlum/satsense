@@ -67,6 +67,8 @@ def texton_cluster(images: Iterator[Image],
     nfeatures = int(max_samples / len(images))
     descriptors = []
     for image in images:
+        image.precompute_normalization()
+
         chunk = np.minimum(image.shape, sample_window)
 
         generator = FullGenerator(image, chunk)
