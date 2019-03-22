@@ -95,7 +95,8 @@ class Sift(Feature):
     window.
 
     See the opencv
-    `SIFT intro <https://docs.opencv.org/3.4.3/da/df5/tutorial_py_sift_intro.html>`__
+    `SIFT intro
+    <https://docs.opencv.org/3.4.3/da/df5/tutorial_py_sift_intro.html>`__
     for more information
 
     Parameters

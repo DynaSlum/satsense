@@ -66,7 +66,7 @@ class NirNDVI(NDXI):
     """
     The infrared-green normalized difference vegetation index.
 
-    For more information see [1]_.
+    For more information see [2]_.
 
     Parameters
     ----------
@@ -75,7 +75,7 @@ class NirNDVI(NDXI):
 
     Notes
     -----
-    .. [1] https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index
+    .. [2] https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index
     """
     base_image = 'nir_ndvi'
 
@@ -84,7 +84,7 @@ class RgNDVI(NDXI):
     """
     The red-green normalized difference vegetation index.
 
-    For more information see [1]_.
+    For more information see [3]_.
 
     Parameters
     ----------
@@ -93,7 +93,7 @@ class RgNDVI(NDXI):
 
     Notes
     -----
-    .. [1] Motohka, T., Nasahara, K.N., Oguma, H. and Tsuchida, S., 2010.
+    .. [3] Motohka, T., Nasahara, K.N., Oguma, H. and Tsuchida, S., 2010.
            "Applicability of green-red vegetation index for remote sensing of
            vegetation phenology". Remote Sensing, 2(10), pp. 2369-2387.
     """
@@ -104,7 +104,7 @@ class RbNDVI(NDXI):
     """
     The red-blue normalized difference vegetation index.
 
-    For more information see [1]_.
+    For more information see [4]_.
 
     Parameters
     ----------
@@ -113,7 +113,7 @@ class RbNDVI(NDXI):
 
     Notes
     -----
-    .. [1] Tanaka, S., Goto, S., Maki, M., Akiyama, T., Muramoto, Y. and
+    .. [4] Tanaka, S., Goto, S., Maki, M., Akiyama, T., Muramoto, Y. and
            Yoshida, K., 2007. "Estimation of leaf chlorophyll concentration in
            winter wheat [Triticum aestivum] before maturing stage by a newly
            developed vegetation index-RBNDVI". Journal of the Japanese
