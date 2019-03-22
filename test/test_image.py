@@ -5,6 +5,7 @@ import pytest
 import rasterio
 from hypothesis import given
 from netCDF4 import Dataset
+
 from satsense.image import FeatureVector
 
 from .test_extract import RGBFeature

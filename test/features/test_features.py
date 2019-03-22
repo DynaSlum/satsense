@@ -5,6 +5,8 @@ import numpy as np
 import pytest
 import rasterio
 from netCDF4 import Dataset
+from sklearn.cluster import MiniBatchKMeans
+
 from satsense.features.hog import hog_features
 from satsense.features.lacunarity import lacunarities
 from satsense.features.ndxi import ndxi_image
@@ -12,7 +14,6 @@ from satsense.features.pantex import pantex
 from satsense.features.sift import sift, sift_cluster
 from satsense.features.texton import (get_texton_descriptors, texton,
                                       texton_cluster)
-from sklearn.cluster import MiniBatchKMeans
 
 
 def test_ndvi(image):
@@ -153,19 +154,6 @@ def test_sift(image):
     same = target == features
 
     assert same.all()
-
-
-# def test_sift_cluster(image, monkeypatch):
-#     max_samples = 1000
-#
-#     def mock_fit(self, descriptors):
-#         samples = len(descriptors)
-#         assert 0 < samples <= max_samples
-#
-#     monkeypatch.setattr(MiniBatchKMeans, 'fit', mock_fit)
-#     sift_cluster([image, image, image],
-#                  max_samples=max_samples,
-#                  sample_window=(100, 100))
 
 
 def test_texton(image):
