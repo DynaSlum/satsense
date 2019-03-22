@@ -99,3 +99,14 @@ def test_save_as_geotiff(tmpdir, image_shape, window_shapes):
                     print('saved:\n', data)
                     print('reference:\n', vector[..., i, j])
                     raise
+
+
+def test_normalization_partial_fails(image):
+    """Check that computing the normalization on part of an image fails."""
+    block = [(0, 50), (100, 200)]
+    partial_image = image.copy_block(block)
+
+    with pytest.raises(ValueError) as exc:
+        partial_image.precompute_normalization()
+        msg = str(exc.value)
+        assert "Unable to compute normalization on part of the image." in msg
