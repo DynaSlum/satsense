@@ -119,14 +119,19 @@ Edge
 Generator
 ~~~~~~~~~
 
-Next we create a generator which splits the image into blocks of 20x20
-pixels.
+Next we create a FullGenerator which creates patches of the image in
+steps of 20x20 pixels.
 
 In this cell we also show the images, therefore we load the rgb base
 image into the generator. This is only needed here so we can show the
-blocks using matplotlib when using the ``extract_features`` function
-loading the correct base images will be done for you based on the
-features that will be calculated.
+blocks using matplotlib. In the next section we will be using the
+``extract_features`` function to extract features, which will be loading
+the correct base images for you based on the features that will be
+calculated.
+
+The patch sizes are determined by the list of window shapes that you
+supply the ``load_image`` function. This is normally also provided by
+the ``extract_features`` function.
 
 .. code:: ipython3
 
@@ -163,20 +168,25 @@ Calculate all the features and append them to a vector
 In this cell we use the ``extract_features`` function from satsense to
 extract all features.
 
-``extract_features`` returns a generator that we can loop over. Each
-invocation of the generator returns the feature vector for one feature
-in the order of the features list. The shape of this vector is (x, y, w,
-v) where - x is the number of blocks of the generator in the x direction
-- y is the number of blocks of the generator in the y direction - w is
-the number of windows the feature is calculated on - v is the length of
-the feature per window
+``extract_features`` returns a python generator that we can loop over.
+Each invocation of this generator returns the feature vector for one
+feature in the order of the features list. The shape of this vector is
+(x, y, w, v) where:
+
+    - x is the number of blocks of the generator in the x direction
+    - y is the number of blocks of the generator in the y direction
+    - w is the number of windows the feature is calculated on
+    - v is the length of the feature per window
 
 We use a little numpy reshaping to merge these feature vectors into a
 single feature vector of shape (x, y, n) where n is the total length of
 all features over all windows. In this example it will be (8, 8, 13)
-because: - HoG has 5 numbers per window and 2 windows : 10 - NirNDVI has
-1 number per window and 1 window: 1 - Pantex has 1 number per window and
-2 windows: 2 Total: 13
+because:
+
+    - HoG has 5 numbers per window and 2 windows:   10
+    - NirNDVI has 1 number per window and 1 window:  1
+    - Pantex has 1 number per window and2 windows:   2
+    -                                        Total: 13
 
 .. code:: ipython3
 
@@ -249,10 +259,12 @@ absolute difference between the highest and second highest peak (this is
 .. image:: feature_extraction_files/feature_extraction_11_0.png
 
 
-NDVI
-^^^^
+Normalized Difference Vegetation Index
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Here we show the result for the NDVI feature
+Here we show the result for the NDVI feature The NDVI feature captures
+the level of vegetation, purple means very little vegetation, green
+means a lot of vegetation.
 
 .. code:: ipython3
 
@@ -276,7 +288,9 @@ Here we show the result for the NDVI feature
 Texton
 ^^^^^^
 
-Here we show the results for the Texton feature.
+Here we show the results for the Texton feature. The Pantex feature
+captures the level of built-up structures, purple means very little
+built-up while green means very built-up.
 
 .. code:: ipython3
 
