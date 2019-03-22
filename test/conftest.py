@@ -1,4 +1,5 @@
 import pytest
+
 from satsense.image import Image
 
 
