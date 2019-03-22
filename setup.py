@@ -27,7 +27,7 @@ setup(
         'affine',
         'descartes',
         'fiona',
-        'netCDF4<=1.4.2',
+        'netCDF4',
         'numpy',
         'opencv-contrib-python-headless<3.4.3',
         'rasterio',
