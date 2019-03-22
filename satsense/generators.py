@@ -174,13 +174,13 @@ class FullGenerator():
     def __getitem__(self, index):
         """
         Extract item from image.
-        
+
         Parameters
         ----------
             index: 1-D array-like
                 An array wich specifies the x and y coordinates
                 and the window shape to get from the generator
-        
+
         Examples:
         ---------
         >>> generator[0, 0, (100, 100)]
