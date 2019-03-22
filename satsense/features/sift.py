@@ -47,7 +47,28 @@ SIFT = cv2.xfeatures2d.SIFT_create()
 
 
 def sift(window_gray_ubyte, kmeans: MiniBatchKMeans, normalized=True):
-    """Calculate the sift feature on the given window."""
+    """
+    Calculate the Scale-Invariant Feature Transform feature
+
+    The opencv SIFT features are first calculated on the window
+    the codewords of these features are then extracted using the
+    previously computed cluster centers. Finally a histogram of
+    these codewords is returned
+
+    Parameters
+    ----------
+    window_gray_ubyte : ndarray
+        The window to calculate the feature on
+    kmeans : sklearn.cluster.MiniBatchKMeans
+        The trained KMeans clustering from opencv, see `from_images`
+    normalized : bool
+        If True normalize the feature by the total number of clusters
+
+    Returns
+    -------
+        ndarray
+            The histogram of sift feature codewords
+    """
     descriptors = SIFT.detectAndCompute(window_gray_ubyte, None)[1]
 
     # Is none if no descriptors are found, i.e. on 0 input range
@@ -66,7 +87,49 @@ def sift(window_gray_ubyte, kmeans: MiniBatchKMeans, normalized=True):
 
 
 class Sift(Feature):
-    """Sift feature."""
+    """
+    Scale-Invariant Feature Transform calculator
+
+    First create a codebook of SIFT features from the suplied images using
+    `from_images`. Then we can compute the histogram of codewords for a given
+    window.
+
+    See the opencv
+    `SIFT intro
+    <https://docs.opencv.org/3.4.3/da/df5/tutorial_py_sift_intro.html>`__
+    for more information
+
+    Parameters
+    ----------
+    window_shapes: list
+        The window shapes to calculate the feature on.
+    kmeans : sklearn.cluster.MiniBatchKMeans
+        The trained KMeans clustering from opencv
+    normalized : bool
+        If True normalize the feature by the total number of clusters
+
+    Example
+    -------
+    Calculating the Sift feature on an image using a generator::
+
+        from satsense import Image
+        from satsense.generators import FullGenerator
+        from satsense.extract import extract_feature
+        from satsense.features import Sift
+
+        windows = ((50, 50), )
+
+        image = Image('test/data/source/section_2_sentinel.tif', 'quickbird')
+        image.precompute_normalization()
+
+        sift = Sift.from_images(windows, [image])
+
+        generator = FullGenerator(image, (10, 10))
+
+        feature_vector = extract_feature(sift, generator)
+        print(feature_vector.shape)
+
+    """
 
     base_image = 'gray_ubyte'
     compute = staticmethod(sift)
@@ -84,6 +147,28 @@ class Sift(Feature):
                     max_samples=100000,
                     sample_window=(8192, 8192),
                     normalized=True):
+        """
+        Create a codebook of SIFT features from the suplied images.
+
+        Using the images `max_samples` SIFT features are extracted
+        evenly from all images. These features are then clustered into
+        `n_clusters` clusters. This codebook can then be used to
+        calculate a histogram of this codebook.
+
+        Parameters
+        ----------
+        windows : list[tuple]
+            The window shapes to calculate the feature on.
+        images : Iterator[satsense.Image]
+            Iterable for the images to calculate the codebook no
+        n_cluster : int
+            The number of clusters to create for the codebook
+        max_samples : int
+            The maximum number of samples to use for creating the codebook
+        normalized : bool
+            Wether or not to normalize the resulting feature with regards to
+            the number of clusters
+        """
         kmeans = sift_cluster(
             images, n_clusters, max_samples, sample_window=sample_window)
         return cls(windows, kmeans, normalized)

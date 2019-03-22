@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 class Feature(ABC):
     """
     Feature superclass.
+
     Parameters
     ----------
         window_shapes : list[tuple]
@@ -84,6 +85,14 @@ class Feature(ABC):
 
 
 class FeatureSet():
+    """
+    FeatureSet Class
+
+    The FeatureSet class can be used to bundle a number of features together.
+    this class then calculates the indices for each feature within a vector
+    of all features stacked into a single 3 dimensional matrix.
+    """
+
     def __init__(self):
         self._features = {}
         self._cur_index = 0
@@ -130,7 +139,7 @@ class FeatureSet():
 
         Returns
         -------
-        boolean
+        bool
             Wether the feature was succesfully removed
         """
         if name in self._features:

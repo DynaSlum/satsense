@@ -242,7 +242,7 @@ class HistogramOfGradients(Feature):
 
     Parameters
     ----------
-    window_shapes: list
+    window_shapes: list[tuple]
         The window shapes to calculate the feature on.
     bins : int
         The number of bins to use. The default is 50

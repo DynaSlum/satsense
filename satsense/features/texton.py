@@ -114,7 +114,51 @@ def texton(descriptors, kmeans: MiniBatchKMeans, normalized=True):
 
 
 class Texton(Feature):
-    """Texton feature."""
+    """
+    Texton Feature Transform calculator
+
+    First create a codebook of Texton features from the suplied images using
+    `from_images`. Then we can compute the histogram of codewords for a given
+    window.
+
+    For more information see [1]_.
+
+    Parameters
+    ----------
+    window_shapes: list
+        The window shapes to calculate the feature on.
+    kmeans : sklearn.cluster.MiniBatchKMeans
+        The trained KMeans clustering from opencv
+    normalized : bool
+        If True normalize the feature by the total number of clusters
+
+    Example
+    -------
+    Calculating the Texton feature on an image using a generator::
+
+        from satsense import Image
+        from satsense.generators import FullGenerator
+        from satsense.extract import extract_feature
+        from satsense.features import Texton
+
+        windows = ((50, 50), )
+
+        image = Image('test/data/source/section_2_sentinel.tif', 'quickbird')
+        image.precompute_normalization()
+
+        texton = Texton.from_images(windows, [image])
+
+        generator = FullGenerator(image, (10, 10))
+
+        feature_vector = extract_feature(texton, generator)
+        print(feature_vector.shape)
+
+    Notes
+    -----
+    .. [1] Arbelaez, Pablo, et al., "Contour detection and hierarchical
+           image segmentation," IEEE transactions on pattern analysis and
+           machine intelligence (2011), vol. 33 no. 5, pp. 898-916.
+    """
 
     base_image = 'texton_descriptors'
     compute = staticmethod(texton)
@@ -132,6 +176,28 @@ class Texton(Feature):
                     max_samples=100000,
                     sample_window=(8192, 8192),
                     normalized=True):
+        """
+        Create a codebook of Texton features from the suplied images.
+
+        Using the images `max_samples` Texton features are extracted
+        evenly from all images. These features are then clustered into
+        `n_clusters` clusters. This codebook can then be used to
+        calculate a histogram of this codebook.
+
+        Parameters
+        ----------
+        windows : list[tuple]
+            The window shapes to calculate the feature on.
+        images : Iterator[satsense.Image]
+            Iterable for the images to calculate the codebook no
+        n_cluster : int
+            The number of clusters to create for the codebook
+        max_samples : int
+            The maximum number of samples to use for creating the codebook
+        normalized : bool
+            Wether or not to normalize the resulting feature with regards to
+            the number of clusters
+        """
         kmeans = texton_cluster(
             images, n_clusters, max_samples, sample_window=sample_window)
         return cls(windows, kmeans, normalized)

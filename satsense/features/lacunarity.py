@@ -63,7 +63,20 @@ def lacunarities(canny_edge_image, box_sizes):
 
 
 class Lacunarity(Feature):
-    """Lacunarity feature."""
+    """
+    Calculate the lacunarity value over an image.
+
+    Lacunarity is a measure of 'gappiness' of the image.
+    The calculation is performed following these papers:
+
+    Kit, Oleksandr, and Matthias Luedeke. "Automated detection of slum area
+    change in Hyderabad, India using multitemporal satellite imagery."
+    ISPRS journal of photogrammetry and remote sensing 83 (2013): 130-137.
+
+    Kit, Oleksandr, Matthias Luedeke, and Diana Reckien. "Texture-based
+    identification of urban slums in Hyderabad, India using remote sensing
+    data." Applied Geography 32.2 (2012): 660-667.
+    """
 
     base_image = 'canny_edge'
     compute = staticmethod(lacunarities)
