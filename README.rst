@@ -33,50 +33,14 @@ assessing algorithm performance.
 
 We are using python 3.6/3.7 and jupyter notebook for our code.
 
-Installation from github
-------------------------
+Documentation
+-------------
+Can be found on `readthedocs <https://satsense.readthedocs.io>`__.
 
-Assuming you have `conda <https://conda.io>`__ installed and are in the
-directory where you have checked out this repository, you can install
-the dependencies by running:
+Installation
+------------
 
-.. code:: bash
-
-   conda create --name satsense python=3
-   conda activate satsense
-   conda env update
-
-If you prefer to use the package manager of your OS, use it to install
-the `GDAL <https://pypi.org/project/GDAL/>`__ and
-`netCDF4 <http://unidata.github.io/netcdf4-python/>`__ dependencies. On
-Ubuntu Linux 18.04 and later, you can do so by running
-
-.. code:: bash
-
-   sudo apt install libgdal-dev libnetcdf-dev
-
-When using your OS’s package manager, you may still want to create and
-activate a virtual environment for satsense, e.g. using
-`venv <https://docs.python.org/3/library/venv.html>`__
-
-.. code:: bash
-
-   python3 -m venv ~/venv/satsense
-   source ~/venv/satsense/bin/activate
-
-Finally, to install satsense, run
-
-.. code:: bash
-
-   pip install .
-
-If you would like to use the Jupyter notebooks, you can install the required
-dependencies along with satsense by running
-
-.. code:: bash
-
-   pip install .[notebooks]
-
+Please see the `installation guide on readthedocs <https://satsense.readthedocs.io/en/latest/installation.html#installation>`__.
 
 Contributing
 ------------
