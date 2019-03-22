@@ -5,6 +5,7 @@ channels:
   - ioos
 
 dependencies:
+  - affine
   - descartes
   - fiona
   - netcdf4

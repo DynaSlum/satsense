@@ -194,6 +194,8 @@ intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
+    'rasterio': ('https://rasterio.readthedocs.io/en/latest/', None),
+    'skimage': ('http://scikit-image.org/docs/dev/', None),
 }
 
 autodoc_mock_imports = [
@@ -207,6 +209,11 @@ autodoc_mock_imports = [
     'skimage',
     'scipy',
     'shapely',
+    'affine',
 ]
 
 nitpicky = True
+
+autodoc_member_order = 'bysource'
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True

@@ -88,6 +88,48 @@ def pantex(window, maximum=255):
 
 
 class Pantex(Feature):
+    """
+    Pantext Feature Calculator
+
+    The compute method calculates the feature on a particular
+    window this returns the minimum of the grey level co-occurence
+    matrix contrast property
+
+    Parameters
+    ----------
+    window_shapes: list
+        The window shapes to calculate the feature on.
+    maximum: int
+        The maximum value in the image.
+
+
+    Attributes
+    ----------
+    size: int
+        The size of the feature vector returned by this feature
+    base_image: str
+        The name of the base image used to calculate the feature
+
+
+    Example
+    -------
+    Calculating the Pantex on an image using a generator::
+
+        from satsense import Image
+        from satsense.generators import FullGenerator
+        from satsense.extract import extract_feature
+        from satsense.features import Pantex
+
+        windows = ((50, 50), )
+        pantex = Pantex(windows)
+
+        image = Image('test/data/source/section_2_sentinel.tif',
+                      'quickbird')
+        image.precompute_normalization()
+        generator = FullGenerator(image, (10, 10))
+
+        feature_vector = extract_feature(pantex, generator)
+    """
     base_image = 'gray_ubyte'
     size = 1
     compute = staticmethod(pantex)

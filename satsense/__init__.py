@@ -6,8 +6,8 @@ from .image import FeatureVector, Image
 
 __all__ = [
     '__version__',
+    'Image',
     'BANDS',
     'extract_features',
-    'Image',
     'FeatureVector',
 ]

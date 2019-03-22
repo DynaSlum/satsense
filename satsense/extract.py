@@ -35,6 +35,43 @@ def extract_features(features: Iterator[Feature],
     :obj:`satsense.FeatureVector`
         The requested feature vectors.
 
+    Examples
+    --------
+    from satsense import Image
+    from satsense.generators import FullGenerator
+    from satsense.extract import extract_features
+    from satsense.features import NirNDVI, HistogramOfGradients, Pantex
+
+    # Define the features to calculate
+    features = [
+        HistogramOfGradients(((50, 50), (100, 100))),
+        NirNDVI(((50, 50),)),
+        Pantex(((50, 50), (100, 100))),
+    ]
+
+    # Load the image into a generator
+    # This generator splits the image into chunks of 10x10 pixels
+    image = Image('test/data/source/section_2_sentinel.tif',
+                    'quickbird')
+    image.precompute_normalization()
+    generator = FullGenerator(image, (10, 10))
+
+    # Calculate all the features and append them to a list
+    vector = []
+    for feature_vector in extract_features(features, generator):
+        # The shape returned is (x, y, w, v)
+        # where x is the number of chunks in the x direction
+        #       y is the number of chunks in the y direction
+        #       w is the number of windows the feature uses
+        #       v is the length of the feature per window
+        # Reshape the resulting vector so it is (x, y, w * v)
+        # e.g. flattened along the windows and features
+        data = feature_vector.vector.reshape(
+                    *feature_vector.vector.shape[0:2], -1)
+        vector.append(data)
+    # dstack reshapes the vector into and (x, y, n)
+    # where n is the total length of all features
+    featureset = np.dstack(vector)
     """
     if n_jobs == 1:
         yield from _extract_features(features, generator)
@@ -79,7 +116,15 @@ def _extract_features(features, generator):
 
 
 def extract_feature(feature, generator):
-    """Compute a feature vector."""
+    """Compute a single feature vector.
+
+    Parameters
+    ----------
+    feature : Feature
+        The feature to calculate
+    generator:
+        Generator providing the required windows on the image.
+    """
     logger.info("Computing feature %s with windows %s and arguments %s",
                 feature.__class__.__name__, feature.windows, feature.kwargs)
     if not generator.loaded_itype == feature.base_image:
