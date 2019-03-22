@@ -55,3 +55,12 @@ python setup.py build_sphinx -Ea
 ```
 
 to build everying from scratch. Please check that there are no warnings.
+
+## Converting Notebooks for documentation
+
+If you update the notebooks please update their counterparts in the doc folder by using `jupyter nbconvert`
+
+From the root of the project:
+```bash
+jupyter nbconvert --to rst notebooks/**/*.ipynb --output-dir=doc/notebooks/
+```
