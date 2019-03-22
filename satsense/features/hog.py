@@ -226,7 +226,7 @@ def hog_features(window, bins=50, kernel=None, bandwidth=0.7):
     # Feature 5: The absolute sine difference between the two highest peaks
     # Will be 1 when the two peaks are 90 degrees from eachother
     centers = np.deg2rad(bin_centers)
-    beta = np.abs(np.sin(centers[0] - centers[1]))
+    beta = np.abs(np.sin(centers[peaks[0]] - centers[peaks[1]]))
 
     return np.array([moment1, moment2, delta1, delta2, beta])
 
