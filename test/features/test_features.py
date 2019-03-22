@@ -2,9 +2,9 @@
 Testing features
 """
 import numpy as np
+import pytest
 import rasterio
 from netCDF4 import Dataset
-
 from satsense.features.hog import hog_features
 from satsense.features.lacunarity import lacunarities
 from satsense.features.ndxi import ndxi_image
@@ -12,6 +12,7 @@ from satsense.features.pantex import pantex
 from satsense.features.sift import sift, sift_cluster
 from satsense.features.texton import (get_texton_descriptors, texton,
                                       texton_cluster)
+from sklearn.cluster import MiniBatchKMeans
 
 
 def test_ndvi(image):
@@ -138,8 +139,7 @@ def test_pantex():
 
 def test_sift(image):
     """Sift feature test."""
-    with Dataset(
-            "test/data/target/sift.nc", "r", format="NETCDF4") as dataset:
+    with Dataset("test/data/target/sift.nc", "r", format="NETCDF4") as dataset:
         target = dataset.variables['sift'][:]
         slices = dataset.variables['window'][:]
 
@@ -153,6 +153,19 @@ def test_sift(image):
     same = target == features
 
     assert same.all()
+
+
+# def test_sift_cluster(image, monkeypatch):
+#     max_samples = 1000
+#
+#     def mock_fit(self, descriptors):
+#         samples = len(descriptors)
+#         assert 0 < samples <= max_samples
+#
+#     monkeypatch.setattr(MiniBatchKMeans, 'fit', mock_fit)
+#     sift_cluster([image, image, image],
+#                  max_samples=max_samples,
+#                  sample_window=(100, 100))
 
 
 def test_texton(image):
@@ -173,3 +186,17 @@ def test_texton(image):
     same = target == features
 
     assert same.all()
+
+
+@pytest.mark.parametrize('cluster_function', [sift_cluster, texton_cluster])
+def test_cluster_max_samples(image, monkeypatch, cluster_function):
+    max_samples = 1000
+
+    def mock_fit(self, descriptors):
+        samples = len(descriptors)
+        assert 0 < samples <= max_samples
+
+    monkeypatch.setattr(MiniBatchKMeans, 'fit', mock_fit)
+    cluster_function([image, image, image],
+                     max_samples=max_samples,
+                     sample_window=(100, 100))
