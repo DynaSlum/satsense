@@ -286,7 +286,7 @@ class Image:
         if band not in self.normalization:
             if isinstance(self.normalization, MappingProxyType):
                 raise ValueError(
-                    "Unable to compute normalization on part of the image."
+                    "Unable to compute normalization on part of the image. "
                     "Please use the precompute_normalization() method of "
                     "the full image.")
 
