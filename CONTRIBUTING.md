@@ -73,3 +73,7 @@ From the root of the project:
 ```bash
 jupyter nbconvert --to rst notebooks/**/*.ipynb --output-dir=doc/notebooks/
 ```
+
+# Creating a release
+
+Make sure to update the version number and release date in CITATION.cff.
