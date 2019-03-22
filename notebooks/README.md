@@ -1,9 +1,12 @@
 # Notebooks accompanying the satsense Python package
 
-## demo_notebooks
+## FeatureExtraction
+Notebooks demonstrating how to extract features from satellite images using satsense.
 
-Used for illustration of the functionality
+## Performance
+Notebooks demonstrating how to use the performance metrics with satsense and the 
+utility functions to convert ground truth data to and from mask files and shapefiles.
 
-## draft_notebooks
+## Classification
 
-Used for development
+Notebooks demonstrating classification using features calculated with Satsense.
