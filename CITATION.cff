@@ -40,6 +40,6 @@ license: "Apache-2.0"
 message: "If you use this software, please cite it using these metadata."
 repository-code: "https://github.com/DynaSlum/satsense"
 title: Satsense
-date-released: 2018-10-15
-version: "0.8"
+date-released: 2019-03-25
+version: "0.9"
 ...
