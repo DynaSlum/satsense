@@ -27,10 +27,10 @@ setup(
     license='Apache Software License',
     keywords=('classification '
               'earth-observation '
+              'land-cover '
+              'land-use '
               'machine-learning '
               'machine-learning-algorithms '
-              'land-use '
-              'land-cover '
               'satellite-images '),
     author=read_authors('CITATION.cff'),
     setup_requires=[
@@ -90,16 +90,16 @@ setup(
     zip_safe=False,
     platforms='any',
     classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: Apache Software License',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Development Status :: 4 - Beta',
-        'Natural Language :: English',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Topic :: Scientific/Engineering :: GIS',
         'Topic :: Scientific/Engineering :: Image Recognition',
