@@ -5,6 +5,7 @@ from setuptools import find_packages, setup
 
 
 def read(filename):
+    """Read the contents of `filename`."""
     with open(filename) as file:
         return file.read()
 
@@ -22,8 +23,15 @@ def read_authors(citation_file):
 setup(
     name='satsense',
     use_scm_version=True,
-    url='https://github.com/DynaSlum/SateliteImaging',
+    url='https://github.com/dynaslum/satsense',
     license='Apache Software License',
+    keywords=('classification '
+              'earth-observation '
+              'machine-learning '
+              'machine-learning-algorithms '
+              'land-use '
+              'land-cover '
+              'satellite-images '),
     author=read_authors('CITATION.cff'),
     setup_requires=[
         'pytest-runner',
@@ -74,7 +82,8 @@ setup(
         ],
     },
     author_email='b.weel@esiencecenter.nl',
-    description=('Library for multispectral remote imaging.'),
+    description=(
+        'Library for land use/cover classification using satellite images.'),
     long_description=read('README.rst'),
     packages=find_packages(),
     include_package_data=True,
@@ -88,7 +97,11 @@ setup(
         'Development Status :: 4 - Beta',
         'Natural Language :: English',
         'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: OS Independent',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
+        'Topic :: Scientific/Engineering :: GIS',
+        'Topic :: Scientific/Engineering :: Image Recognition',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ])
