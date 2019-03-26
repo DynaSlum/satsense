@@ -1,5 +1,6 @@
 """Texton feature implementation."""
 import logging
+import math
 from typing import Iterator
 
 import numpy as np
@@ -30,13 +31,12 @@ def create_texton_kernels():
     return kernels
 
 
-def get_texton_descriptors(image: Image):
+def get_texton_descriptors(array, kernels=create_texton_kernels()):
     """Compute texton descriptors."""
     logger.debug("Computing texton descriptors")
-    kernels = create_texton_kernels()
 
     # Prepare input image
-    array = image['grayscale']
+    # array = image['grayscale']
     mask = array.mask
     array = array.filled(fill_value=0)
 
@@ -59,39 +59,63 @@ def get_texton_descriptors(image: Image):
 Image.register('texton_descriptors', get_texton_descriptors)
 
 
-def texton_cluster(images: Iterator[Image],
-                   n_clusters=32,
-                   max_samples=100000,
-                   sample_window=(8192, 8192)) -> MiniBatchKMeans:
-    """Compute texton clusters."""
-    nfeatures = int(max_samples / len(images))
+def calculate_textons_for_image(image, kernels, mbkmeans, coordinates):
+    offset = np.max([k.shape[0] for k in kernels])
     descriptors = []
+    for i, j in coordinates:
+        slice1 = slice(i - offset, i + offset)
+        slice2 = slice(j - offset, j + offset)
+
+        window = image['grayscale'][slice1, slice2]
+        sample = get_texton_descriptors(window, kernels=kernels)
+        center = math.floor(sample.shape[0] / 2), math.floor(
+            sample.shape[1] / 2)
+
+        descriptors.append(sample[center])
+
+        if len(descriptors) >= 100:
+            descriptors = np.vstack(descriptors)
+            mbkmeans.partial_fit(descriptors)
+            descriptors = []
+
+    # Also take the last ones into account
+    if len(descriptors) > 0:
+        descriptors = np.vstack(descriptors)
+        mbkmeans.partial_fit(descriptors)
+
+
+def texton_cluster(images: Iterator[Image], n_clusters=32,
+                   max_samples=100000) -> MiniBatchKMeans:
+    """Compute texton clusters."""
+    # Cluster the descriptors
+    mbkmeans = MiniBatchKMeans(n_clusters=n_clusters, random_state=42)
+    kernels = create_texton_kernels()
+
+    rand_state = np.random.RandomState(seed=0)
+    samples_per_image = int(max_samples / len(images))
     for image in images:
+        offset = np.max([k.shape[0] for k in kernels])
+        padding = (offset, offset)
         image.precompute_normalization()
 
-        chunk = np.minimum(image.shape, sample_window)
+        image = image.copy_block(((-padding[0], image.shape[0] + padding[0]),
+                                  (-padding[1], image.shape[1] + padding[1])))
+        old_cached = image.cached
+        image.cached = ['grayscale']
 
-        generator = FullGenerator(image, chunk)
-        generator.load_image('texton_descriptors', (chunk, ))
+        if np.prod(image.shape) < samples_per_image:
+            x_range = padding[0] + np.array(range(0, image.shape[0]))
+            y_range = padding[1] + np.array(range(0, image.shape[1]))
+        else:
+            x_range = padding[0] + rand_state.randint(0, image.shape[0],
+                                                      samples_per_image)
+            y_range = padding[1] + rand_state.randint(0, image.shape[0],
+                                                      samples_per_image)
 
-        max_features_per_window = int(nfeatures / np.prod(generator.shape))
+        calculate_textons_for_image(image, kernels, mbkmeans,
+                                    zip(x_range, y_range))
 
-        rand_state = np.random.RandomState(seed=0)
-
-        for array in generator:
-            array = array.reshape(-1, array.shape[-1])
-            non_masked = ~array.mask.any(axis=-1)
-            data = array.data[non_masked]
-            if data.shape[0] > max_features_per_window:
-                data = data[rand_state.choice(
-                    data.shape[0], max_features_per_window, replace=False)]
-            descriptors.append(data)
-
-    descriptors = np.vstack(descriptors)
-
-    # Cluster the descriptors
-    mbkmeans = MiniBatchKMeans(
-        n_clusters=n_clusters, random_state=42).fit(descriptors)
+        image.cached = old_cached
 
     return mbkmeans
 
@@ -174,7 +198,6 @@ class Texton(Feature):
                     images: Iterator[Image],
                     n_clusters=32,
                     max_samples=100000,
-                    sample_window=(8192, 8192),
                     normalized=True):
         """
         Create a codebook of Texton features from the suplied images.
@@ -198,6 +221,5 @@ class Texton(Feature):
             Wether or not to normalize the resulting feature with regards to
             the number of clusters
         """
-        kmeans = texton_cluster(
-            images, n_clusters, max_samples, sample_window=sample_window)
+        kmeans = texton_cluster(images, n_clusters, max_samples)
         return cls(windows, kmeans, normalized)

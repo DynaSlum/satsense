@@ -166,7 +166,7 @@ def test_texton(image):
     window = slice(*slices[0:3]), slice(*slices[3:6])
 
     clusters = texton_cluster([image, image], max_samples=1000)
-    descriptors = get_texton_descriptors(image)
+    descriptors = get_texton_descriptors(image['grayscale'])
 
     win = descriptors[window]
     features = texton(win, clusters)
