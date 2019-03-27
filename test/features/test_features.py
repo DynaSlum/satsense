@@ -12,7 +12,7 @@ from satsense.features.lacunarity import lacunarities
 from satsense.features.ndxi import ndxi_image
 from satsense.features.pantex import pantex
 from satsense.features.sift import sift, sift_cluster
-from satsense.features.texton import (get_texton_descriptors, texton,
+from satsense.features.texton import (Texton, get_texton_descriptors, texton,
                                       texton_cluster)
 
 
@@ -166,14 +166,16 @@ def test_texton(image):
     window = slice(*slices[0:3]), slice(*slices[3:6])
 
     clusters = texton_cluster([image, image], max_samples=1000)
-    descriptors = get_texton_descriptors(image['grayscale'])
+    descriptors = get_texton_descriptors(image)
 
     win = descriptors[window]
     features = texton(win, clusters)
 
-    same = target == features
+    feature = Texton.from_images([(25, 25),], [image, image], max_samples=1000)
+    result = feature(image['texton_descriptors'][window])
 
-    assert same.all()
+    assert (result == features).all()
+    assert (target == features).all()
 
 
 @pytest.mark.parametrize('cluster_function', [sift_cluster, texton_cluster])

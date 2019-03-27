@@ -30,13 +30,13 @@ def create_texton_kernels():
 
     return kernels
 
-
-def get_texton_descriptors(array, kernels=create_texton_kernels()):
+def get_texton_descriptors(image: Image):
     """Compute texton descriptors."""
     logger.debug("Computing texton descriptors")
+    kernels = create_texton_kernels()
 
     # Prepare input image
-    # array = image['grayscale']
+    array = image['grayscale']
     mask = array.mask
     array = array.filled(fill_value=0)
 
@@ -59,19 +59,42 @@ def get_texton_descriptors(array, kernels=create_texton_kernels()):
 Image.register('texton_descriptors', get_texton_descriptors)
 
 
+def get_texton_descriptor_pixel(array, kernels=create_texton_kernels()):
+    """Compute texton descriptors for a single pixel."""
+    logger.debug("Computing texton descriptors")
+
+    # Prepare input image
+    # array = image['grayscale']
+    array = array.filled(fill_value=0)
+
+    # Create result image
+    shape = len(kernels) + 1
+    result = np.ma.empty(shape, dtype=array.dtype)
+    result.mask = False
+
+    for k, kernel in enumerate(kernels):
+        result[k] = convolve(array, kernel, mode='valid')[0][0]
+
+    dog = gaussian(array, sigma=1) - gaussian(array, sigma=3)
+    center = math.floor(array.shape[0] / 2), math.floor(array.shape[1] / 2)
+    result[-1] = dog[center]
+
+    logger.debug("Done computing texton descriptors")
+    return result
+
+
 def calculate_textons_for_image(image, kernels, mbkmeans, coordinates):
-    offset = np.max([k.shape[0] for k in kernels])
+    # offset = np.max([math.floor(k.shape[0] / 2) for k in kernels])
+    offset = np.max([math.floor(k.shape[0] / 2) for k in kernels])
     descriptors = []
     for i, j in coordinates:
-        slice1 = slice(i - offset, i + offset)
-        slice2 = slice(j - offset, j + offset)
+        slice1 = slice(i - offset, i + offset + 1)
+        slice2 = slice(j - offset, j + offset + 1)
 
         window = image['grayscale'][slice1, slice2]
-        sample = get_texton_descriptors(window, kernels=kernels)
-        center = math.floor(sample.shape[0] / 2), math.floor(
-            sample.shape[1] / 2)
+        sample = get_texton_descriptor_pixel(window, kernels=kernels)
 
-        descriptors.append(sample[center])
+        descriptors.append(sample)
 
         if len(descriptors) >= 100:
             descriptors = np.vstack(descriptors)
