@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 def extract_features(features: Iterator[Feature],
                      generator: FullGenerator,
+                     n_chunks: int = -1,
                      n_jobs: int = -1):
     """Compute features.
 
@@ -26,6 +27,9 @@ def extract_features(features: Iterator[Feature],
         Iterable of features.
     generator:
         Generator providing the required windows on the image.
+    n_chunks:
+        The number of chunks to split the generator into. The default is to use the
+        same as the number of jobs.
     n_jobs:
         The maximum number of processes to use. The default is to use the
         value returned by :func:`os.cpu_count`.
@@ -78,18 +82,20 @@ def extract_features(features: Iterator[Feature],
     if n_jobs == 1:
         yield from _extract_features(features, generator)
     else:
-        yield from _extract_features_parallel(features, generator, n_jobs)
+        yield from _extract_features_parallel(features, generator, n_chunks, n_jobs)
 
 
-def _extract_features_parallel(features, generator, n_jobs=-1):
+def _extract_features_parallel(features, generator, n_chunks=-1, n_jobs=-1):
     """Extract features in parallel."""
     if n_jobs < 1:
         n_jobs = cpu_count()
-    logger.info("Extracting features using at most %s processes", n_jobs)
+    if n_chunks < 1:
+        n_chunks = n_jobs
+    logger.info("Extracting features using %s chunks and at most %s processes", n_chunks, n_jobs)
     generator.image.precompute_normalization()
 
     # Split generator in chunks
-    generators = tuple(generator.split(n_chunks=n_jobs))
+    generators = tuple(generator.split(n_chunks=n_chunks))
 
     with ProcessPoolExecutor(max_workers=n_jobs) as executor:
         for feature in features:
