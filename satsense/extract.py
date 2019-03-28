@@ -137,13 +137,13 @@ def extract_feature(feature, generator):
     vector = np.ma.zeros((np.prod(shape[:-1]), feature.size), dtype=np.float32)
     vector.mask = np.zeros_like(vector, dtype=bool)
 
-    size = vector.shape[0]
+    size = np.prod(generator.shape)
     i = 0
     for window in generator:
         if window.shape[:2] not in feature.windows:
             continue
         if i % (size // 10 or 1) == 0:
-            logger.info("%s%% ready", 100 * i // size)
+            logger.info("Calculating window %i out of %i", i, size)
         if window.mask.any():
             vector.mask[i] = True
         else:
