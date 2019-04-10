@@ -2,6 +2,7 @@
 import cv2
 import numpy as np
 import scipy.stats
+from skimage.feature import hog
 
 from .feature import Feature
 
@@ -231,6 +232,62 @@ def hog_features(window, bins=50, kernel=None, bandwidth=0.7):
     return np.array([moment1, moment2, delta1, delta2, beta])
 
 
+def hog_features_scipy(window, bins=25, kernel=None, bandwidth=0.7):
+    """Calculate the hog features on the window using the skimage
+    hog feature.
+
+    Features are the 1st and 2nd order heaved central shift moments,
+    the angle of the two highest peaks in the histogram,
+    the absolute sine difference between the two highest peaks.
+
+    Parameters
+    ----------
+    window : numpy.ndarray
+        The window to calculate the features on (grayscale).
+    bands : dict
+        A discription of the bands used in the window.
+    bins : int
+        The number of bins to use.
+    kernel : :obj:`typing.Callable`
+        The function to use for smoothing. The default is
+        :obj:`scipy.stats.norm().pdf`.
+    bandwidth: float
+        The bandwidth for the smoothing.
+
+    Returns
+    -------
+    :obj:`numpy.ndarray`
+        The 5 HoG feature values.
+    """
+    if kernel is None:
+        kernel = scipy.stats.norm().pdf
+
+    histogram = hog(
+        window,
+        orientations=25,
+        pixels_per_cell=window.shape[0:2],
+        block_norm='L2-Hys',
+        cells_per_block=(1, 1),
+        visualize=False,
+        multichannel=False,
+    )
+
+    histogram = smoothe_histogram(histogram, kernel, bandwidth)
+
+    peaks = np.argsort(histogram)[::-1][0:2]
+
+    moment1 = heaved_central_shift_moment(histogram, 1)
+    moment2 = heaved_central_shift_moment(histogram, 2)
+
+    orientations_arr = np.arange(bins)
+    bin_centers = (np.pi * (orientations_arr + .5) / bins)
+    delta1 = bin_centers[peaks[0]]
+    delta2 = bin_centers[peaks[1]]
+    beta = np.abs(np.sin(bin_centers[peaks[0]] - bin_centers[peaks[1]]))
+
+    return np.array([moment1, moment2, delta1, delta2, beta])
+
+
 class HistogramOfGradients(Feature):
     """
     Histogram of Oriented Gradient Feature Calculator
@@ -283,3 +340,12 @@ class HistogramOfGradients(Feature):
     base_image = 'grayscale'
     size = 5
     compute = staticmethod(hog_features)
+
+
+class ScipyHoG(HistogramOfGradients):
+    """Histogram of Oriented Gradient Feature Calculator
+
+    This has the same functionality as the other Histogram of Gradients
+    feature, but uses the scipy hog implementation
+    """
+    compute = staticmethod(hog_features_scipy)
