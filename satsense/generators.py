@@ -7,7 +7,93 @@ from .image import Image
 logger = logging.getLogger(__name__)
 
 
-class BalancedGenerator():
+class Generator():
+    def __init__(self, image: Image):
+        self.image = image
+        self.crs = image.crs
+        self.transform = image.transform
+
+        # set using load_image
+        self.loaded_itype = None
+        self._image_cache = None
+        self._windows = None
+        self._padding = None
+
+    def load_image(self, itype, windows):
+        """
+        Load image with sufficient additional data to cover windows.
+
+        Parameters
+        ----------
+            itype: str
+                Image type
+            windows: list[tuple]
+                The list of tuples of window shapes that will be used
+                with this generator
+        """
+        self._windows = tuple(sorted(windows, reverse=True))
+        self._padding = tuple(
+            max(math.ceil(0.5 * w[i]) for w in windows) for i in range(2))
+
+        block = self._get_blocks()
+        image = self.image.copy_block(block)
+        self._image_cache = image[itype]
+        self.loaded_itype = itype
+
+    def _get_blocks(self):
+        return None
+
+
+    def __getitem__(self, index):
+        """
+        Extract item from image.
+
+        Parameters
+        ----------
+            index: 1-D array-like
+                An array wich specifies the x and y coordinates
+                and the window shape to get from the generator
+
+        Examples:
+        ---------
+        >>> generator[0, 0, (100, 100)]
+        """
+        window = index[2]
+
+        slices = self._get_slices(index, window)
+
+        return self._image_cache[slices[0], slices[1]]
+
+    def _get_slices(self, index, window):
+        """
+        Calculate the array slices needed to retrieve the window from the image
+        at the provided index
+
+        Parameters
+        ----------
+            index:  1-D array-like
+                The x and y coordinates for the middle of the slice in pixels
+            window: 1-D array-like
+                The x and y size of the window
+
+        Returns
+        -------
+            tuple[tuple]
+                The x-range and y-range slices for the index and
+                window both with and without the padding included
+        """
+        slices = []
+
+        for i in range(2):
+            mid = self._padding[i] + index[i]
+            start = mid - math.floor(.5 * window[i])
+            end = start + window[i]
+            slices.append(slice(start, end))
+
+        return slices
+
+
+class BalancedGenerator(Generator):
     """
     Balanced window generator.
 
@@ -40,13 +126,22 @@ class BalancedGenerator():
                  image: Image,
                  masks,
                  p=None,
-                 samples=None,
-                 offset=(0, 0),
-                 shape=None):
-        raise NotImplementedError
+                 samples=None):
+        super().__init__(image)
+        self.masks = masks
 
+        self.p = p
+        self.samples = samples
 
-class FullGenerator():
+    def __iter__(self):
+        if self._image_cache is None:
+            raise RuntimeError("Please load an image first using load_image.")
+        for _ in range(self.samples):
+
+            for window in self._windows:
+                yield self[i, j, window]
+
+class FullGenerator(Generator):
     """Window generator that covers the full image.
 
     Parameters
@@ -67,7 +162,7 @@ class FullGenerator():
                  step_size: tuple,
                  offset=(0, 0),
                  shape=None):
-        self.image = image
+        super().__init__(image)
 
         self.step_size = step_size
         self.offset = offset
@@ -77,35 +172,7 @@ class FullGenerator():
                 math.ceil(image.shape[i] / step_size[i]) for i in range(2))
         self.shape = shape
 
-        self.crs = image.crs
         self.transform = image.scaled_transform(step_size)
-
-        # set using load_image
-        self.loaded_itype = None
-        self._image_cache = None
-        self._windows = None
-        self._padding = None
-
-    def load_image(self, itype, windows):
-        """
-        Load image with sufficient additional data to cover windows.
-
-        Parameters
-        ----------
-            itype: str
-                Image type
-            windows: list[tuple]
-                The list of tuples of window shapes that will be used
-                with this generator
-        """
-        self._windows = tuple(sorted(windows, reverse=True))
-        self._padding = tuple(
-            max(math.ceil(0.5 * w[i]) for w in windows) for i in range(2))
-
-        block = self._get_blocks()
-        image = self.image.copy_block(block)
-        self._image_cache = image[itype]
-        self.loaded_itype = itype
 
     def _get_blocks(self):
         """
@@ -171,26 +238,6 @@ class FullGenerator():
             for j in range(self.shape[1]):
                 for window in self._windows:
                     yield self[i, j, window]
-
-    def __getitem__(self, index):
-        """
-        Extract item from image.
-
-        Parameters
-        ----------
-            index: 1-D array-like
-                An array wich specifies the x and y coordinates
-                and the window shape to get from the generator
-
-        Examples:
-        ---------
-        >>> generator[0, 0, (100, 100)]
-        """
-        window = index[2]
-
-        slices = self._get_slices(index, window)
-
-        return self._image_cache[slices[0], slices[1]]
 
     def split(self, n_chunks):
         """
