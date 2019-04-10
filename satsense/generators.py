@@ -2,6 +2,9 @@
 import logging
 import math
 
+import numpy as np
+import shapely
+
 from .image import Image
 
 logger = logging.getLogger(__name__)
@@ -33,7 +36,7 @@ class Generator():
         """
         self._windows = tuple(sorted(windows, reverse=True))
         self._padding = tuple(
-            max(math.ceil(0.5 * w[i]) for w in windows) for i in range(2))
+            max(math.ceil(w[i]) for w in windows) for i in range(2))
 
         block = self._get_blocks()
         image = self.image.copy_block(block)
@@ -41,8 +44,17 @@ class Generator():
         self.loaded_itype = itype
 
     def _get_blocks(self):
-        return None
+        """
+        Calculate the size of the subset needed to include enough
+        data for the calculations of windows for this generator
+        """
+        block = []
+        for i in range(2):
+            start = -self._padding[i]
+            end = self.image.shape[i] + self._padding[i]
+            block.append((start, end))
 
+        return tuple(block)
 
     def __getitem__(self, index):
         """
@@ -93,9 +105,9 @@ class Generator():
         return slices
 
 
-class BalancedGenerator(Generator):
+class RandomSampleGenerator(Generator):
     """
-    Balanced window generator.
+    RandomSampleGenerator window generator.
 
     Parameters
     ----------
@@ -114,21 +126,18 @@ class BalancedGenerator(Generator):
 
     Examples
     ---------
-    Using BalancedGenerator
+    Using RandomSampleGenerator
 
-        >>> from satsense.generators import BalancedGenerator
-        >>> BalancedGenerator(image,
+        >>> from satsense.generators import RandomSampleGenerator
+        >>> RandomSampleGenerator(image,
                               [class1_mask, class2_mask, class3_mask],
-                              [0.33, 0.33, 0.33])
+                              [1/3, 1/3, 1/3])
     """
 
-    def __init__(self,
-                 image: Image,
-                 masks,
-                 p=None,
-                 samples=None):
+    def __init__(self, image: Image, masks, p=None, samples=None, seed=None):
         super().__init__(image)
         self.masks = masks
+        self.seed = seed
 
         self.p = p
         self.samples = samples
@@ -136,10 +145,35 @@ class BalancedGenerator(Generator):
     def __iter__(self):
         if self._image_cache is None:
             raise RuntimeError("Please load an image first using load_image.")
-        for _ in range(self.samples):
+
+        sample = 0
+        rand_state = np.random.RandomState(seed=self.seed)
+        while sample < self.samples:
+            sample += 1
+            # Pick a random mask
+            truth = rand_state.choice(len(self.masks), p=self.p)
+            mask = self.masks[truth]
+
+            # if isinstance(mask, shapely.geometry.base.BaseGeometry):
+            #     point = self.generate_random_point(mask)
+            #     i = point.y
+            #     j = point.x
+            # else:
+            choices = np.argwhere(mask.filled(0))
+            i, j = choices[np.random.choice(len(choices))]
 
             for window in self._windows:
-                yield self[i, j, window]
+                yield self[i, j, window], truth
+
+    def generate_random_point(self, polygon):
+        minx, miny, maxx, maxy = polygon.bounds
+        counter = 0
+        while counter < 1:
+            pnt = shapely.geometry.Point(np.random.uniform(minx, maxx), np.random.uniform(miny, maxy))
+            if polygon.contains(pnt):
+                counter += 1
+        return pnt
+
 
 class FullGenerator(Generator):
     """Window generator that covers the full image.
