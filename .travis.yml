@@ -33,3 +33,12 @@ after_success:
     pip install codacy-coverage;
     python-codacy-coverage -r test-reports/coverage.xml;
   fi
+
+deploy:
+  provider: pypi
+  user: nlesc
+  skip_existing: true
+  on:
+    tags: true
+  password:
+    secure: R7KSAqXGq+VPtF0Lwbc5ApETYzOE6I9YZc0oj4FzxRlwpFZPjV9G2ubBpgtl2vnJDXH+F+7ePUH8xOJ8xDtKKqg9oGUEFAED23cJ5g8L9YVlZ34tEt130+amIgFXngEAp5uD8UuGLq2j3i5MExDwSLmc09H71pQ/HBiP4ATsgt2Pz0Xpkz0NxMvZUVGPznpPJ+xMAUmfQp8KsBc0rdoG4/rQFSVXgAG3IAF2MxsWIxktt+ypaUCcQvnuSrEcpeyFD0gv3y1GrkxKPO32Hf5FAdK19taS+rsFCKBJnQoaf4F9mdHe7mYV5ntUgg4ntWhERj0/32pUCBwisX4GJKhusx574uLNGNx0f/jH9MJHkx1otAgf0vO30aSzK86rASCElIVWPN7BUl/xhV+a4DFhzcqHUFcUWuw3p6/gHBcTHp3mr3bOEQ7ZH5xucR3UgQABnJVYyLCJO4nVt3ib1pplWTe5IPBIO8bHC0o2ro0xE3nQYTIBzuOPMdBKiFR7jJNpzvKnmbHY2T9bhvSC88mW9Ek2RHM/J+g+5MtIiII1z2s7Lf1xmG+WH9sEO+CAdMRuDTVnDh8Jjg7FWeKz0/pEA/uQqYOYMTEOIxQbxcaVn4/Njlh6SRiZXNGd8oy3wZ07XZwrzgUiU++xeQnzA1xokCRbQjqtmHq/fH3QI5oDUZY=
