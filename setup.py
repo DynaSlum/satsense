@@ -1,16 +1,30 @@
 """Satsense package."""
+import re
+
 from setuptools import find_packages, setup
 
-with open('README.rst') as file:
-    README = file.read()
+
+def read(filename):
+    with open(filename) as file:
+        return file.read()
+
+
+def read_authors(citation_file):
+    """Read the list of authors from .cff file."""
+    authors = re.findall(
+        r'family-names: (.*)$\s*given-names: (.*)',
+        read(citation_file),
+        re.MULTILINE,
+    )
+    return ', '.join(' '.join(author[::-1]) for author in authors)
+
 
 setup(
     name='satsense',
     use_scm_version=True,
     url='https://github.com/DynaSlum/SateliteImaging',
     license='Apache Software License',
-    author=('Berend Weel, Elena Ranguelova, Bouwe Andela, Yifat Dzigan,'
-            ' Ronald van Haren, Niels Drost'),
+    author=read_authors('CITATION.cff'),
     setup_requires=[
         'pytest-runner',
         'setuptools_scm',
@@ -61,7 +75,7 @@ setup(
     },
     author_email='b.weel@esiencecenter.nl',
     description=('Library for multispectral remote imaging.'),
-    long_description=README,
+    long_description=read('README.rst'),
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
