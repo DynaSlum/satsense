@@ -1,5 +1,5 @@
 from .feature import Feature, FeatureSet
-from .hog import HistogramOfGradients
+from .hog import HistogramOfGradients, ScipyHoG
 from .lacunarity import Lacunarity
 from .ndxi import NDSI, NDWI, NDXI, WVSI, NirNDVI, RbNDVI, RgNDVI
 from .pantex import Pantex
@@ -14,6 +14,7 @@ __all__ = [
     'Feature',
     'FeatureSet',
     'HistogramOfGradients',
+    'ScipyHoG',
     'Pantex',
     'NDXI',
     'NirNDVI',
