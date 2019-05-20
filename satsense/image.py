@@ -746,7 +746,8 @@ class FeatureVector():
             dimensions = 'y', 'x'
 
         crs = dataset.createVariable('spatial_ref', 'i4')
-        crs.spatial_ref = self.crs.wkt
+        crs.crs_wkt = self.crs.wkt
+        crs.grid_mapping_name = ""
 
         # Transform the cell indices to lat/lon based on the image crs
         # and transform

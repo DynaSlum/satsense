@@ -19,7 +19,7 @@ class Generator():
         # set using load_image
         self.loaded_itype = None
         self._image_cache = None
-        self._windows = None
+        self.windows = None
         self._padding = None
 
     def load_image(self, itype, windows):
@@ -34,7 +34,7 @@ class Generator():
                 The list of tuples of window shapes that will be used
                 with this generator
         """
-        self._windows = tuple(sorted(windows, reverse=True))
+        self.windows = tuple(sorted(windows, reverse=True))
         self._padding = tuple(
             max(math.ceil(w[i]) for w in windows) for i in range(2))
 
@@ -134,13 +134,15 @@ class RandomSampleGenerator(Generator):
                               [1/3, 1/3, 1/3])
     """
 
-    def __init__(self, image: Image, masks, p=None, samples=None, seed=None):
+    def __init__(self, image: Image, masks, samples, p=None, seed=None):
         super().__init__(image)
         self.masks = masks
         self.seed = seed
+        self.samples = samples
+
+        self.shape = (self.samples, )
 
         self.p = p
-        self.samples = samples
 
     def __iter__(self):
         if self._image_cache is None:
@@ -162,14 +164,15 @@ class RandomSampleGenerator(Generator):
             choices = np.argwhere(mask.filled(0))
             i, j = choices[np.random.choice(len(choices))]
 
-            for window in self._windows:
+            for window in self.windows:
                 yield self[i, j, window], truth
 
     def generate_random_point(self, polygon):
         minx, miny, maxx, maxy = polygon.bounds
         counter = 0
         while counter < 1:
-            pnt = shapely.geometry.Point(np.random.uniform(minx, maxx), np.random.uniform(miny, maxy))
+            pnt = shapely.geometry.Point(np.random.uniform(minx, maxx),
+                                         np.random.uniform(miny, maxy))
             if polygon.contains(pnt):
                 counter += 1
         return pnt
@@ -270,7 +273,7 @@ class FullGenerator(Generator):
             raise RuntimeError("Please load an image first using load_image.")
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
-                for window in self._windows:
+                for window in self.windows:
                     yield self[i, j, window]
 
     def split(self, n_chunks):

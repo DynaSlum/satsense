@@ -6,8 +6,8 @@ Mappings for satelite image bands
 Notes
 =====
 Known satellites are
-    * worldview2 - 7 bands
-    * worldview3 - 7 bands
+    * worldview2 - 8 bands
+    * worldview3 - 8 bands
     * quickbird - 4 bands
     * pleiades - 5 bands
     * rgb - 3 bands
