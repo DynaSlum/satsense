@@ -285,10 +285,10 @@ means a lot of vegetation.
 .. image:: feature_extraction_files/feature_extraction_13_0.png
 
 
-Texton
+Pantex
 ^^^^^^
 
-Here we show the results for the Texton feature. The Pantex feature
+Here we show the results for the Pantex feature. The Pantex feature
 captures the level of built-up structures, purple means very little
 built-up while green means very built-up.
 
@@ -302,11 +302,11 @@ built-up while green means very built-up.
 
     ax2.axis('off')
     ax2.imshow(featureset[:, :, 11], cmap="PRGn")
-    ax2.set_title('Texton for window {}'.format(two_windows[0]))
+    ax2.set_title('Pantex for window {}'.format(two_windows[0]))
 
     ax3.axis('off')
     ax3.imshow(featureset[:, :, 12], cmap="PRGn")
-    ax3.set_title('Texton for window {}'.format(two_windows[1]))
+    ax3.set_title('Pantex for window {}'.format(two_windows[1]))
 
     plt.show()
 
