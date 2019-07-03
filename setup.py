@@ -53,9 +53,9 @@ setup(
         'numpy',
         'opencv-contrib-python-headless<3.4.3',
         'rasterio',
-        'scikit-image>=0.14.2',
+        'scikit-image>=0.14.2,<0.15',
         'scikit-learn',
-        'scipy',
+        'scipy<1.3',
         'shapely',
     ],
     extras_require={

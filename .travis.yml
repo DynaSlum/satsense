@@ -18,6 +18,7 @@ install:
   - sudo apt-add-repository -y ppa:nextgis/dev
   - sudo apt update
   - sudo apt install -y libgdal-dev libnetcdf-dev
+  - pip install --no-binary netcdf4 netcdf4  # see https://github.com/mapbox/rasterio/issues/1574
 
 before_script:
   - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
