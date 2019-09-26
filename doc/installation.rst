@@ -102,12 +102,12 @@ before starting development.
 
 Known installation issues
 -------------------------
-If you are experiencing 'NetCDF: HDF errors' after installation, this may be
-resolved by using the following command to install
+If you are experiencing 'NetCDF: HDF errors' after installation with pip,
+this may be resolved by using the following command to install
 
 .. code-block:: bash
 
-   pip install install --no-binary netcdf4 satsense
+   pip install --no-binary netcdf4 satsense
 
 see `this rasterio issue <https://github.com/rasterio/rasterio-wheels/issues/12>`_
 for more information.
