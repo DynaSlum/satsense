@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FDynaSlum%2Fsatsense.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FDynaSlum%2Fsatsense?ref=badge_shield)
+
 Satsense
 ========
 
@@ -90,3 +92,7 @@ The test data has been extracted from the Copernicus Sentinel data 2018.
    :target: https://satsense.readthedocs.io/en/latest/?badge=latest
 .. |DOI| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.1463015.svg
    :target: https://doi.org/10.5281/zenodo.1463015
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FDynaSlum%2Fsatsense.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FDynaSlum%2Fsatsense?ref=badge_large)
